@@ -1,0 +1,34 @@
+{
+  "name": "hooxie",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Delexo (@delexo)",
+  "homepage": "https://delexo.store",
+  "bugs": {
+    "url": "https://delexo.store",
+    "email": "support@delexo.store"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/delexo/hooxie.git"
+  },
+  "type": "module",
+  "description": "Hooxie by Delexo is a compact Windows overlay that delivers a prompt to a Cursor coding agent.",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --experimental-strip-types src/server.ts",
+    "test": "node --experimental-strip-types --test test/delivery.test.ts test/platform.test.ts test/sdk-shape.test.ts test/cursor-ready.test.ts test/cursor-account.test.ts test/run-activity.test.ts test/cursor-usage.test.ts",
+    "typecheck": "tsc --noEmit",
+    "pack:win": "powershell -File scripts/package-windows.ps1"
+  },
+  "optionalDependencies": {
+    "@cursor/sdk": "1.0.37"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}

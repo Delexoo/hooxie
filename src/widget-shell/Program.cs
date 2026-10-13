@@ -1,0 +1,1155 @@
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.Speech.Recognition;
+using System.Text.Json;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.WinForms;
+
+namespace HooxieShell;
+
+internal static class Program
+{
+    [STAThread]
+    private static void Main(string[] args)
+    {
+        var url = args.Length > 0 ? args[0] : "about:blank";
+        Environment.SetEnvironmentVariable("WEBVIEW2_DEFAULT_BACKGROUND_COLOR", "00000000");
+        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new ShellForm(url));
+    }
+}
+
+internal sealed class ShellForm : Form
+{
+    private readonly WebView2 view = new() { Dock = DockStyle.Fill };
+    private readonly System.Windows.Forms.Timer anim = new() { Interval = 12 };
+    private readonly System.Windows.Forms.Timer pin = new() { Interval = 200 };
+    private bool userMoved;
+    private bool animating;
+    private bool excludeCapture;
+    private bool blurBackground;
+    private bool followArmed;
+    private Point followGrab;
+    private readonly System.Windows.Forms.Timer follow = new() { Interval = 16 };
+    private readonly System.Windows.Forms.Timer blurTimer = new() { Interval = 180 };
+    private int blurBusy;
+    private long blurSignature;
+    private Rectangle blurSample;
+    private NotifyIcon? tray;
+    private readonly string pageUrl;
+    private Form? dashboard;
+    private WebView2? dashboardView;
+    private bool dashboardPageStarted;
+    private bool shellClosing;
+    private long animStart;
+    private Rectangle animFrom;
+    private Rectangle animTo;
+
+    public ShellForm(string url)
+    {
+        pageUrl = url;
+        Text = "Hooxie";
+        FormBorderStyle = FormBorderStyle.None;
+        TopMost = true;
+        ShowInTaskbar = false;
+        StartPosition = FormStartPosition.Manual;
+        BackColor = Color.Black;
+        ClientSize = new Size(448, 236);
+        PlaceAtTopCenter();
+        Controls.Add(view);
+        view.DefaultBackgroundColor = Color.Transparent;
+        anim.Tick += (_, _) => StepAnim();
+        pin.Tick += (_, _) => PinTopmost();
+        follow.Tick += (_, _) => StepFollow();
+        blurTimer.Tick += (_, _) =>
+        {
+            blurTimer.Stop();
+            RefreshBlur();
+        };
+        Shown += (_, _) =>
+        {
+            PinTopmost();
+            pin.Start();
+            Emit(new { ok = true, ready = true });
+        };
+        Load += async (_, _) =>
+        {
+            await OpenPage(url);
+            WarmDashboard();
+        };
+        var reader = new Thread(ReadCommands) { IsBackground = true };
+        reader.Start();
+    }
+
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            const int WS_EX_TOPMOST = 0x00000008;
+            const int WS_EX_NOREDIRECTIONBITMAP = 0x00200000;
+            var parameters = base.CreateParams;
+            parameters.ExStyle |= WS_EX_TOPMOST | WS_EX_NOREDIRECTIONBITMAP;
+            return parameters;
+        }
+    }
+
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        RegisterHotKey(Handle, 1, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, 0x48);
+        RegisterHotKey(Handle, 2, MOD_CONTROL | MOD_NOREPEAT, 0xDC);
+        RegisterHotKey(Handle, 3, MOD_CONTROL | MOD_NOREPEAT, 0x0D);
+        RegisterHotKey(Handle, 4, MOD_CONTROL | MOD_NOREPEAT, 0x52);
+        RegisterHotKey(Handle, 5, MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 0xDC);
+    }
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        for (var id = 1; id <= 9; id++) UnregisterHotKey(Handle, id);
+        if (tray != null)
+        {
+            tray.Visible = false;
+            tray.Dispose();
+        }
+        shellClosing = true;
+        if (dashboard != null && !dashboard.IsDisposed) dashboard.Close();
+        base.OnFormClosed(e);
+    }
+
+    protected override void OnDeactivate(EventArgs e)
+    {
+        base.OnDeactivate(e);
+        NotifyPage(false);
+        PinTopmost();
+    }
+
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+        BeginInvoke(() => NotifyPage(true));
+    }
+
+    private void NotifyPage(bool active)
+    {
+        if (active && GetForegroundWindow() != Handle) return;
+        var core = view.CoreWebView2;
+        if (core == null) return;
+        var flag = active ? "true" : "false";
+        core.ExecuteScriptAsync($"window.onWidgetActive&&window.onWidgetActive({flag})");
+    }
+
+    protected override void WndProc(ref Message m)
+    {
+        const int WM_HOTKEY = 0x0312;
+        if (m.Msg == WM_HOTKEY)
+        {
+            DispatchHotkey(m.WParam.ToInt32());
+            return;
+        }
+        const int WM_NCHITTEST = 0x0084;
+        const int HTTRANSPARENT = -1;
+        if (m.Msg == WM_NCHITTEST)
+        {
+            var packed = unchecked((int)(m.LParam.ToInt64() & 0xFFFFFFFF));
+            var screenX = (short)(packed & 0xFFFF);
+            var screenY = (short)((packed >> 16) & 0xFFFF);
+            if (GetWindowRect(Handle, out var window))
+            {
+                var localX = screenX - window.Left;
+                var localY = screenY - window.Top;
+                var width = window.Right - window.Left;
+                var height = window.Bottom - window.Top;
+                if (!InsideRoundedRect(localX, localY, width, height, CornerRadius(height)))
+                {
+                    m.Result = (IntPtr)HTTRANSPARENT;
+                    return;
+                }
+            }
+        }
+        const int WM_WINDOWPOSCHANGING = 0x0046;
+        if (m.Msg == WM_WINDOWPOSCHANGING)
+        {
+            var pos = System.Runtime.InteropServices.Marshal.PtrToStructure<WindowPos>(m.LParam);
+            pos.hwndInsertAfter = HWND_TOPMOST;
+            pos.flags &= ~SWP_NOZORDER;
+            System.Runtime.InteropServices.Marshal.StructureToPtr(pos, m.LParam, false);
+        }
+        base.WndProc(ref m);
+    }
+
+    private void PinTopmost()
+    {
+        if (!IsHandleCreated || !Visible) return;
+        TopMost = true;
+        SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        if (excludeCapture) ApplyCaptureAffinity();
+    }
+
+    private void HideWidget()
+    {
+        follow.Stop();
+        Hide();
+        EnsureTray();
+        tray!.Visible = true;
+    }
+
+    private void ShowWidget()
+    {
+        Show();
+        Activate();
+        PinTopmost();
+        if (excludeCapture) ApplyCaptureAffinity();
+        if (tray != null) tray.Visible = false;
+    }
+
+    private void EnsureTray()
+    {
+        if (tray != null) return;
+        tray = new NotifyIcon
+        {
+            Icon = SystemIcons.Application,
+            Text = "Show Hooxie",
+            Visible = false,
+        };
+        tray.MouseClick += (_, _) => BeginInvoke(ShowWidget);
+    }
+
+    private bool SetUndetectable(bool enabled)
+    {
+        excludeCapture = enabled;
+        var applied = ApplyCaptureAffinity();
+        if (enabled && !applied) excludeCapture = false;
+        return !enabled || applied;
+    }
+
+    private bool ApplyCaptureAffinity()
+    {
+        var affinity = excludeCapture ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE;
+        var applied = SetWindowDisplayAffinity(Handle, affinity);
+        EnumChildWindows(Handle, (child, _) =>
+        {
+            SetWindowDisplayAffinity(child, affinity);
+            return true;
+        }, IntPtr.Zero);
+        return applied;
+    }
+
+    private void StartFollow()
+    {
+        if (!GetCursorPos(out var cursor)) return;
+        followGrab = new Point(cursor.X - Left, cursor.Y - Top);
+        followArmed = false;
+        userMoved = true;
+        follow.Start();
+    }
+
+    private void StepFollow()
+    {
+        var down = (GetAsyncKeyState(0x01) & 0x8000) != 0;
+        if (!followArmed)
+        {
+            if (!down) followArmed = true;
+            MoveToCursor();
+            return;
+        }
+        if (down)
+        {
+            follow.Stop();
+            return;
+        }
+        MoveToCursor();
+    }
+
+    private void MoveToCursor()
+    {
+        if (!GetCursorPos(out var cursor)) return;
+        var area = Screen.FromControl(this).WorkingArea;
+        var x = Math.Clamp(cursor.X - followGrab.X, area.Left - Width + 80, area.Right - 80);
+        var y = Math.Clamp(cursor.Y - followGrab.Y, area.Top, area.Bottom - 40);
+        var shiftX = x - Left;
+        var shiftY = y - Top;
+        if (shiftX == 0 && shiftY == 0) return;
+        if (animating)
+        {
+            animFrom.X += shiftX;
+            animFrom.Y += shiftY;
+            animTo.X += shiftX;
+            animTo.Y += shiftY;
+        }
+        SetWindowPos(Handle, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+        ScheduleBlur();
+    }
+
+    private async Task OpenPage(string url)
+    {
+        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Z", "webview");
+        Directory.CreateDirectory(folder);
+        var environment = await CoreWebView2Environment.CreateAsync(null, folder, new CoreWebView2EnvironmentOptions("--autoplay-policy=no-user-gesture-required"));
+        await view.EnsureCoreWebView2Async(environment);
+        view.DefaultBackgroundColor = Color.Transparent;
+        view.CoreWebView2.PermissionRequested += (_, args) =>
+        {
+            if (args.PermissionKind != CoreWebView2PermissionKind.Microphone) return;
+            args.State = CoreWebView2PermissionState.Allow;
+            args.Handled = true;
+        };
+        var settings = view.CoreWebView2.Settings;
+        settings.AreDefaultContextMenusEnabled = false;
+        settings.AreDevToolsEnabled = false;
+        settings.IsStatusBarEnabled = false;
+        settings.IsZoomControlEnabled = false;
+        if (view.CoreWebView2 != null) KeepCursorLinksOutside(view.CoreWebView2);
+        view.Source = new Uri(url);
+        if (excludeCapture) ApplyCaptureAffinity();
+    }
+
+    private static bool IsCursorSite(string? uri)
+    {
+        if (string.IsNullOrWhiteSpace(uri)) return false;
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed)) return false;
+        if (parsed.Scheme != Uri.UriSchemeHttps) return false;
+        return parsed.Host.Equals("cursor.com", StringComparison.OrdinalIgnoreCase)
+            || parsed.Host.Equals("www.cursor.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void OpenCursorSite(string uri)
+    {
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri) { UseShellExecute = true });
+    }
+
+    private static void KeepCursorLinksOutside(CoreWebView2 core)
+    {
+        core.NewWindowRequested += (_, args) =>
+        {
+            if (!IsCursorSite(args.Uri)) return;
+            args.Handled = true;
+            OpenCursorSite(args.Uri);
+        };
+        core.NavigationStarting += (_, args) =>
+        {
+            if (!IsCursorSite(args.Uri)) return;
+            args.Cancel = true;
+            OpenCursorSite(args.Uri);
+        };
+    }
+
+    private void WarmDashboard()
+    {
+        EnsureDashboardWindow();
+        _ = LoadDashboardPage();
+    }
+
+    private Form EnsureDashboardWindow()
+    {
+        if (dashboard != null && !dashboard.IsDisposed) return dashboard;
+        var window = new Form
+        {
+            Text = "Hooxie",
+            StartPosition = FormStartPosition.CenterScreen,
+            ClientSize = new Size(1120, 760),
+            MinimumSize = new Size(720, 520),
+            BackColor = Color.FromArgb(12, 12, 12),
+            ShowInTaskbar = true,
+        };
+        var page = new WebView2 { Dock = DockStyle.Fill };
+        page.DefaultBackgroundColor = Color.FromArgb(12, 12, 12);
+        window.Controls.Add(page);
+        dashboardView = page;
+        dashboard = window;
+        window.FormClosing += (_, args) =>
+        {
+            if (shellClosing) return;
+            args.Cancel = true;
+            HideDashboard();
+        };
+        window.FormClosed += (_, _) =>
+        {
+            if (!ReferenceEquals(dashboard, window)) return;
+            dashboard = null;
+            dashboardView = null;
+            dashboardPageStarted = false;
+            NotifyDashboard(false);
+        };
+        _ = window.Handle;
+        return window;
+    }
+
+    private bool DashboardIsOpen()
+    {
+        return dashboard != null && !dashboard.IsDisposed && dashboard.Visible && dashboard.WindowState != FormWindowState.Minimized;
+    }
+
+    private void ToggleDashboard()
+    {
+        if (DashboardIsOpen()) HideDashboard();
+        else ShowDashboard();
+    }
+
+    private void ShowDashboard()
+    {
+        var window = EnsureDashboardWindow();
+        if (window.WindowState == FormWindowState.Minimized) window.WindowState = FormWindowState.Normal;
+        window.Show();
+        window.BringToFront();
+        window.Activate();
+        _ = LoadDashboardPage();
+        NotifyDashboard(true);
+    }
+
+    private void HideDashboard()
+    {
+        if (dashboard == null || dashboard.IsDisposed) return;
+        dashboard.Hide();
+        NotifyDashboard(false);
+    }
+
+    private void NotifyDashboard(bool open)
+    {
+        var core = view.CoreWebView2;
+        if (core == null) return;
+        var flag = open ? "true" : "false";
+        _ = core.ExecuteScriptAsync($"window.onDashboardOpen&&window.onDashboardOpen({flag})");
+    }
+
+    private async Task LoadDashboardPage()
+    {
+        var window = dashboard;
+        var page = dashboardView;
+        if (window == null || page == null || window.IsDisposed || dashboardPageStarted) return;
+        dashboardPageStarted = true;
+        try
+        {
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Z", "webview-dashboard");
+            Directory.CreateDirectory(folder);
+            var environment = await CoreWebView2Environment.CreateAsync(null, folder);
+            if (window.IsDisposed) return;
+            await page.EnsureCoreWebView2Async(environment);
+            if (window.IsDisposed || page.CoreWebView2 == null) return;
+            var settings = page.CoreWebView2.Settings;
+            settings.AreDefaultContextMenusEnabled = false;
+            settings.AreDevToolsEnabled = false;
+            settings.IsStatusBarEnabled = false;
+            settings.IsZoomControlEnabled = false;
+            KeepCursorLinksOutside(page.CoreWebView2);
+            var root = pageUrl.TrimEnd('/');
+            page.Source = new Uri(root + "/dashboard");
+        }
+        catch
+        {
+            dashboardPageStarted = false;
+            if (!shellClosing && window != null && !window.IsDisposed) window.Hide();
+        }
+    }
+
+    private void ReadCommands()
+    {
+        string? line;
+        while ((line = Console.ReadLine()) is not null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            try
+            {
+                using var doc = JsonDocument.Parse(line);
+                var root = doc.RootElement;
+                var cmd = root.GetProperty("cmd").GetString();
+                switch (cmd)
+                {
+                    case "fit":
+                        var width = ReadInt(root, "cssWidth");
+                        var height = ReadInt(root, "cssHeight");
+                        BeginInvoke(() => Fit(width, height));
+                        break;
+                    case "move":
+                        var dx = ReadInt(root, "dx");
+                        var dy = ReadInt(root, "dy");
+                        BeginInvoke(() => Nudge(dx, dy));
+                        break;
+                    case "browse":
+                        var initial = root.TryGetProperty("initialPath", out var pathEl) ? pathEl.GetString() ?? "" : "";
+                        string picked = "";
+                        Invoke(() => picked = Browse(initial));
+                        Emit(new { ok = true, path = picked });
+                        break;
+                    case "capture":
+                        string captured = "";
+                        Invoke(() => captured = CaptureScreen());
+                        Emit(new { ok = true, image = captured, mimeType = "image/jpeg" });
+                        break;
+                    case "voice":
+                        var action = root.TryGetProperty("action", out var actionEl) ? actionEl.GetString() ?? "" : "";
+                        try
+                        {
+                            if (action == "start") StartVoice();
+                            else if (action == "stop") StopVoice();
+                            else if (action != "poll") throw new InvalidOperationException("Unknown voice action.");
+                            var state = VoiceState();
+                            Emit(new { ok = true, listening = state.Listening, text = state.Text, error = state.Error });
+                        }
+                        catch (Exception ex)
+                        {
+                            Emit(new { ok = false, listening = false, text = "", error = ex.Message });
+                        }
+                        break;
+                    case "focus":
+                        Emit(new { ok = true, active = GetForegroundWindow() == Handle });
+                        break;
+                    case "visible":
+                        var shown = root.TryGetProperty("shown", out var shownEl) && shownEl.ValueKind == JsonValueKind.True;
+                        Invoke(() => { if (shown) ShowWidget(); else HideWidget(); });
+                        Emit(new { ok = true, shown = Visible });
+                        break;
+                    case "follow":
+                        BeginInvoke(StartFollow);
+                        Emit(new { ok = true });
+                        break;
+                    case "blur":
+                        var blurOn = root.TryGetProperty("enabled", out var blurEl) && blurEl.ValueKind == JsonValueKind.True;
+                        Invoke(() => SetBlur(blurOn));
+                        Emit(new { ok = true, enabled = blurBackground });
+                        break;
+                    case "arrows":
+                        var arrowsOn = root.TryGetProperty("enabled", out var arrowsEl) && arrowsEl.ValueKind == JsonValueKind.True;
+                        Invoke(() => SetMoveKeys(arrowsOn));
+                        Emit(new { ok = true, enabled = moveKeys });
+                        break;
+                    case "undetectable":
+                        var enabled = root.TryGetProperty("enabled", out var enabledEl) && enabledEl.ValueKind == JsonValueKind.True;
+                        var applied = false;
+                        Invoke(() => applied = SetUndetectable(enabled));
+                        if (!applied && enabled) excludeCapture = false;
+                        Emit(new { ok = applied || !enabled, enabled = excludeCapture, error = applied || !enabled ? "" : "This Windows session could not hide Hooxie from capture." });
+                        break;
+                    case "dashboard":
+                        var dashOpen = false;
+                        Invoke(() =>
+                        {
+                            ToggleDashboard();
+                            dashOpen = DashboardIsOpen();
+                        });
+                        Emit(new { ok = true, open = dashOpen });
+                        break;
+                    case "quit":
+                        Emit(new { ok = true });
+                        BeginInvoke(Close);
+                        return;
+                    default:
+                        Emit(new { ok = false, error = "unknown" });
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Emit(new { ok = false, error = ex.Message });
+            }
+        }
+    }
+
+    private void PlaceAtTopCenter()
+    {
+        var area = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 800);
+        Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + 16);
+    }
+
+    private void Fit(int width, int height)
+    {
+        var target = TargetBounds(width, height);
+        var same = target.X == Left && target.Y == Top && target.Width == Width && target.Height == Height;
+        if (same)
+        {
+            if (animating)
+            {
+                anim.Stop();
+                animating = false;
+            }
+            Emit(new { ok = true });
+            return;
+        }
+        var tiny = Math.Abs(target.Height - Height) < 6
+            && Math.Abs(target.Width - Width) < 2
+            && Math.Abs(target.Y - Top) < 6;
+        if (tiny)
+        {
+            ApplyBounds(target);
+            Emit(new { ok = true });
+            return;
+        }
+        animFrom = new Rectangle(Left, Top, Width, Height);
+        animTo = target;
+        animStart = Environment.TickCount64;
+        if (!animating)
+        {
+            animating = true;
+            anim.Start();
+        }
+        Emit(new { ok = true });
+    }
+
+    private void StepAnim()
+    {
+        const int duration = 280;
+        var t = Math.Clamp((Environment.TickCount64 - animStart) / (double)duration, 0, 1);
+        var eased = 1 - Math.Pow(1 - t, 4);
+        if (t >= 1)
+        {
+            anim.Stop();
+            animating = false;
+            ApplyBounds(animTo);
+            return;
+        }
+        ApplyBounds(new Rectangle(
+            Lerp(animFrom.X, animTo.X, eased),
+            Lerp(animFrom.Y, animTo.Y, eased),
+            Lerp(animFrom.Width, animTo.Width, eased),
+            Lerp(animFrom.Height, animTo.Height, eased)));
+    }
+
+    private Rectangle TargetBounds(int width, int height)
+    {
+        var next = new Size(Math.Clamp(width, 280, 900), Math.Clamp(height, 48, 900));
+        var area = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 800);
+        var top = Top;
+        var center = Left + Width / 2.0;
+        var left = userMoved
+            ? (int)Math.Round(center - next.Width / 2.0)
+            : area.Left + Math.Max(0, (area.Width - next.Width) / 2);
+        if (top + next.Height > area.Bottom) top = Math.Max(area.Top, area.Bottom - next.Height);
+        return new Rectangle(left, top, next.Width, next.Height);
+    }
+
+    private void ApplyBounds(Rectangle bounds)
+    {
+        if (bounds.X == Left && bounds.Y == Top && bounds.Width == Width && bounds.Height == Height) return;
+        SetWindowPos(Handle, HWND_TOPMOST, bounds.X, bounds.Y, bounds.Width, bounds.Height, SWP_NOACTIVATE | SWP_NOCOPYBITS);
+        ScheduleBlur();
+    }
+
+    private void ScheduleBlur()
+    {
+        if (!blurBackground) return;
+        blurTimer.Stop();
+        blurTimer.Start();
+    }
+
+    private void SetBlur(bool enabled)
+    {
+        blurBackground = enabled;
+        if (!enabled)
+        {
+            blurTimer.Stop();
+            blurSignature = 0;
+            view.CoreWebView2?.ExecuteScriptAsync("window.setHooxieBlur&&window.setHooxieBlur('')");
+            return;
+        }
+        RefreshBlur();
+    }
+
+    private void RefreshBlur()
+    {
+        if (!blurBackground || !IsHandleCreated || !Visible || view.CoreWebView2 == null) return;
+        if (System.Threading.Interlocked.Exchange(ref blurBusy, 1) == 1) return;
+        if (!GetWindowRect(Handle, out var window))
+        {
+            System.Threading.Interlocked.Exchange(ref blurBusy, 0);
+            return;
+        }
+        var width = window.Right - window.Left;
+        var height = window.Bottom - window.Top;
+        if (width < 8 || height < 8)
+        {
+            System.Threading.Interlocked.Exchange(ref blurBusy, 0);
+            return;
+        }
+        var restore = !excludeCapture;
+        if (restore) HideFromCapture();
+        var sample = new Rectangle(window.Left, window.Top, width, height);
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            string? encoded = null;
+            try
+            {
+                if (restore) Thread.Sleep(30);
+                encoded = CaptureSmoothBlur(sample, restore);
+            }
+            catch
+            {
+                encoded = null;
+                if (restore) BeginInvoke(() => { if (!excludeCapture) ApplyCaptureAffinity(); });
+            }
+            try
+            {
+                BeginInvoke(() =>
+                {
+                    if (blurBackground && encoded != null && view.CoreWebView2 != null)
+                        view.CoreWebView2.ExecuteScriptAsync($"window.setHooxieBlur&&window.setHooxieBlur('data:image/png;base64,{encoded}')");
+                    System.Threading.Interlocked.Exchange(ref blurBusy, 0);
+                });
+            }
+            catch
+            {
+                System.Threading.Interlocked.Exchange(ref blurBusy, 0);
+            }
+        });
+    }
+
+    private void HideFromCapture()
+    {
+        SetWindowDisplayAffinity(Handle, WDA_EXCLUDEFROMCAPTURE);
+        EnumChildWindows(Handle, (child, _) =>
+        {
+            SetWindowDisplayAffinity(child, WDA_EXCLUDEFROMCAPTURE);
+            return true;
+        }, IntPtr.Zero);
+    }
+
+    private string? CaptureSmoothBlur(Rectangle sample, bool restoreCapture)
+    {
+        using var raw = new Bitmap(sample.Width, sample.Height, PixelFormat.Format32bppArgb);
+        using (var graphics = Graphics.FromImage(raw))
+            graphics.CopyFromScreen(sample.Left, sample.Top, 0, 0, raw.Size, CopyPixelOperation.SourceCopy);
+        if (restoreCapture)
+        {
+            try { BeginInvoke(() => { if (!excludeCapture) ApplyCaptureAffinity(); }); }
+            catch { /* The widget is closing. */ }
+        }
+        var previewWidth = Math.Clamp(sample.Width / 2, 180, 520);
+        var previewHeight = Math.Max(48, sample.Height * previewWidth / sample.Width);
+        using var preview = new Bitmap(previewWidth, previewHeight, PixelFormat.Format32bppArgb);
+        using (var graphics = Graphics.FromImage(preview))
+        {
+            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            graphics.CompositingQuality = CompositingQuality.HighQuality;
+            graphics.DrawImage(raw, new Rectangle(0, 0, previewWidth, previewHeight));
+        }
+        var radius = Math.Max(14, previewWidth / 8);
+        Soften(preview, radius);
+        Soften(preview, radius);
+        var signature = BlurSignature(preview);
+        var shifted = Math.Abs(sample.X - blurSample.X) + Math.Abs(sample.Y - blurSample.Y);
+        var resized = sample.Width != blurSample.Width || sample.Height != blurSample.Height;
+        if (signature == blurSignature && shifted < 10 && !resized) return null;
+        blurSignature = signature;
+        blurSample = sample;
+        using var smooth = new Bitmap(sample.Width, sample.Height, PixelFormat.Format32bppArgb);
+        using (var graphics = Graphics.FromImage(smooth))
+        {
+            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            graphics.DrawImage(preview, new Rectangle(0, 0, sample.Width, sample.Height));
+        }
+        using var stream = new MemoryStream();
+        smooth.Save(stream, ImageFormat.Png);
+        return Convert.ToBase64String(stream.ToArray());
+    }
+
+    private static long BlurSignature(Bitmap bitmap)
+    {
+        long hash = 17;
+        for (var y = 0; y < bitmap.Height; y += 6)
+        {
+            for (var x = 0; x < bitmap.Width; x += 6)
+            {
+                var color = bitmap.GetPixel(x, y);
+                hash = unchecked(hash * 33 + (color.R >> 3) + (color.G >> 3) * 19 + (color.B >> 3) * 41);
+            }
+        }
+        return hash;
+    }
+
+    private static void Soften(Bitmap bitmap, int radius)
+    {
+        var area = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+        var data = bitmap.LockBits(area, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        var bytes = new byte[Math.Abs(data.Stride) * data.Height];
+        System.Runtime.InteropServices.Marshal.Copy(data.Scan0, bytes, 0, bytes.Length);
+        var horizontal = new byte[bytes.Length];
+        BlurHorizontal(bytes, horizontal, data.Width, data.Height, data.Stride, radius);
+        BlurVertical(horizontal, bytes, data.Width, data.Height, data.Stride, radius);
+        System.Runtime.InteropServices.Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
+        bitmap.UnlockBits(data);
+    }
+
+    private static void BlurHorizontal(byte[] source, byte[] target, int width, int height, int stride, int radius)
+    {
+        var window = radius * 2 + 1;
+        for (var y = 0; y < height; y++)
+        {
+            var row = y * stride;
+            var blue = 0;
+            var green = 0;
+            var red = 0;
+            for (var offset = -radius; offset <= radius; offset++)
+            {
+                var index = row + Math.Clamp(offset, 0, width - 1) * 4;
+                blue += source[index];
+                green += source[index + 1];
+                red += source[index + 2];
+            }
+            for (var x = 0; x < width; x++)
+            {
+                var indexOut = row + x * 4;
+                target[indexOut] = (byte)(blue / window);
+                target[indexOut + 1] = (byte)(green / window);
+                target[indexOut + 2] = (byte)(red / window);
+                target[indexOut + 3] = 255;
+                var leaving = row + Math.Clamp(x - radius, 0, width - 1) * 4;
+                var entering = row + Math.Clamp(x + radius + 1, 0, width - 1) * 4;
+                blue += source[entering] - source[leaving];
+                green += source[entering + 1] - source[leaving + 1];
+                red += source[entering + 2] - source[leaving + 2];
+            }
+        }
+    }
+
+    private static void BlurVertical(byte[] source, byte[] target, int width, int height, int stride, int radius)
+    {
+        var window = radius * 2 + 1;
+        for (var x = 0; x < width; x++)
+        {
+            var blue = 0;
+            var green = 0;
+            var red = 0;
+            for (var offset = -radius; offset <= radius; offset++)
+            {
+                var index = Math.Clamp(offset, 0, height - 1) * stride + x * 4;
+                blue += source[index];
+                green += source[index + 1];
+                red += source[index + 2];
+            }
+            for (var y = 0; y < height; y++)
+            {
+                var indexOut = y * stride + x * 4;
+                target[indexOut] = (byte)(blue / window);
+                target[indexOut + 1] = (byte)(green / window);
+                target[indexOut + 2] = (byte)(red / window);
+                target[indexOut + 3] = 255;
+                var leaving = Math.Clamp(y - radius, 0, height - 1) * stride + x * 4;
+                var entering = Math.Clamp(y + radius + 1, 0, height - 1) * stride + x * 4;
+                blue += source[entering] - source[leaving];
+                green += source[entering + 1] - source[leaving + 1];
+                red += source[entering + 2] - source[leaving + 2];
+            }
+        }
+    }
+
+    private void Nudge(int dx, int dy)
+    {
+        Shift(dx, dy);
+        Emit(new { ok = true });
+    }
+
+    private void Shift(int dx, int dy)
+    {
+        userMoved = true;
+        follow.Stop();
+        var area = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 800);
+        var x = Math.Clamp(Left + dx, area.Left - Width + 80, area.Right - 80);
+        var y = Math.Clamp(Top + dy, area.Top, area.Bottom - 40);
+        var shiftX = x - Left;
+        var shiftY = y - Top;
+        if (shiftX == 0 && shiftY == 0) return;
+        if (animating)
+        {
+            animFrom.X += shiftX;
+            animFrom.Y += shiftY;
+            animTo.X += shiftX;
+            animTo.Y += shiftY;
+        }
+        SetWindowPos(Handle, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+        ScheduleBlur();
+    }
+
+    private bool moveKeys;
+
+    private void SetMoveKeys(bool enabled)
+    {
+        if (moveKeys == enabled) return;
+        if (enabled)
+        {
+            RegisterHotKey(Handle, 6, MOD_CONTROL, 0x26);
+            RegisterHotKey(Handle, 7, MOD_CONTROL, 0x28);
+            RegisterHotKey(Handle, 8, MOD_CONTROL, 0x25);
+            RegisterHotKey(Handle, 9, MOD_CONTROL, 0x27);
+        }
+        else
+        {
+            for (var id = 6; id <= 9; id++) UnregisterHotKey(Handle, id);
+        }
+        moveKeys = enabled;
+    }
+
+    private void DispatchHotkey(int id)
+    {
+        if (id == 1 || id == 2)
+        {
+            if (Visible) HideWidget();
+            else ShowWidget();
+            return;
+        }
+        if (id == 3)
+        {
+            if (!Visible) ShowWidget();
+            NotifyHotkey("ask");
+            return;
+        }
+        if (id == 4)
+        {
+            NotifyHotkey("clear");
+            return;
+        }
+        if (id == 5)
+        {
+            if (!Visible) ShowWidget();
+            NotifyHotkey("session");
+            return;
+        }
+        if (id == 6) Shift(0, -40);
+        else if (id == 7) Shift(0, 40);
+        else if (id == 8) Shift(-40, 0);
+        else if (id == 9) Shift(40, 0);
+    }
+
+    private void NotifyHotkey(string name)
+    {
+        var core = view.CoreWebView2;
+        if (core == null) return;
+        core.ExecuteScriptAsync($"window.onHooxieHotkey&&window.onHooxieHotkey({JsonSerializer.Serialize(name)})");
+    }
+
+    private static string Browse(string initialPath)
+    {
+        using var dialog = new FolderBrowserDialog { Description = "Folder Hooxie may modify" };
+        if (Directory.Exists(initialPath)) dialog.SelectedPath = initialPath;
+        return dialog.ShowDialog() == DialogResult.OK ? dialog.SelectedPath : "";
+    }
+
+    private static int CornerRadius(int height)
+    {
+        return Math.Min(25, Math.Max(height / 2, 8));
+    }
+
+    private static bool InsideRoundedRect(int x, int y, int width, int height, int radius)
+    {
+        if (x < 0 || y < 0 || x >= width || y >= height) return false;
+        var r = Math.Min(radius + 1, Math.Min(width, height) / 2);
+        var midX = x >= r && x < width - r;
+        var midY = y >= r && y < height - r;
+        if (midX || midY) return true;
+        var cx = x < r ? r : width - r;
+        var cy = y < r ? r : height - r;
+        var dx = x - cx;
+        var dy = y - cy;
+        return dx * dx + dy * dy <= r * r;
+    }
+
+    private SpeechRecognitionEngine? voiceEngine;
+    private readonly object voiceGate = new();
+    private string voiceCommitted = "";
+    private string voiceLive = "";
+    private string voiceError = "";
+
+    private void StartVoice()
+    {
+        StopVoice();
+        lock (voiceGate)
+        {
+            voiceCommitted = "";
+            voiceLive = "";
+            voiceError = "";
+        }
+        var installed = SpeechRecognitionEngine.InstalledRecognizers();
+        if (installed.Count == 0)
+        {
+            throw new InvalidOperationException("Windows speech recognition is not installed. Add a speech language in Windows settings.");
+        }
+        var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        var chosen = installed.FirstOrDefault(item => item.Culture.TwoLetterISOLanguageName.Equals(language, StringComparison.OrdinalIgnoreCase)) ?? installed[0];
+        var engine = new SpeechRecognitionEngine(chosen);
+        try
+        {
+            engine.LoadGrammar(new DictationGrammar());
+            engine.SetInputToDefaultAudioDevice();
+            engine.SpeechHypothesized += (_, args) =>
+            {
+                lock (voiceGate) voiceLive = args.Result?.Text ?? "";
+            };
+            engine.SpeechRecognized += (_, args) =>
+            {
+                var said = (args.Result?.Text ?? "").Trim();
+                if (said.Length == 0) return;
+                lock (voiceGate)
+                {
+                    voiceCommitted = string.IsNullOrEmpty(voiceCommitted) ? said : voiceCommitted + " " + said;
+                    voiceLive = "";
+                }
+            };
+            engine.RecognizeCompleted += (_, args) =>
+            {
+                if (args.Error == null) return;
+                lock (voiceGate) voiceError = args.Error.Message;
+            };
+            engine.RecognizeAsync(RecognizeMode.Multiple);
+            voiceEngine = engine;
+        }
+        catch
+        {
+            engine.Dispose();
+            throw;
+        }
+    }
+
+    private void StopVoice()
+    {
+        var engine = voiceEngine;
+        voiceEngine = null;
+        if (engine == null) return;
+        try { engine.RecognizeAsyncCancel(); } catch { /* already stopped */ }
+        try { engine.Dispose(); } catch { /* already disposed */ }
+    }
+
+    private (bool Listening, string Text, string Error) VoiceState()
+    {
+        lock (voiceGate)
+        {
+            var text = string.Join(" ", new[] { voiceCommitted, voiceLive }.Where(part => !string.IsNullOrWhiteSpace(part))).Trim();
+            return (voiceEngine != null, text, voiceError);
+        }
+    }
+
+    private string CaptureScreen()
+    {
+        var screen = Screen.FromControl(this);
+        var bounds = screen.Bounds;
+        var wasVisible = Visible;
+        try
+        {
+            if (wasVisible)
+            {
+                Visible = false;
+                Application.DoEvents();
+                Thread.Sleep(140);
+            }
+            using var full = new Bitmap(bounds.Width, bounds.Height, PixelFormat.Format24bppRgb);
+            using (var graphics = Graphics.FromImage(full))
+            {
+                graphics.CopyFromScreen(bounds.Left, bounds.Top, 0, 0, bounds.Size, CopyPixelOperation.SourceCopy);
+            }
+            using var fitted = FitWidth(full, 1600);
+            using var stream = new MemoryStream();
+            SaveJpeg(fitted, stream, 62);
+            return Convert.ToBase64String(stream.ToArray());
+        }
+        finally
+        {
+            if (wasVisible)
+            {
+                Visible = true;
+                PinTopmost();
+            }
+        }
+    }
+
+    private static Bitmap FitWidth(Bitmap source, int maxWidth)
+    {
+        if (source.Width <= maxWidth) return (Bitmap)source.Clone();
+        var height = Math.Max(1, (int)Math.Round(source.Height * (maxWidth / (double)source.Width)));
+        return new Bitmap(source, new Size(maxWidth, height));
+    }
+
+    private static void SaveJpeg(Bitmap bitmap, Stream stream, long quality)
+    {
+        var encoder = ImageCodecInfo.GetImageEncoders().First(item => item.FormatID == ImageFormat.Jpeg.Guid);
+        using var parameters = new EncoderParameters(1);
+        parameters.Param[0] = new EncoderParameter(Encoder.Quality, quality);
+        bitmap.Save(stream, encoder, parameters);
+    }
+
+    private static int Lerp(int from, int to, double t)
+    {
+        return (int)Math.Round(from + (to - from) * t);
+    }
+
+    private static int ReadInt(JsonElement root, string name)
+    {
+        return (int)Math.Round(root.GetProperty(name).GetDouble());
+    }
+
+    private static void Emit(object body)
+    {
+        Console.Out.WriteLine(JsonSerializer.Serialize(body));
+        Console.Out.Flush();
+    }
+
+    private static readonly IntPtr HWND_TOPMOST = new(-1);
+    private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_NOZORDER = 0x0004;
+    private const uint SWP_NOACTIVATE = 0x0010;
+    private const uint SWP_NOCOPYBITS = 0x0100;
+    private const uint MOD_ALT = 0x0001;
+    private const uint MOD_CONTROL = 0x0002;
+    private const uint MOD_SHIFT = 0x0004;
+    private const uint MOD_NOREPEAT = 0x4000;
+    private const uint WDA_NONE = 0x0;
+    private const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
+
+    private delegate bool EnumChildProc(IntPtr hWnd, IntPtr lParam);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct CursorPoint
+    {
+        public int X;
+        public int Y;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct WindowPos
+    {
+        public IntPtr hwnd;
+        public IntPtr hwndInsertAfter;
+        public int x;
+        public int y;
+        public int cx;
+        public int cy;
+        public uint flags;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct WindowRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, out WindowRect rect);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint affinity);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(IntPtr hWnd, EnumChildProc lpEnumFunc, IntPtr lParam);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out CursorPoint point);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int virtualKey);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint modifiers, uint virtualKey);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+}

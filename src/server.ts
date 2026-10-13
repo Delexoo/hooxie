@@ -1,0 +1,1010 @@
+import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import http from "node:http";
+import path from "node:path";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { AdapterRegistry, clipboardAdapter, companionAdapter, cursorSdkAdapter, loadRealCursorSdk } from "./adapters.ts";
+import type { AdapterContext, ClipboardPort, CursorSdkClient } from "./adapters.ts";
+import { IDE_CATALOG } from "./catalog.ts";
+import { CompanionHub } from "./companion.ts";
+import { DeliveryService } from "./delivery.ts";
+import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
+import { accountConnected, openLoginUrl, publicConnectError } from "./cursor-account.ts";
+import { readCursorUsage } from "./cursor-usage.ts";
+import { readCursorReady } from "./cursor-ready.ts";
+import { detectInstallations } from "./detect.ts";
+import type { DetectDeps } from "./detect.ts";
+import { validateHello, validateResult } from "../extensions/z-agent-bridge/protocol.js";
+import type { IdeId, Installation, SubmitInput } from "./types.ts";
+import { DeliveryError, IDE_IDS } from "./types.ts";
+import { checkoutIsComplete, createCheckoutSession, readDotEnv, validEmail, type BillingConfig } from "./billing.ts";
+import type { WidgetControl } from "./widget.ts";
+
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const publicDir = path.join(rootDir, "public");
+const siteDir = path.join(rootDir, "site");
+const BUTTON_COLORS = ["#ffffff", "#4d9fff", "#3ddc97", "#ff8a3d", "#ff5d8f", "#b07bff", "#ffe14a", "#ff4d4d", "#3ee0d2"];
+const CHIMES = new Set(["blushing", "xtreme-bass", "undertaker", "ekh", "cat-choke", "off", "custom"]);
+const SOUND_FILES = new Set([
+  "blushing-sound.mp3",
+  "xtreme-bass-effect.mp3",
+  "undertaker-cloche.mp3",
+  "ekh.mp3",
+  "cat-choke.mp3",
+]);
+const LANGUAGES = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
+const SITE_FILES: Record<string, string> = {
+  "/home": "index.html",
+  "/dashboard": "dashboard.html",
+  "/terms": "terms.html",
+  "/privacy": "privacy.html",
+  "/refund": "refund.html",
+  "/releases": "releases.html",
+  "/help": "help.html",
+  "/contact": "contact.html",
+  "/license": "license.html",
+  "/site.css": "site.css",
+  "/site.js": "site.js",
+  "/ascii.js": "ascii.js",
+  "/download/hooxie-windows.ps1": "download/hooxie-windows.ps1",
+  "/ascii-editor/demos/generated/ref-029.webp": "ascii-editor/demos/generated/ref-029.jpg",
+  "/ascii-editor/demos/generated/ref-029.jpg": "ascii-editor/demos/generated/ref-029.jpg",
+};
+
+export interface BridgeOptions {
+  port?: number;
+  host?: string;
+  configDir?: string;
+  clipboard?: ClipboardPort;
+  sdk?: CursorSdkClient;
+  sdkReady?: boolean;
+  detect?: DetectDeps;
+  sessionTtlMs?: number;
+  companionTimeoutMs?: number;
+  opener?: (executable: string, projectPath: string) => void;
+  installations?: Installation[];
+  apiKey?: string;
+  widget?: WidgetControl;
+}
+
+export interface BridgeHandle {
+  baseUrl: string;
+  port: number;
+  pageToken: string;
+  bridgeToken: string;
+  registry: AdapterRegistry;
+  service: DeliveryService;
+  close(): Promise<void>;
+}
+
+export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHandle> {
+  const host = options.host ?? "127.0.0.1";
+  if (host !== "127.0.0.1") throw new Error("Hooxie only binds to 127.0.0.1.");
+  const configDir = options.configDir ?? defaultConfigDir();
+  await fs.mkdir(configDir, { recursive: true });
+  const pageToken = crypto.randomBytes(24).toString("hex");
+  const bridgeToken = crypto.randomBytes(24).toString("hex");
+  const hub = new CompanionHub(options.sessionTtlMs ?? 5000, options.companionTimeoutMs ?? 20000);
+  const registry = new AdapterRegistry();
+  registry.register(cursorSdkAdapter());
+  registry.register(companionAdapter());
+  registry.register(clipboardAdapter());
+
+  let apiKey = options.apiKey ?? (await readOptional(path.join(configDir, "cursor-api-key")));
+  let sdkAccount = false;
+  if (!apiKey) {
+    try {
+      const sdk = await import("@cursor/sdk") as {
+        Cursor: { auth: { status(): Promise<{ status?: string }> } };
+      };
+      const status = await sdk.Cursor.auth.status();
+      sdkAccount = status.status === "logged-in";
+    } catch {
+      sdkAccount = false;
+    }
+  }
+  let connectTask: Promise<void> | null = null;
+  const storeDir = path.join(configDir, "agent-store");
+  let sdk = options.sdk;
+  let sdkReady = options.sdkReady ?? Boolean(sdk);
+  if (!sdk && options.sdkReady !== false) {
+    sdk = await loadRealCursorSdk(storeDir);
+    sdkReady = Boolean(sdk);
+  }
+  const clipboard = options.clipboard ?? createUnavailableClipboard();
+  let installations: Installation[] = options.installations ?? [];
+  if (!options.installations) {
+    try {
+      installations = await detectInstallations(options.detect);
+    } catch {
+      installations = [];
+    }
+  }
+
+  const fileEnv = await readOptional(path.join(rootDir, ".env"));
+  const mergedEnv = { ...(fileEnv ? readDotEnv(fileEnv) : {}), ...process.env };
+  const billing: BillingConfig = {
+    secretKey: mergedEnv.STRIPE_SECRET_KEY || "",
+    priceId: mergedEnv.STRIPE_PRICE_ID || "",
+    promoCode: mergedEnv.HOOXIE_PROMO_CODE || "",
+    promoId: mergedEnv.STRIPE_PROMO_ID || "",
+  };
+  let settings = await loadSettings(configDir);
+
+  const service = new DeliveryService(registry, (input) => {
+    const ctx: AdapterContext = {
+      ide: input.ide,
+      projectPath: input.projectPath,
+      apiKey,
+      sdkAccount,
+      sdkReady,
+      allowUnsandboxed: input.allowUnsandboxed,
+      experimentalSubmit: input.experimentalSubmit,
+      hub,
+      clipboard,
+      sdk,
+      storeDir,
+      installations,
+    };
+    return ctx;
+  });
+
+  const indexHtml = (await fs.readFile(path.join(publicDir, "index.html"), "utf8")).replaceAll("__Z_TOKEN__", pageToken);
+
+  function settingsBody() {
+    return { ...settings, cursorConnected: accountConnected(apiKey, sdkAccount) };
+  }
+
+  async function beginCursorLogin(signal: AbortSignal): Promise<void> {
+    if (accountConnected(apiKey, sdkAccount)) return;
+    if (!connectTask) {
+      connectTask = (async () => {
+        const sdk = await import("@cursor/sdk") as {
+          Cursor: {
+            auth: {
+              login(options: {
+                apiKeyName?: string;
+                openBrowser?: (url: string) => void;
+                onLoginUrl?: (url: string) => void;
+                signal?: AbortSignal;
+              }): Promise<{ apiKey?: string }>;
+            };
+          };
+        };
+        const result = await sdk.Cursor.auth.login({
+          apiKeyName: "Hooxie",
+          openBrowser: (url) => { openLoginUrl(url); },
+          onLoginUrl: () => {},
+          signal,
+        });
+        const key = typeof result.apiKey === "string" ? result.apiKey.trim() : "";
+        if (key.length < 8) throw new Error("incomplete");
+        apiKey = key;
+        sdkAccount = true;
+        await fs.writeFile(path.join(configDir, "cursor-api-key"), apiKey, { mode: 0o600 });
+      })().finally(() => {
+        connectTask = null;
+      });
+    }
+    await connectTask;
+  }
+
+  const server = http.createServer(async (req, res) => {
+    try {
+      await route(req, res);
+    } catch (error) {
+      const status = error instanceof DeliveryError ? error.statusCode : 500;
+      const message = error instanceof Error ? error.message : "Request failed.";
+      sendJson(res, status, { error: status === 500 ? "The request failed." : message });
+    }
+  });
+
+  await new Promise<void>((resolve) => server.listen(options.port ?? 47321, host, resolve));
+  const address = server.address();
+  const port = typeof address === "object" && address ? address.port : 0;
+  await writeBridgeFile(configDir, port, bridgeToken);
+
+  async function route(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (!isLocal(req)) {
+      sendJson(res, 403, { error: "Hooxie only accepts local connections." });
+      return;
+    }
+    const url = new URL(req.url ?? "/", `http://127.0.0.1:${port}`);
+    if (url.pathname.startsWith("/api/bridge/")) {
+      if (!authorized(req, bridgeToken)) {
+        sendJson(res, 401, { error: "Unauthorized extension." });
+        return;
+      }
+      await bridgeRoute(req, res, url);
+      return;
+    }
+    if (url.pathname.startsWith("/api/")) {
+      if (!authorized(req, pageToken)) {
+        sendJson(res, 401, { error: "Unauthorized." });
+        return;
+      }
+      await uiRoute(req, res, url);
+      return;
+    }
+    if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+      res.end(indexHtml);
+      return;
+    }
+    if (req.method === "GET" && (url.pathname === "/app.js" || url.pathname === "/app.css")) {
+      const file = path.join(publicDir, path.basename(url.pathname));
+      const body = await fs.readFile(file);
+      const type = url.pathname.endsWith(".css") ? "text/css" : "text/javascript";
+      res.writeHead(200, { "content-type": `${type}; charset=utf-8`, "cache-control": "no-store" });
+      res.end(body);
+      return;
+    }
+    if (req.method === "GET" && url.pathname.startsWith("/sounds/")) {
+      const name = path.basename(url.pathname);
+      if (!SOUND_FILES.has(name)) {
+        sendJson(res, 404, { error: "Not found." });
+        return;
+      }
+      const body = await fs.readFile(path.join(publicDir, "sounds", name));
+      res.writeHead(200, { "content-type": "audio/mpeg", "cache-control": "no-store" });
+      res.end(body);
+      return;
+    }
+    if (req.method === "GET" && SITE_FILES[url.pathname]) {
+      await serveSite(res, url.pathname, pageToken);
+      return;
+    }
+    sendJson(res, 404, { error: "Not found." });
+  }
+
+  async function uiRoute(req: http.IncomingMessage, res: http.ServerResponse, url: URL): Promise<void> {
+    if (req.method === "GET" && url.pathname === "/api/cursor/ready") {
+      try {
+        installations = await detectInstallations(options.detect);
+      } catch {
+        /* Keep the installations found at startup. */
+      }
+      const cursor = installations.find((item) => item.ide === "cursor");
+      sendJson(res, 200, await readCursorReady({ executable: cursor?.executable }));
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/cursor/usage") {
+      const usage = await readCursorUsage();
+      sendJson(res, 200, {
+        percent: usage.percent,
+        credits: usage.credits
+          ? {
+              remainingCents: usage.credits.remainingCents,
+              totalCents: usage.credits.totalCents,
+              expiresAtMs: usage.credits.expiresAtMs,
+            }
+          : null,
+      });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/state") {
+      sendJson(res, 200, {
+        ides: IDE_CATALOG,
+        installations,
+        sessions: hub.list().map((session) => ({
+          id: session.id,
+          ide: session.ide,
+          appName: session.appName,
+          workspaces: session.workspaces,
+        })),
+        cursorKeyConfigured: accountConnected(apiKey, sdkAccount),
+        sdkReady,
+      });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/routes") {
+      const ide = url.searchParams.get("ide");
+      const projectPath = url.searchParams.get("projectPath") ?? "";
+      if (!isIde(ide)) throw new DeliveryError(400, "Unknown IDE.");
+      sendJson(res, 200, { routes: await service.routes(ide, projectPath) });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/key") {
+      const body = await readJson(req, 20_000);
+      if (!body || typeof body !== "object") throw new DeliveryError(400, "Invalid key payload.");
+      const key = (body as { apiKey?: unknown }).apiKey;
+      const remember = (body as { remember?: unknown }).remember === true;
+      if (typeof key !== "string" || key.trim().length < 8) throw new DeliveryError(400, "Enter a Cursor API key.");
+      apiKey = key.trim();
+      if (remember) await fs.writeFile(path.join(configDir, "cursor-api-key"), apiKey, { mode: 0o600 });
+      sendJson(res, 200, { cursorKeyConfigured: true });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/cursor/connect") {
+      if (accountConnected(apiKey, sdkAccount)) {
+        sendJson(res, 200, { connected: true });
+        return;
+      }
+      const abort = new AbortController();
+      const stop = () => {
+        if (!res.writableEnded) abort.abort();
+      };
+      res.on("close", stop);
+      try {
+        await beginCursorLogin(abort.signal);
+        sendJson(res, 200, { connected: true });
+      } catch (error) {
+        throw new DeliveryError(400, publicConnectError(error));
+      } finally {
+        res.removeListener("close", stop);
+      }
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/deliveries") {
+      const input = parseSubmit(await readJson(req, 8_000_000));
+      sendJson(res, 200, await service.submit(input));
+      return;
+    }
+    const deliveryMatch = url.pathname.match(/^\/api\/deliveries\/([A-Za-z0-9]+)$/);
+    if (deliveryMatch && req.method === "GET") {
+      sendJson(res, 200, service.get(deliveryMatch[1]));
+      return;
+    }
+    const cancelMatch = url.pathname.match(/^\/api\/deliveries\/([A-Za-z0-9]+)\/cancel$/);
+    if (cancelMatch && req.method === "POST") {
+      sendJson(res, 200, await service.cancel(cancelMatch[1]));
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/frame") {
+      const body = asRecord(await readJson(req, 4000));
+      const width = finiteNumber(body.width, "width");
+      const height = finiteNumber(body.height, "height");
+      if (width < 280 || width > 900 || height < 48 || height > 900) {
+        throw new DeliveryError(400, "Widget size is out of range.");
+      }
+      await options.widget?.resize(width, height);
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/move") {
+      const body = asRecord(await readJson(req, 4000));
+      const dx = finiteNumber(body.dx, "dx");
+      const dy = finiteNumber(body.dy, "dy");
+      if (Math.abs(dx) > 4000 || Math.abs(dy) > 4000) throw new DeliveryError(400, "Move is out of range.");
+      await options.widget?.move(dx, dy);
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/focus") {
+      sendJson(res, 200, { active: options.widget ? await options.widget.focused() : true });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/voice") {
+      if (!options.widget) throw new DeliveryError(400, "Voice prompting is available in the desktop widget.");
+      const body = asRecord(await readJson(req, 4000));
+      const action = stringField(body, "action");
+      if (action !== "start" && action !== "stop" && action !== "poll") {
+        throw new DeliveryError(400, "Unknown voice action.");
+      }
+      sendJson(res, 200, await options.widget.voice(action));
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/screen") {
+      if (!options.widget) throw new DeliveryError(400, "Screen capture is available in the desktop widget.");
+      sendJson(res, 200, await options.widget.capture());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/visible") {
+      if (!options.widget) throw new DeliveryError(400, "Hiding Hooxie is available in the desktop widget.");
+      const body = asRecord(await readJson(req, 4000));
+      const shown = await options.widget.setShown(body.shown !== false);
+      sendJson(res, 200, { ok: true, shown });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/follow") {
+      if (!options.widget) throw new DeliveryError(400, "Moving Hooxie is available in the desktop widget.");
+      await options.widget.follow();
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/blur") {
+      if (!options.widget) throw new DeliveryError(400, "Background blur is available in the desktop widget.");
+      const body = asRecord(await readJson(req, 4000));
+      const enabled = await options.widget.setBlur(body.enabled === true);
+      sendJson(res, 200, { ok: true, enabled });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/arrows") {
+      if (!options.widget) throw new DeliveryError(400, "Arrow keys are available in the desktop widget.");
+      const body = asRecord(await readJson(req, 4000));
+      const enabled = await options.widget.setMoveKeys(body.enabled === true);
+      sendJson(res, 200, { ok: true, enabled });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/undetectable") {
+      if (!options.widget) throw new DeliveryError(400, "Undetectable mode is available in the desktop widget.");
+      const body = asRecord(await readJson(req, 4000));
+      const enabled = await options.widget.setUndetectable(body.enabled === true);
+      settings = normalizeSettings({ ...settings, detectable: !enabled, session: enabled, revision: settings.revision + 1 });
+      await saveSettings(configDir, settings);
+      sendJson(res, 200, { ok: true, enabled });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/settings") {
+      sendJson(res, 200, settingsBody());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/settings") {
+      const body = asRecord(await readJson(req, 40000));
+      const next = normalizeSettings({ ...settings, ...body, revision: settings.revision + 1, version: settings.version });
+      if (options.widget && next.detectable !== settings.detectable) {
+        const enabled = await options.widget.setUndetectable(!next.detectable);
+        next.detectable = !enabled;
+        next.session = enabled;
+      }
+      const arrowsChanged = next.arrows !== settings.arrows;
+      settings = next;
+      if (options.widget && arrowsChanged) await options.widget.setMoveKeys(next.arrows);
+      await saveSettings(configDir, settings);
+      sendJson(res, 200, settingsBody());
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/chime") {
+      const custom = await readCustomChime(configDir);
+      if (!custom) {
+        sendJson(res, 404, { error: "No uploaded sound yet." });
+        return;
+      }
+      res.writeHead(200, { "content-type": custom.mime, "cache-control": "no-store" });
+      res.end(custom.body);
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/chime") {
+      const body = await readRaw(req, 8_000_000);
+      const mime = soundMime(req.headers["content-type"], body);
+      if (!mime) throw new DeliveryError(400, "Use an audio file such as mp3, wav, or ogg.");
+      if (body.length < 32) throw new DeliveryError(400, "That sound file is empty.");
+      await writeCustomChime(configDir, body, mime);
+      settings = normalizeSettings({ ...settings, chime: "custom", chimeCustom: true, revision: settings.revision + 1 });
+      await saveSettings(configDir, settings);
+      sendJson(res, 200, settingsBody());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/dashboard/open") {
+      if (!options.widget) throw new DeliveryError(400, "The dashboard opens inside Hooxie.");
+      const open = await options.widget.toggleDashboard();
+      sendJson(res, 200, { ok: true, open });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/billing/checkout") {
+      const body = asRecord(await readJson(req, 8000));
+      const email = validEmail(stringField(body, "email"));
+      const promo = stringField(body, "promo");
+      const origin = `http://127.0.0.1:${port}`;
+      const url = await createCheckoutSession(billing, {
+        email,
+        promo,
+        successUrl: `${origin}/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${origin}/dashboard?billing=cancel`,
+      });
+      sendJson(res, 200, { url });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/billing/confirm") {
+      const body = asRecord(await readJson(req, 4000));
+      const sessionId = stringField(body, "sessionId");
+      if (!sessionId || !billing.secretKey) throw new DeliveryError(400, "Checkout could not be confirmed.");
+      const result = await checkoutIsComplete(billing.secretKey, sessionId);
+      if (result.active) {
+        await fs.writeFile(path.join(configDir, "license.json"), JSON.stringify({ active: true, email: result.email, sessionId }, null, 2), { mode: 0o600 });
+      }
+      sendJson(res, 200, result);
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/browse") {
+      const body = asRecord(await readJson(req, 4000));
+      const initialPath = stringField(body, "initialPath") ?? "";
+      const picked = options.widget ? await options.widget.browse(initialPath) : "";
+      sendJson(res, 200, { path: picked });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/open") {
+      const body = asRecord(await readJson(req, 8000));
+      const installationId = stringField(body, "installationId");
+      const projectPath = stringField(body, "projectPath");
+      if (!installationId || !projectPath) throw new DeliveryError(400, "Choose an IDE installation and a project.");
+      const installation = installations.find((item) => item.id === installationId);
+      if (!installation) throw new DeliveryError(404, "That IDE installation is not available.");
+      assertProjectDirectory(projectPath);
+      await assertDirectoryExists(projectPath);
+      if (options.opener) options.opener(installation.executable, projectPath);
+      else openProcess(installation.executable, projectPath);
+      sendJson(res, 200, {
+        ok: true,
+        detail: `Launch requested for ${installation.label}. Confirm the window is the project you selected before pasting.`,
+      });
+      return;
+    }
+    sendJson(res, 404, { error: "Not found." });
+  }
+
+  async function bridgeRoute(req: http.IncomingMessage, res: http.ServerResponse, url: URL): Promise<void> {
+    if (req.method === "POST" && url.pathname === "/api/bridge/hello") {
+      const parsed = validateHello(await readJson(req, 200_000));
+      if (!parsed.ok) throw new DeliveryError(400, parsed.error);
+      const session = hub.hello(parsed.value);
+      sendJson(res, 200, { sessionId: session.id });
+      return;
+    }
+    const session = hub.touch(sessionId(req));
+    if (!session) {
+      sendJson(res, 401, { error: "Unknown extension session." });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/bridge/poll") {
+      sendJson(res, 200, { job: hub.poll(session.id) });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/bridge/result") {
+      const parsed = validateResult(await readJson(req, 20_000));
+      if (!parsed.ok) throw new DeliveryError(400, parsed.error);
+      const matched = hub.complete(session.id, parsed.value.id, {
+        outcome: parsed.value.outcome,
+        detail: parsed.value.detail,
+        handedOff: true,
+      });
+      if (!matched) throw new DeliveryError(404, "That job is not waiting.");
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+    sendJson(res, 404, { error: "Not found." });
+  }
+
+  return {
+    baseUrl: `http://127.0.0.1:${port}`,
+    port,
+    pageToken,
+    bridgeToken,
+    registry,
+    service,
+    close: () => new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve()))),
+  };
+}
+
+function parseSubmit(value: unknown): SubmitInput {
+  const body = asRecord(value);
+  const ide = stringField(body, "ide");
+  if (!isIde(ide)) throw new DeliveryError(400, "Unknown IDE.");
+  const files = arrayOfStrings(body.files, "files");
+  const uploads = arrayOfUploads(body.uploads);
+  const images = arrayOfImages(body.images);
+  return {
+    idempotencyKey: stringField(body, "idempotencyKey") ?? "",
+    routeId: stringField(body, "routeId") ?? "",
+    ide,
+    installationId: stringField(body, "installationId"),
+    projectPath: stringField(body, "projectPath") ?? "",
+    prompt: stringField(body, "prompt") ?? "",
+    additionalInstructions: stringField(body, "additionalInstructions") ?? "",
+    includeProjectPath: body.includeProjectPath === true,
+    includeStackMarkers: body.includeStackMarkers === true,
+    includeScreen: body.includeScreen === true,
+    files,
+    uploads,
+    images,
+    allowUnsandboxed: body.allowUnsandboxed === true,
+    experimentalSubmit: body.experimentalSubmit === true,
+    confirmDestination: body.confirmDestination === true,
+    retry: body.retry === true,
+  };
+}
+
+function arrayOfStrings(value: unknown, label: string): string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    throw new DeliveryError(400, `Invalid ${label}.`);
+  }
+  return value as string[];
+}
+
+function arrayOfUploads(value: unknown): { name: string; content: string }[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new DeliveryError(400, "Invalid uploads.");
+  return value.map((item) => {
+    const record = asRecord(item);
+    const name = stringField(record, "name");
+    const content = stringField(record, "content");
+    if (!name || content === undefined) throw new DeliveryError(400, "Invalid upload.");
+    if (Object.keys(record).some((key) => key !== "name" && key !== "content")) {
+      throw new DeliveryError(400, "Invalid upload.");
+    }
+    return { name, content };
+  });
+}
+
+function arrayOfImages(value: unknown): { data: string; mimeType: string }[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new DeliveryError(400, "Invalid images.");
+  return value.map((item) => {
+    const record = asRecord(item);
+    const data = stringField(record, "data");
+    const mimeType = stringField(record, "mimeType");
+    if (!data || !mimeType) throw new DeliveryError(400, "Invalid image.");
+    if (Object.keys(record).some((key) => key !== "data" && key !== "mimeType")) {
+      throw new DeliveryError(400, "Invalid image.");
+    }
+    return { data, mimeType };
+  });
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new DeliveryError(400, "Expected an object.");
+  }
+  return value as Record<string, unknown>;
+}
+
+function stringField(body: Record<string, unknown>, key: string): string | undefined {
+  const value = body[key];
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") throw new DeliveryError(400, `Invalid ${key}.`);
+  return value;
+}
+
+function finiteNumber(value: unknown, key: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) throw new DeliveryError(400, `Invalid ${key}.`);
+  return value;
+}
+
+function isIde(value: unknown): value is IdeId {
+  return typeof value === "string" && (IDE_IDS as readonly string[]).includes(value);
+}
+
+function sessionId(req: http.IncomingMessage): string {
+  const header = req.headers["x-z-session"];
+  return typeof header === "string" ? header : "";
+}
+
+function authorized(req: http.IncomingMessage, token: string): boolean {
+  const header = req.headers.authorization ?? "";
+  const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const left = Buffer.from(provided);
+  const right = Buffer.from(token);
+  if (left.length !== right.length) return false;
+  return crypto.timingSafeEqual(left, right);
+}
+
+function isLocal(req: http.IncomingMessage): boolean {
+  const host = req.headers.host ?? "";
+  if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)) return false;
+  const address = req.socket.remoteAddress;
+  return address === "127.0.0.1" || address === "::1" || address === "::ffff:127.0.0.1";
+}
+
+function sendJson(res: http.ServerResponse, status: number, body: unknown): void {
+  res.writeHead(status, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+  });
+  res.end(JSON.stringify(body));
+}
+
+function readJson(req: http.IncomingMessage, limit: number): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    let settled = false;
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
+    const succeed = (value: unknown) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+    req.on("data", (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > limit) {
+        fail(new DeliveryError(413, "Request is too large."));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("error", fail);
+    req.on("end", () => {
+      if (size === 0) {
+        succeed({});
+        return;
+      }
+      try {
+        succeed(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      } catch {
+        fail(new DeliveryError(400, "Invalid JSON."));
+      }
+    });
+  });
+}
+
+function readRaw(req: http.IncomingMessage, limit: number): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    let settled = false;
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
+    req.on("data", (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > limit) {
+        fail(new DeliveryError(413, "That sound is larger than 8 MB."));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("error", fail);
+    req.on("end", () => {
+      if (settled) return;
+      settled = true;
+      resolve(Buffer.concat(chunks));
+    });
+  });
+}
+
+function soundMime(header: string | undefined, body: Buffer): string {
+  const declared = (header || "").split(";")[0].trim().toLowerCase();
+  const sniffed = sniffAudio(body);
+  if (sniffed) return sniffed;
+  const allowed: Record<string, string> = {
+    "audio/mpeg": "audio/mpeg",
+    "audio/mp3": "audio/mpeg",
+    "audio/wav": "audio/wav",
+    "audio/x-wav": "audio/wav",
+    "audio/wave": "audio/wav",
+    "audio/ogg": "audio/ogg",
+    "audio/webm": "audio/webm",
+    "audio/mp4": "audio/mp4",
+    "audio/x-m4a": "audio/mp4",
+    "audio/aac": "audio/aac",
+  };
+  return allowed[declared] || "";
+}
+
+function sniffAudio(body: Buffer): string {
+  if (body.length >= 3 && body.subarray(0, 3).toString("ascii") === "ID3") return "audio/mpeg";
+  if (body.length >= 2 && body[0] === 0xff && (body[1] & 0xe0) === 0xe0) return "audio/mpeg";
+  if (body.length >= 12 && body.subarray(0, 4).toString("ascii") === "RIFF" && body.subarray(8, 12).toString("ascii") === "WAVE") return "audio/wav";
+  if (body.length >= 4 && body.subarray(0, 4).toString("ascii") === "OggS") return "audio/ogg";
+  if (body.length >= 4 && body.subarray(0, 4).toString("ascii") === "fLaC") return "audio/flac";
+  return "";
+}
+
+function chimeExtension(mime: string): string {
+  if (mime === "audio/wav") return ".wav";
+  if (mime === "audio/ogg") return ".ogg";
+  if (mime === "audio/webm") return ".webm";
+  if (mime === "audio/mp4") return ".m4a";
+  if (mime === "audio/aac") return ".aac";
+  if (mime === "audio/flac") return ".flac";
+  return ".mp3";
+}
+
+async function writeCustomChime(configDir: string, body: Buffer, mime: string): Promise<void> {
+  const names = await fs.readdir(configDir).catch(() => [] as string[]);
+  await Promise.all(names.filter((name) => name.startsWith("chime-custom")).map((name) => fs.rm(path.join(configDir, name), { force: true })));
+  const ext = chimeExtension(mime);
+  await fs.writeFile(path.join(configDir, `chime-custom${ext}`), body, { mode: 0o600 });
+  await fs.writeFile(path.join(configDir, "chime-custom.json"), JSON.stringify({ ext, mime }), { mode: 0o600 });
+}
+
+async function readCustomChime(configDir: string): Promise<{ mime: string; body: Buffer } | undefined> {
+  const metaPath = path.join(configDir, "chime-custom.json");
+  const raw = await readOptional(metaPath);
+  if (!raw) return undefined;
+  try {
+    const meta = JSON.parse(raw) as { ext?: string; mime?: string };
+    const ext = typeof meta.ext === "string" && /^\.[a-z0-9]+$/.test(meta.ext) ? meta.ext : "";
+    if (!ext) return undefined;
+    const body = await fs.readFile(path.join(configDir, `chime-custom${ext}`));
+    return { mime: typeof meta.mime === "string" && meta.mime.startsWith("audio/") ? meta.mime : "audio/mpeg", body };
+  } catch {
+    return undefined;
+  }
+}
+
+function defaultConfigDir(): string {
+  const base = process.env.APPDATA || path.join(process.env.USERPROFILE || ".", ".config");
+  return path.join(base, "Z");
+}
+
+async function writeBridgeFile(configDir: string, port: number, token: string): Promise<void> {
+  const file = path.join(configDir, "bridge.json");
+  await fs.writeFile(file, JSON.stringify({ v: 1, host: "127.0.0.1", port, token }, null, 2), { mode: 0o600 });
+}
+
+async function readOptional(file: string): Promise<string | undefined> {
+  try {
+    const text = (await fs.readFile(file, "utf8")).trim();
+    return text || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function createUnavailableClipboard(): ClipboardPort {
+  return {
+    async write() {
+      throw new Error("Clipboard is not configured.");
+    },
+    async read() {
+      return "";
+    },
+  };
+}
+
+interface HooxieSettings {
+  revision: number;
+  version: string;
+  detectable: boolean;
+  button: string;
+  opacity: number;
+  audio: boolean;
+  session: boolean;
+  language: string;
+  lookReady: boolean;
+  deliveryReady: boolean;
+  blur: boolean;
+  trace: boolean;
+  chime: string;
+  chimeCustom: boolean;
+  arrows: boolean;
+  ide: string;
+  installationId: string;
+  project: string;
+  route: string;
+  instructions: string;
+  files: string;
+  includePath: boolean;
+  includeStack: boolean;
+  unsandboxed: boolean;
+  experimental: boolean;
+}
+
+async function loadSettings(configDir: string): Promise<HooxieSettings> {
+  let version = "0.1.0";
+  try {
+    const pkg = JSON.parse(await fs.readFile(path.join(rootDir, "package.json"), "utf8")) as { version?: string };
+    if (typeof pkg.version === "string") version = pkg.version;
+  } catch {
+    /* The package file is optional at runtime. */
+  }
+  const base: HooxieSettings = {
+    revision: 1,
+    version,
+    detectable: true,
+    button: "#ffffff",
+    opacity: 50,
+    audio: true,
+    session: false,
+    language: "en",
+    lookReady: false,
+    deliveryReady: false,
+    blur: false,
+    trace: true,
+    chime: "blushing",
+    chimeCustom: false,
+    arrows: false,
+    ide: "",
+    installationId: "",
+    project: "",
+    route: "",
+    instructions: "",
+    files: "",
+    includePath: false,
+    includeStack: false,
+    unsandboxed: false,
+    experimental: false,
+  };
+  const saved = await readOptional(path.join(configDir, "hooxie-settings.json"));
+  if (!saved) return base;
+  try {
+    return normalizeSettings({ ...base, ...JSON.parse(saved), version });
+  } catch {
+    return base;
+  }
+}
+
+function normalizeSettings(input: HooxieSettings): HooxieSettings {
+  const opacity = Number(input.opacity);
+  return {
+    revision: Number.isFinite(input.revision) ? input.revision : 1,
+    version: input.version || "0.1.0",
+    detectable: input.detectable !== false,
+    button: BUTTON_COLORS.includes(input.button) ? input.button : "#ffffff",
+    opacity: Number.isFinite(opacity) ? Math.min(100, Math.max(10, Math.round(opacity))) : 50,
+    audio: input.audio !== false,
+    session: input.session === true,
+    language: LANGUAGES.has(input.language) ? input.language : "en",
+    lookReady: input.lookReady === true,
+    deliveryReady: input.deliveryReady === true,
+    blur: input.blur === true,
+    trace: input.trace !== false,
+    chime: CHIMES.has(input.chime) ? input.chime : "blushing",
+    chimeCustom: input.chimeCustom === true,
+    arrows: input.arrows === true,
+    ide: clipText(input.ide, 40),
+    installationId: clipText(input.installationId, 200),
+    project: clipText(input.project, 500),
+    route: clipText(input.route, 80),
+    instructions: clipText(input.instructions, 8000),
+    files: clipText(input.files, 8000),
+    includePath: input.includePath === true,
+    includeStack: input.includeStack === true,
+    unsandboxed: input.unsandboxed === true,
+    experimental: input.experimental === true,
+  };
+}
+
+function clipText(value: unknown, max: number): string {
+  return typeof value === "string" ? value.slice(0, max) : "";
+}
+
+async function saveSettings(configDir: string, settings: HooxieSettings): Promise<void> {
+  await fs.writeFile(path.join(configDir, "hooxie-settings.json"), JSON.stringify(settings), { mode: 0o600 });
+}
+
+async function serveSite(res: http.ServerResponse, pathname: string, pageToken: string): Promise<void> {
+  const name = SITE_FILES[pathname];
+  if (!name || name.includes("..") || name.includes("\\") || path.isAbsolute(name)) {
+    sendJson(res, 404, { error: "Not found." });
+    return;
+  }
+  const root = path.resolve(siteDir);
+  const file = path.resolve(siteDir, name);
+  if (file !== root && !file.startsWith(root + path.sep)) {
+    sendJson(res, 404, { error: "Not found." });
+    return;
+  }
+  const ext = path.extname(file).toLowerCase();
+  const types: Record<string, string> = {
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".html": "text/html; charset=utf-8",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".ps1": "text/plain; charset=utf-8",
+  };
+  const type = types[ext] || "text/html; charset=utf-8";
+  let body = await fs.readFile(file);
+  if (name === "dashboard.html") {
+    const html = body.toString("utf8")
+      .replace('name="z-token" content=""', `name="z-token" content="${pageToken}"`)
+      .replace('name="hooxie-local" content="0"', 'name="hooxie-local" content="1"');
+    body = Buffer.from(html);
+  }
+  res.writeHead(200, { "content-type": type, "cache-control": "no-store" });
+  res.end(body);
+}
+
+function openProcess(executable: string, projectPath: string): void {
+  const child = spawn(executable, [projectPath], { detached: true, stdio: "ignore", windowsHide: false });
+  child.unref();
+}
+
+const launchedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (launchedDirectly) {
+  const clipboard = process.platform === "win32" ? (await import("./clipboard.ts")).createWindowsClipboard() : createUnavailableClipboard();
+  const { createWidgetController } = await import("./widget.ts");
+  const widget = createWidgetController();
+  const bridge = await startBridge({ clipboard, widget });
+  console.log(`Hooxie listening on ${bridge.baseUrl}`);
+  try {
+    await widget.open(bridge.baseUrl);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "The desktop widget did not open.";
+    console.log(`${message} Open ${bridge.baseUrl}`);
+  }
+}

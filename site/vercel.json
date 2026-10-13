@@ -1,0 +1,12 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/home", "destination": "/", "permanent": false }
+  ],
+  "headers": [
+    {
+      "source": "/ascii-editor/demos/generated/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    }
+  ]
+}

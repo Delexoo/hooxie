@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="z-token" content="">
+  <meta name="hooxie-local" content="0">
+  <title>Dashboard · Hooxie</title>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body data-page="dashboard">
+  <header class="top">
+    <a class="brand" href="/home">Hooxie</a>
+    <nav>
+      <a href="/home#features">Features</a>
+      <a href="/help">Help</a>
+      <a href="/home#download">Download</a>
+      <a href="/dashboard#billing">Pro · $4.99</a>
+    </nav>
+  </header>
+  <div class="dash">
+    <nav class="side">
+      <button type="button" data-open="general" data-i18n="nav.general">General</button>
+      <button type="button" data-open="widget" data-i18n="nav.widget">Widget</button>
+      <button type="button" data-open="keybinds" data-i18n="nav.keybinds">Keybinds</button>
+      <button type="button" data-open="profile" data-i18n="nav.profile">Profile</button>
+      <button type="button" data-open="language" data-i18n="nav.language">Language</button>
+      <button type="button" data-open="billing" data-i18n="nav.billing">Billing</button>
+      <button type="button" data-open="releases" data-i18n="nav.releases">Release notes</button>
+      <button type="button" data-open="help" data-i18n="nav.help">Help center</button>
+      <button type="button" data-open="contact" data-i18n="nav.contact">Contact support</button>
+    </nav>
+    <main class="main">
+      <p class="status" id="status"></p>
+      <section data-section="general">
+        <h1 data-i18n="general.title">General</h1>
+        <p class="note" data-i18n="general.intro">Hooxie version, whether a screen share can see the widget, the color theme, and the microphone.</p>
+        <p class="note">Hooxie sends prompts through the Cursor app. Install Cursor from <a href="https://cursor.com/download">cursor.com</a>, sign in, and keep a Cursor plan available. The widget checks those three before it will send. Hooxie Pro does not replace a Cursor plan.</p>
+        <div class="rows">
+          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.1.0</span></div>
+          <div class="row">
+            <div><strong>Detectable</strong><span>On: screen share and recordings can see Hooxie. Off: they cannot. You still can.</span></div>
+            <label class="switch"><input id="detectable" type="checkbox" checked><i></i></label>
+          </div>
+          <div class="row">
+            <div><strong>Session</strong><span>Ctrl+Shift+\ starts or stops a Cluely session. A session hides Hooxie from capture.</span></div>
+            <span id="session-state">Stopped</span>
+          </div>
+          <div class="row">
+            <div><strong>Color theme</strong><span>Button color and background opacity on the widget.</span></div>
+            <div>
+              <div class="swatches" id="swatches"></div>
+              <input class="slider" id="opacity" type="range" min="10" max="100" step="5" value="50" aria-label="Opacity">
+              <span id="opacity-value">50%</span>
+            </div>
+          </div>
+          <div class="row">
+            <div><strong>Audio</strong><span>Voice prompting uses the Windows default microphone.</span></div>
+            <label class="switch"><input id="audio" type="checkbox" checked><i></i></label>
+          </div>
+          <div class="row">
+            <div><strong>Blur background</strong><span>Frost the desktop behind the pill.</span></div>
+            <label class="switch"><input id="blur" type="checkbox"><i></i></label>
+          </div>
+          <div class="row">
+            <div><strong>Typing outline</strong><span>A blue and purple line around the pill while you type or talk.</span></div>
+            <label class="switch"><input id="trace" type="checkbox" checked><i></i></label>
+          </div>
+          <div class="row">
+            <div><strong>Arrow keys</strong><span>On: Ctrl plus an arrow moves Hooxie up, down, left, or right. Off: those shortcuts stay with your other apps. All four switch together.</span></div>
+            <label class="switch"><input id="arrows" type="checkbox"><i></i></label>
+          </div>
+        </div>
+        <div class="chime-block">
+          <strong>Done sound</strong>
+          <p class="note">Plays when the agent finishes thinking. Preview a sound, choose one, upload your own, or turn it off.</p>
+          <div id="chime-list" class="chime-list"></div>
+          <div class="field">
+            <input id="chime-file" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.webm" hidden>
+            <button class="btn" id="chime-upload" type="button">Upload a sound</button>
+          </div>
+          <p id="chime-note" class="note"></p>
+        </div>
+      </section>
+      <section data-section="widget" hidden>
+        <h1>Widget</h1>
+        <p class="note">These are the settings that used to live on the pill. The widget uses them the next time you send.</p>
+        <div class="widget-form">
+          <label for="dash-project">Project folder</label>
+          <div class="field">
+            <input id="dash-project" type="text" spellcheck="false" placeholder="C:\work\app" aria-label="Project folder">
+            <button class="btn" id="dash-browse" type="button">Browse</button>
+            <button class="ghost" id="dash-clear" type="button">Clear</button>
+          </div>
+          <div id="dash-workspaces" class="lang-choices"></div>
+          <label>IDE</label>
+          <div id="dash-ides" class="lang-choices" role="radiogroup" aria-label="IDE"></div>
+          <label id="dash-install-label">Installation</label>
+          <div id="dash-installs" class="lang-choices" role="radiogroup" aria-label="Installation"></div>
+          <label id="dash-route-label">Delivery route</label>
+          <div id="dash-routes" class="lang-choices" role="radiogroup" aria-label="Delivery route"></div>
+          <p id="dash-route-note" class="note"></p>
+          <div class="field">
+            <button class="btn" id="dash-connect" type="button">Connect Cursor</button>
+          </div>
+          <p class="note">One sign-in in the browser links the Cursor account on this computer. Hooxie keeps that connection here.</p>
+          <label for="dash-key">Or paste an API key</label>
+          <div class="field">
+            <input id="dash-key" type="password" autocomplete="off" placeholder="Official Cursor SDK" aria-label="Cursor API key">
+            <button class="btn" id="dash-save-key" type="button">Save key</button>
+          </div>
+          <label class="check"><input id="dash-remember-key" type="checkbox"> Remember the key in your user profile</label>
+          <p id="dash-key-note" class="note"></p>
+          <label for="dash-instructions">Additional instructions</label>
+          <textarea id="dash-instructions" rows="3"></textarea>
+          <label for="dash-files">Files inside the project, one relative path per line</label>
+          <textarea id="dash-files" rows="3" spellcheck="false" placeholder="src/app.ts"></textarea>
+          <label class="check"><input id="dash-include-path" type="checkbox"> Include the project path in the prompt text</label>
+          <label class="check"><input id="dash-include-stack" type="checkbox"> Include stack markers found in the project root</label>
+          <label class="check" id="dash-sandbox-row"><input id="dash-unsandboxed" type="checkbox"> Allow this Cursor agent to run outside the sandbox</label>
+          <label class="check" id="dash-experimental-row"><input id="dash-experimental" type="checkbox"> Ask the IDE to submit (experimental, not verified)</label>
+          <div class="field" style="margin-top:14px">
+            <button class="btn" id="dash-open-ide" type="button">Open IDE</button>
+          </div>
+        </div>
+      </section>
+      <section data-section="keybinds" hidden>
+        <h1 data-i18n="keybinds.title">Keybinds</h1>
+        <p class="note">These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in General.</p>
+        <div class="rows">
+          <div class="row"><div><strong>Toggle visibility of Hooxie</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>\</kbd></div></div>
+          <div class="row"><div><strong>Ask Hooxie about your screen or audio</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>Enter</kbd></div></div>
+          <div class="row"><div><strong>Clear the current conversation with Hooxie</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>R</kbd></div></div>
+          <div class="row"><div><strong>Start or stop a Cluely session</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>\</kbd></div></div>
+          <div class="row"><div><strong>Move the widget position up</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>↑</kbd></div></div>
+          <div class="row"><div><strong>Move the widget position down</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>↓</kbd></div></div>
+          <div class="row"><div><strong>Move the widget position left</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>←</kbd></div></div>
+          <div class="row"><div><strong>Move the widget position right</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>→</kbd></div></div>
+        </div>
+      </section>
+      <section data-section="profile" hidden>
+        <h1 data-i18n="profile.title">Profile</h1>
+        <p class="note">Connect the email Stripe should use for Hooxie Pro.</p>
+        <div class="field">
+          <input id="email" type="email" autocomplete="email" placeholder="you@email.com" aria-label="Email">
+          <button class="btn" id="connect" type="button" data-i18n="profile.connect">Connect account</button>
+        </div>
+      </section>
+      <section data-section="language" hidden>
+        <h1 data-i18n="language.title">Language</h1>
+        <p class="note">The dashboard language on this computer.</p>
+        <div id="language-choices" class="lang-choices" role="radiogroup" aria-label="Language">
+          <button type="button" data-lang="en" aria-checked="true">English</button>
+          <button type="button" data-lang="es" aria-checked="false">Español</button>
+          <button type="button" data-lang="fr" aria-checked="false">Français</button>
+          <button type="button" data-lang="de" aria-checked="false">Deutsch</button>
+          <button type="button" data-lang="pt" aria-checked="false">Português</button>
+          <button type="button" data-lang="ja" aria-checked="false">日本語</button>
+          <button type="button" data-lang="zh" aria-checked="false">中文</button>
+        </div>
+      </section>
+      <section data-section="billing" hidden>
+        <h1 data-i18n="billing.title">Billing</h1>
+        <p class="note">Hooxie Pro is the paid plan. A developer promotional code can take the price to zero at checkout.</p>
+        <div class="rows">
+          <div class="row">
+            <div><strong data-i18n="billing.plan">Pro plan</strong><span>The widget, voice, screen context, and undetectable mode.</span></div>
+            <strong>$4.99/month</strong>
+          </div>
+        </div>
+        <div class="field" style="margin-top:16px">
+          <input id="promo" type="text" autocomplete="off" placeholder="Promotional code" aria-label="Promotional code">
+          <button class="btn" id="subscribe" type="button" data-i18n="billing.subscribe">Subscribe</button>
+        </div>
+      </section>
+      <section data-section="releases" hidden>
+        <h1>Release notes</h1>
+        <article class="help-list">
+          <article>
+            <h2>0.1.0 · 12 October 2026</h2>
+            <p>First public build. The top-of-screen widget sends a prompt to a Cursor agent in the folder you choose. Voice and screen context are optional. Hooxie can hide from screen share and recordings. Pro is $4.99 a month.</p>
+          </article>
+        </article>
+        <p><a href="/releases">Open the release notes page</a></p>
+      </section>
+      <section data-section="help" hidden>
+        <h1>Help center</h1>
+        <div class="help-list">
+          <article><h2>Start Hooxie</h2><p>Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.</p></article>
+          <article><h2>Voice, screen, and files</h2><p>An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.</p></article>
+          <article><h2>Hide from a call</h2><p>Turn Detectable off, or start a session with Ctrl+Shift+\. You still see Hooxie. A normal screen share does not.</p></article>
+        </div>
+        <p><a href="/help">Open the help center</a></p>
+      </section>
+      <section data-section="contact" hidden>
+        <h1>Contact support</h1>
+        <p class="note">Email <a href="mailto:support@delexo.store">support@delexo.store</a> or use the contact page.</p>
+        <p><a href="/contact">Open the contact form</a></p>
+      </section>
+    </main>
+  </div>
+  <footer class="foot">
+    <span>Hooxie Pro · $4.99/month</span>
+    <nav>
+      <a href="/terms">Terms</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/refund">Refunds</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </footer>
+  <script src="/site.js"></script>
+</body>
+</html>

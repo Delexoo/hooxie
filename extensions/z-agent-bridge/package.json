@@ -1,0 +1,23 @@
+{
+  "name": "z-agent-bridge",
+  "displayName": "Z Agent Bridge",
+  "description": "Receives a prompt from Z and places it in the IDE chat input. Placement is not agent acceptance.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "z-agent-bridge.status",
+        "title": "Z Agent Bridge: Show Connection Status"
+      }
+    ]
+  }
+}

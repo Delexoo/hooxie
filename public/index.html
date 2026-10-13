@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="z-token" content="__Z_TOKEN__">
+  <title>Hooxie</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div id="frame">
+    <div id="trace" aria-hidden="true"></div>
+    <div id="shell">
+    <div id="blur-plate" aria-hidden="true"></div>
+    <div id="pill">
+      <div id="attachments" aria-label="Attached files"></div>
+      <div id="composer">
+        <textarea id="prompt" rows="3" placeholder="Prompt Cursor anything." autocomplete="off"></textarea>
+      </div>
+      <div id="dock">
+      <div id="account-bar" hidden>
+        <p id="account-note">Connect Cursor to send from this account.</p>
+        <button id="account-connect" type="button">Connect Cursor</button>
+      </div>
+      <div id="context-bar">
+        <label class="switch">
+          <span class="switch-track" aria-hidden="true"></span>
+          <span class="switch-label">View the screen</span>
+          <input id="view-screen" type="checkbox" role="switch" aria-label="View the screen">
+        </label>
+        <button id="project-path" type="button">Project Path: none</button>
+      </div>
+      <div id="activity" hidden>
+        <button id="terminals-toggle" type="button" aria-expanded="false" hidden>Terminals</button>
+        <button id="queue-toggle" type="button" aria-expanded="false" hidden>Queued</button>
+        <button id="files-toggle" type="button" aria-expanded="false" hidden>Files</button>
+      </div>
+      <div id="activity-panel" hidden></div>
+      <div id="toolbar">
+      <button id="add" type="button" aria-label="Add files" title="Add any file, or drop a folder. Right-click to choose a folder.">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
+      </button>
+      <input id="images" type="file" multiple hidden>
+      <input id="folder" type="file" webkitdirectory hidden>
+      <button id="chat-toggle" class="circle" type="button" aria-label="Chat" aria-expanded="false" title="Chat">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7.5 18.2 5.4 20.6c-.45.5-1.25.18-1.25-.48V7.4A2.4 2.4 0 0 1 6.55 5h10.9A2.4 2.4 0 0 1 19.85 7.4v7.7a2.4 2.4 0 0 1-2.4 2.4H9.1z"/>
+          <circle cx="8.4" cy="11.2" r=".9" fill="currentColor" stroke="none"/>
+          <circle cx="12" cy="11.2" r=".9" fill="currentColor" stroke="none"/>
+          <circle cx="15.6" cy="11.2" r=".9" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+      <button id="usage-toggle" type="button" aria-label="Cursor usage" aria-expanded="false" title="Cursor usage">
+        <svg viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="usage-track" cx="18" cy="18" r="14"></circle>
+          <circle id="usage-ring" cx="18" cy="18" r="14"></circle>
+        </svg>
+        <span id="usage-percent">–</span>
+      </button>
+      <button id="preset-toggle" class="circle" type="button" aria-label="Preset prompts" aria-expanded="false" title="Preset prompts">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14l-6.5-3.2L5.5 20V6A1.5 1.5 0 0 1 7 4.5z"/>
+          <path d="M9 9h6"/>
+        </svg>
+      </button>
+      <button id="dashboard-toggle" class="circle" type="button" aria-label="Dashboard" aria-expanded="false" title="Dashboard">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="4" width="7" height="7" rx="1.5"/>
+          <rect x="13" y="4" width="7" height="7" rx="1.5"/>
+          <rect x="4" y="13" width="7" height="7" rx="1.5"/>
+          <rect x="13" y="13" width="7" height="7" rx="1.5"/>
+        </svg>
+      </button>
+      <button id="more" class="circle" type="button" aria-label="More options" aria-expanded="false" title="More options">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="6" cy="12" r="1.6" fill="currentColor" stroke="none"/>
+          <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>
+          <circle cx="18" cy="12" r="1.6" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+      <button id="send" class="circle" type="button" aria-pressed="false" aria-label="Prompt by voice" title="Prompt by voice">
+        <svg class="icon send-mic" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="3.2" width="6" height="11" rx="3" fill="currentColor" stroke="none"/>
+          <path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"/>
+          <path d="M12 17v3.2"/>
+          <path d="M8.8 20.2h6.4"/>
+        </svg>
+        <svg class="icon send-play" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8.2 6.2 17.6 12 8.2 17.8z"/>
+        </svg>
+        <svg class="icon send-stop" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="5" y="5" width="14" height="14" rx="1.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+      <div id="drag" title="Drag to move" aria-label="Drag to move">
+        <svg viewBox="0 0 10 16" aria-hidden="true">
+          <circle cx="2.2" cy="2.2" r="1.55"/>
+          <circle cx="7.8" cy="2.2" r="1.55"/>
+          <circle cx="2.2" cy="8" r="1.55"/>
+          <circle cx="7.8" cy="8" r="1.55"/>
+          <circle cx="2.2" cy="13.8" r="1.55"/>
+          <circle cx="7.8" cy="13.8" r="1.55"/>
+        </svg>
+      </div>
+      </div>
+      </div>
+    </div>
+
+    <section id="more-menu" hidden>
+      <button id="more-hide" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/>
+          <circle cx="12" cy="12" r="2.7"/>
+          <path d="M4 4.5 20 20"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Hide Hooxie</strong>
+          <span>Ctrl+\ shows it again</span>
+        </span>
+      </button>
+      <button id="more-clear" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4.5 7h15"/>
+          <path d="M9 7V4.8h6V7"/>
+          <path d="M7.6 7.2 8.4 19h7.2l.8-11.8"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Clear chat</strong>
+          <span>Remove the conversation</span>
+        </span>
+      </button>
+      <button id="more-move" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v18"/>
+          <path d="M3 12h18"/>
+          <path d="M12 3 8.8 6.2"/>
+          <path d="M12 3l3.2 3.2"/>
+          <path d="M12 21l-3.2-3.2"/>
+          <path d="M12 21l3.2-3.2"/>
+          <path d="M3 12l3.2-3.2"/>
+          <path d="M3 12l3.2 3.2"/>
+          <path d="M21 12l-3.2-3.2"/>
+          <path d="M21 12l-3.2 3.2"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Move Hooxie</strong>
+          <span>Follows the pointer until you click</span>
+        </span>
+      </button>
+      <button id="more-ghost" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3.4a6.6 6.6 0 0 0-6.6 6.6v8.2c0 .8.9 1.2 1.5.6l1.2-1a1.4 1.4 0 0 1 1.8 0l1 1a1.4 1.4 0 0 0 1.8 0l1-1a1.4 1.4 0 0 1 1.8 0l1.2 1c.6.6 1.5.2 1.5-.6V10A6.6 6.6 0 0 0 12 3.4z"/>
+          <circle cx="9.5" cy="11" r=".9"/>
+          <circle cx="14.5" cy="11" r=".9"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Undetectable</strong>
+          <span id="more-ghost-note">Hidden from screen share and recordings</span>
+        </span>
+      </button>
+    </section>
+
+    <div id="viewer" hidden>
+      <div id="viewer-bar">
+        <p id="viewer-name"></p>
+        <button id="viewer-close" type="button">Close</button>
+      </div>
+      <div id="viewer-body"></div>
+    </div>
+
+    <section id="cursor-gate">
+      <h2>Set up Cursor first</h2>
+      <p class="note" id="cursor-lead">Hooxie sends every prompt through the Cursor app. Checking it on this computer.</p>
+      <ol id="cursor-steps"></ol>
+      <div class="row">
+        <a href="https://cursor.com/download" target="_blank" rel="noreferrer">Download Cursor</a>
+        <a href="https://cursor.com/pricing" target="_blank" rel="noreferrer">Cursor plans</a>
+        <button id="cursor-connect" type="button">Connect Cursor</button>
+        <button id="cursor-recheck" type="button">Check again</button>
+      </div>
+    </section>
+
+    <section id="chat" hidden>
+      <div id="thread"></div>
+    </section>
+
+    <section id="usage" hidden>
+      <h2>Cursor usage</h2>
+      <p id="usage-note" class="note">Checking included usage.</p>
+      <div id="usage-credits" hidden>
+        <h3>Credits</h3>
+        <p id="usage-credits-balance" class="usage-credits-balance"></p>
+        <p id="usage-credits-expire" class="note"></p>
+      </div>
+    </section>
+
+    <section id="presets" hidden>
+      <h2>Preset prompts</h2>
+      <p class="note">Save a prompt here, then use it again whenever you need it.</p>
+      <div id="preset-list"></div>
+      <label for="preset-name">Name</label>
+      <input id="preset-name" type="text" maxlength="80" placeholder="Bug check" autocomplete="off">
+      <label for="preset-text">Prompt</label>
+      <textarea id="preset-text" rows="4" placeholder="Look at the failing test and explain the cause."></textarea>
+      <div class="row">
+        <button id="preset-save" type="button">Save preset</button>
+        <button id="preset-from-prompt" type="button">Use current prompt</button>
+      </div>
+    </section>
+
+    <div id="delivery" hidden>
+      <label class="slider" for="opacity">Background opacity <span id="opacity-value">50%</span></label>
+      <input id="opacity" type="range" min="10" max="100" step="5" value="50">
+      <label class="switch blur-row">
+        <span class="switch-label">Blur background</span>
+        <span class="switch-track" aria-hidden="true"></span>
+        <input id="blur" type="checkbox" role="switch" aria-label="Blur background">
+      </label>
+      <label class="switch trace-row">
+        <span class="switch-label">Typing outline</span>
+        <span class="switch-track" aria-hidden="true"></span>
+        <input id="trace" type="checkbox" role="switch" aria-label="Typing outline" checked>
+      </label>
+      <div class="swatches" role="radiogroup" aria-label="Color">
+        <button type="button" class="swatch" role="radio" data-color="#ffffff" aria-label="White" aria-checked="true"></button>
+        <button type="button" class="swatch" role="radio" data-color="#4d9fff" aria-label="Blue" aria-checked="false"></button>
+        <button type="button" class="swatch" role="radio" data-color="#3ddc97" aria-label="Green" aria-checked="false"></button>
+        <button type="button" class="swatch" role="radio" data-color="#ff8a3d" aria-label="Orange" aria-checked="false"></button>
+        <button type="button" class="swatch" role="radio" data-color="#ff5d8f" aria-label="Rose" aria-checked="false"></button>
+        <button type="button" class="swatch" role="radio" data-color="#b07bff" aria-label="Violet" aria-checked="false"></button>
+        <button type="button" class="swatch" role="radio" data-color="#ffe14a" aria-label="Yellow" aria-checked="false"></button>
+        <button type="button" class="swatch" role="radio" data-color="#ff4d4d" aria-label="Red" aria-checked="false"></button>
+        <button type="button" class="swatch" role="radio" data-color="#3ee0d2" aria-label="Cyan" aria-checked="false"></button>
+      </div>
+      <label for="ide">IDE</label>
+      <select id="ide" class="native" tabindex="-1" aria-hidden="true"></select>
+      <div class="choices" data-for="ide" role="radiogroup" aria-label="IDE"></div>
+      <label for="install" id="install-label">Installation</label>
+      <select id="install" class="native" tabindex="-1" aria-hidden="true"></select>
+      <div class="choices" data-for="install" role="radiogroup" aria-label="Installation" hidden></div>
+      <label for="project">Project folder</label>
+      <div class="row">
+        <input id="project" type="text" spellcheck="false" placeholder="C:\work\app">
+        <button id="browse" type="button">Browse</button>
+        <button id="clear-target" type="button">Clear</button>
+      </div>
+      <div id="workspaces" class="chips"></div>
+      <label id="route-label" for="route">Delivery route</label>
+      <select id="route" class="native" tabindex="-1" aria-hidden="true"></select>
+      <div class="choices" data-for="route" role="radiogroup" aria-label="Delivery route"></div>
+      <p id="route-note" class="note"></p>
+      <ul id="limits"></ul>
+      <label for="api-key">Or paste an API key</label>
+      <input id="api-key" type="password" autocomplete="off" placeholder="Official Cursor SDK">
+      <label class="check"><input id="remember-key" type="checkbox"> Remember the key in your user profile</label>
+      <button id="save-key" type="button">Save key</button>
+      <p id="key-note" class="note"></p>
+      <label for="instructions">Additional instructions</label>
+      <textarea id="instructions" rows="2"></textarea>
+      <label for="files">Files inside the project, one relative path per line</label>
+      <textarea id="files" rows="2" spellcheck="false" placeholder="src/app.ts"></textarea>
+      <label class="check"><input id="include-path" type="checkbox"> Include the project path in the prompt text</label>
+      <label class="check"><input id="include-stack" type="checkbox"> Include stack markers found in the project root</label>
+      <label class="check" id="sandbox-row"><input id="unsandboxed" type="checkbox"> Allow this Cursor agent to run outside the sandbox</label>
+      <label class="check" id="experimental-row"><input id="experimental" type="checkbox"> Ask the IDE to submit (experimental, not verified)</label>
+      <div class="actions">
+        <button id="open-ide" type="button">Open IDE</button>
+        <button id="retry" type="button" hidden>Retry</button>
+        <button id="cancel" type="button" hidden>Cancel</button>
+      </div>
+      <p id="detail" class="detail"></p>
+      <pre id="result" hidden></pre>
+    </div>
+    </div>
+  </div>
+  <p id="status" class="sr-only" data-state="ready">Ready</p>
+  <script src="/app.js"></script>
+</body>
+</html>

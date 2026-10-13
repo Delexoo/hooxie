@@ -1,0 +1,11 @@
+node_modules/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+src/widget-shell/bin/
+src/widget-shell/obj/
+dist/
+site/.vercel/
+tmp-*
