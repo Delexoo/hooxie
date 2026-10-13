@@ -4,7 +4,7 @@
 
 Hooxie is an always-on-top Windows overlay that sends a prompt, files, and optionally the screen to a Cursor agent. It stays on your display. With Detectable off, a normal screen share does not see it.
 
-Credit Delexo if you use, remix, or show this software. Tag **@delexo** or link [delexo.store](https://delexo.store) in the video, description, README, or listing. See [LICENSE](LICENSE).
+Credit Delexo if you use, remix, or show this software. Tag **@delexo** or link [delexo.store](https://delexo.store) in the video, description, README, or listing. Source: [github.com/Delexoo/hooxie](https://github.com/Delexoo/hooxie). See [LICENSE](LICENSE).
 
 ## Requirements
 

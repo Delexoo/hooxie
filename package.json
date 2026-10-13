@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/delexo/hooxie.git"
+    "url": "https://github.com/Delexoo/hooxie.git"
   },
   "type": "module",
   "description": "Hooxie by Delexo is a compact Windows overlay that delivers a prompt to a Cursor coding agent.",
