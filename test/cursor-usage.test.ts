@@ -8,8 +8,10 @@ import {
   usagePercent,
 } from "../src/cursor-usage.ts";
 
-test("included spend over the plan limit is the usage percent", () => {
-  assert.equal(usagePercent({ planUsage: { includedSpend: 500, limit: 2000, totalPercentUsed: 10 } }), 25);
+test("the account percent is the included usage Cursor reports", () => {
+  assert.equal(usagePercent({ planUsage: { includedSpend: 2000, limit: 2000, totalPercentUsed: 12.4, bonusSpend: 4142 } }), 12);
+  assert.equal(usagePercent({ planUsage: { includedSpend: 500, limit: 2000, totalPercentUsed: 10 } }), 10);
+  assert.equal(usagePercent({ individualUsage: { plan: { used: 2000, limit: 2000, totalPercentUsed: 37.2 } } }), 37);
   assert.equal(usagePercent({ plan_usage: { included_spend: "2500", limit: "2000" } }), 100);
 });
 

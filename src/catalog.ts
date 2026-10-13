@@ -107,6 +107,24 @@ export const IDE_CATALOG: IdeProfile[] = [
   ),
 ];
 
+export const IDE_DOWNLOADS: Record<string, { label: string; url: string }> = {
+  cursor: { label: "Cursor", url: "https://cursor.com/download" },
+  vscode: { label: "Visual Studio Code", url: "https://code.visualstudio.com/Download" },
+  windsurf: { label: "Windsurf", url: "https://windsurf.com/download" },
+  jetbrains: { label: "JetBrains IDEs", url: "https://www.jetbrains.com/products/" },
+  visualstudio: { label: "Visual Studio", url: "https://visualstudio.microsoft.com/downloads/" },
+  zed: { label: "Zed", url: "https://zed.dev/download" },
+  sublime: { label: "Sublime Text", url: "https://www.sublimetext.com/download" },
+  androidstudio: { label: "Android Studio", url: "https://developer.android.com/studio" },
+  neovim: { label: "Neovim", url: "https://neovim.io/" },
+};
+
+export const MORE_IDES = ["sublime", "androidstudio", "neovim"] as const;
+
+export function ideDownloadUrl(id: string): string | undefined {
+  return IDE_DOWNLOADS[id]?.url;
+}
+
 export function catalogFor(ide: IdeId): IdeProfile {
   const found = IDE_CATALOG.find((entry) => entry.ide === ide);
   if (!found) throw new Error(`Unknown IDE ${ide}`);

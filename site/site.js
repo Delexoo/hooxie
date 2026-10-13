@@ -4,48 +4,120 @@ const TOKEN = document.querySelector('meta[name="z-token"]')?.content || "";
 const COPY = {
   en: {},
   es: {
-    "nav.general": "General", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.releases": "Notas", "nav.help": "Ayuda", "nav.contact": "Contacto",
+    "nav.general": "General", "nav.onboarding": "Inicio", "nav.widget": "Widget", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.releases": "Notas", "nav.help": "Ayuda", "nav.contact": "Contacto",
     "general.title": "General", "general.intro": "Versión, visibilidad, color y micrófono de Hooxie en este equipo.",
     "keybinds.title": "Atajos", "profile.title": "Perfil", "language.title": "Idioma", "billing.title": "Facturación", "releases.title": "Notas de la versión", "help.title": "Centro de ayuda", "contact.title": "Contactar soporte",
     "billing.plan": "Plan Pro", "billing.subscribe": "Suscribirse", "profile.connect": "Conectar cuenta",
   },
   fr: {
-    "nav.general": "Général", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.releases": "Notes", "nav.help": "Aide", "nav.contact": "Contact",
+    "nav.general": "Général", "nav.onboarding": "Démarrage", "nav.widget": "Widget", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.releases": "Notes", "nav.help": "Aide", "nav.contact": "Contact",
     "general.title": "Général", "keybinds.title": "Raccourcis", "profile.title": "Profil", "language.title": "Langue", "billing.title": "Facturation", "releases.title": "Notes de version", "help.title": "Aide", "contact.title": "Contacter le support",
     "billing.plan": "Offre Pro", "billing.subscribe": "S'abonner", "profile.connect": "Connecter le compte",
   },
   de: {
-    "nav.general": "Allgemein", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.releases": "Hinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt",
+    "nav.general": "Allgemein", "nav.onboarding": "Einrichtung", "nav.widget": "Widget", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.releases": "Hinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt",
     "general.title": "Allgemein", "keybinds.title": "Tasten", "profile.title": "Profil", "language.title": "Sprache", "billing.title": "Abrechnung", "releases.title": "Versionshinweise", "help.title": "Hilfe", "contact.title": "Support kontaktieren",
     "billing.plan": "Pro-Tarif", "billing.subscribe": "Abonnieren", "profile.connect": "Konto verbinden",
   },
   pt: {
-    "nav.general": "Geral", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.releases": "Notas", "nav.help": "Ajuda", "nav.contact": "Contato",
+    "nav.general": "Geral", "nav.onboarding": "Início", "nav.widget": "Widget", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.releases": "Notas", "nav.help": "Ajuda", "nav.contact": "Contato",
     "general.title": "Geral", "keybinds.title": "Atalhos", "profile.title": "Perfil", "language.title": "Idioma", "billing.title": "Cobrança", "releases.title": "Notas da versão", "help.title": "Ajuda", "contact.title": "Falar com o suporte",
     "billing.plan": "Plano Pro", "billing.subscribe": "Assinar", "profile.connect": "Conectar conta",
   },
   ja: {
-    "nav.general": "一般", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.releases": "更新", "nav.help": "ヘルプ", "nav.contact": "連絡",
+    "nav.general": "一般", "nav.onboarding": "初期設定", "nav.widget": "ウィジェット", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.releases": "更新", "nav.help": "ヘルプ", "nav.contact": "連絡",
     "general.title": "一般", "keybinds.title": "キーバインド", "profile.title": "プロフィール", "language.title": "言語", "billing.title": "料金", "releases.title": "リリースノート", "help.title": "ヘルプ", "contact.title": "サポートに連絡",
     "billing.plan": "Pro プラン", "billing.subscribe": "登録する", "profile.connect": "アカウントを接続",
   },
   zh: {
-    "nav.general": "通用", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.releases": "更新", "nav.help": "帮助", "nav.contact": "联系",
+    "nav.general": "通用", "nav.onboarding": "初始设置", "nav.widget": "浮窗", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.releases": "更新", "nav.help": "帮助", "nav.contact": "联系",
     "general.title": "通用", "keybinds.title": "快捷键", "profile.title": "账户", "language.title": "语言", "billing.title": "账单", "releases.title": "更新说明", "help.title": "帮助中心", "contact.title": "联系支持",
     "billing.plan": "Pro 方案", "billing.subscribe": "订阅", "profile.connect": "连接账户",
   },
 };
 
+bootChrome();
 const page = document.querySelector("[data-page]");
 if (page?.dataset.page === "dashboard") bootDashboard();
 if (page?.dataset.page === "contact") bootContact();
 if (page?.dataset.page === "home") bootHome();
 
-function bootHome() {
-  const canvas = document.querySelector("#ink-garden");
-  if (canvas && window.mountInkGarden) {
-    window.mountInkGarden(canvas, "/ascii-editor/demos/generated/ref-029.jpg", window.INK_GARDEN);
+function bootChrome() {
+  if (document.querySelector("[data-page]")?.dataset.page === "dashboard") return;
+  let pageGarden = document.querySelector("#page-garden");
+  if (!pageGarden) {
+    pageGarden = document.createElement("canvas");
+    pageGarden.id = "page-garden";
+    pageGarden.setAttribute("aria-hidden", "true");
+    document.body.prepend(pageGarden);
   }
+  if (window.mountInkGarden) {
+    window.mountInkGarden(pageGarden, "/ascii-editor/demos/generated/ref-029.webp", window.INK_GARDEN, { viewport: true });
+  }
+
+  const line = document.querySelector(".scroll-line");
+  const bar = document.querySelector(".topbar");
+  const toggle = document.querySelector(".menu-toggle");
+  const nav = document.querySelector("#site-menu");
+  const setMenu = (open) => {
+    bar?.classList.toggle("is-open", open);
+    document.documentElement.classList.toggle("menu-open", open);
+    toggle?.setAttribute("aria-expanded", String(open));
+    toggle?.querySelector(".sr")?.replaceChildren(document.createTextNode(open ? "Close" : "Menu"));
+  };
+
+  toggle?.addEventListener("click", () => setMenu(!bar.classList.contains("is-open")));
+  nav?.querySelectorAll("a").forEach((anchor) => anchor.addEventListener("click", () => setMenu(false)));
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && bar?.classList.contains("is-open")) setMenu(false);
+  });
+
+  const onScroll = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = max > 0 ? window.scrollY / max : 0;
+    if (line) line.style.transform = `scaleX(${progress})`;
+    if (line) line.classList.remove("is-dark");
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  for (const item of document.querySelectorAll(".faq-item")) {
+    const question = item.querySelector(".faq-q");
+    question?.addEventListener("click", () => {
+      const open = !item.classList.contains("is-open");
+      item.classList.toggle("is-open", open);
+      question.setAttribute("aria-expanded", String(open));
+    });
+  }
+}
+
+function bootDownloadButtons() {
+  for (const button of document.querySelectorAll(".dl-btn")) {
+    let phase = "idle";
+    let timer = 0;
+    const live = button.querySelector("[aria-live]");
+    const setPhase = (next) => {
+      phase = next;
+      button.dataset.phase = next;
+      button.setAttribute("aria-busy", next === "downloading" ? "true" : "false");
+      if (live) {
+        live.textContent = next === "downloading" ? "Downloading" : next === "done" ? "Downloaded" : "";
+      }
+    };
+    button.addEventListener("click", () => {
+      if (phase !== "idle") return;
+      setPhase("downloading");
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        setPhase("done");
+        timer = window.setTimeout(() => setPhase("idle"), 1800);
+      }, 700);
+    });
+  }
+}
+
+function bootHome() {
+  bootDownloadButtons();
   const prompt = document.querySelector("#demo-prompt");
   const send = document.querySelector("#demo-send");
   const status = document.querySelector("#demo-status");
@@ -86,8 +158,77 @@ function bootContact() {
   });
 }
 
+function wireSidebar(buttons, status) {
+  const dash = document.querySelector(".dash");
+  const filter = document.querySelector("#side-filter");
+  const searchBtn = document.querySelector("#side-search");
+  const collapseBtn = document.querySelector("#side-collapse");
+  const supportLabel = document.querySelector(".side-label");
+  const toggle = document.querySelector("#toggle-hooxie");
+  let widgetShown = true;
+
+  function applyFilter() {
+    const q = filter.value.trim().toLowerCase();
+    let supportVisible = 0;
+    for (const button of buttons) {
+      const label = button.querySelector("span")?.textContent || "";
+      const match = !q || label.toLowerCase().includes(q);
+      button.hidden = !match;
+      if (match && button.dataset.group === "support") supportVisible += 1;
+    }
+    if (supportLabel) supportLabel.hidden = q.length > 0 && supportVisible === 0;
+  }
+
+  searchBtn?.addEventListener("click", () => {
+    if (dash.classList.contains("is-collapsed")) dash.classList.remove("is-collapsed");
+    const open = filter.hidden;
+    filter.hidden = !open;
+    searchBtn.setAttribute("aria-expanded", String(open));
+    if (open) filter.focus();
+    else {
+      filter.value = "";
+      applyFilter();
+    }
+  });
+  filter?.addEventListener("input", applyFilter);
+  filter?.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    filter.value = "";
+    filter.hidden = true;
+    searchBtn.setAttribute("aria-expanded", "false");
+    applyFilter();
+  });
+  collapseBtn?.addEventListener("click", () => {
+    const collapsed = dash.classList.toggle("is-collapsed");
+    collapseBtn.setAttribute("aria-expanded", String(!collapsed));
+    collapseBtn.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+    if (!collapsed) return;
+    filter.hidden = true;
+    filter.value = "";
+    searchBtn.setAttribute("aria-expanded", "false");
+    applyFilter();
+  });
+  toggle?.addEventListener("click", async () => {
+    if (!LOCAL || !TOKEN) {
+      status.textContent = "Toggle Hooxie from the desktop app.";
+      return;
+    }
+    const next = !widgetShown;
+    toggle.disabled = true;
+    try {
+      const result = await request("/api/widget/visible", { shown: next });
+      widgetShown = result.shown !== false;
+      status.textContent = widgetShown ? "Hooxie is on screen." : "Hooxie is hidden. Ctrl+\\ shows it again.";
+    } catch (error) {
+      status.textContent = error.message;
+    } finally {
+      toggle.disabled = false;
+    }
+  });
+}
+
 function bootDashboard() {
-  const buttons = [...document.querySelectorAll(".side button")];
+  const buttons = [...document.querySelectorAll(".side button[data-open]")];
   const sections = [...document.querySelectorAll("[data-section]")];
   const status = document.querySelector("#status");
   const detectable = document.querySelector("#detectable");
@@ -122,6 +263,8 @@ function bootDashboard() {
     chime: "blushing",
     chimeCustom: false,
     arrows: false,
+    dashboardMode: "dark",
+    widgetMode: "dark",
   };
   let catalog = { ides: [], installations: [], sessions: [] };
   let routes = [];
@@ -140,11 +283,15 @@ function bootDashboard() {
 
   function show(name) {
     for (const section of sections) section.hidden = section.dataset.section !== name;
-    for (const button of buttons) button.setAttribute("aria-current", String(button.dataset.open === name));
+    for (const button of buttons) {
+      if (button.dataset.open === name) button.setAttribute("aria-current", "true");
+      else button.removeAttribute("aria-current");
+    }
     history.replaceState(null, "", `#${name}`);
   }
   for (const button of buttons) button.addEventListener("click", () => show(button.dataset.open));
   show((location.hash || "#general").slice(1) || "general");
+  wireSidebar(buttons, status);
 
   function paint() {
     detectable.checked = settings.detectable !== false;
@@ -168,6 +315,27 @@ function bootDashboard() {
     paintChimes();
     paintWidget();
     paintAccount();
+    paintOnboarding();
+    paintModes();
+  }
+
+  function paintModes() {
+    const dashboardMode = settings.dashboardMode === "light" ? "light" : "dark";
+    const widgetMode = settings.widgetMode === "light" ? "light" : "dark";
+    document.documentElement.dataset.appearance = dashboardMode;
+    for (const button of document.querySelectorAll("[data-dashboard-mode]")) {
+      button.setAttribute("aria-checked", String(button.dataset.dashboardMode === dashboardMode));
+    }
+    for (const button of document.querySelectorAll("[data-widget-mode]")) {
+      button.setAttribute("aria-checked", String(button.dataset.widgetMode === widgetMode));
+    }
+  }
+
+  function paintOnboarding() {
+    const note = document.querySelector("#onboarding-note");
+    if (!note) return;
+    if (settings.onboardingStep === "download" || settings.onboardingStep === "connect") note.textContent = "The widget is showing Download and Connect again.";
+    else note.textContent = "Start over to see Download and Connect again.";
   }
 
   function setLanguage(code) {
@@ -216,7 +384,30 @@ function bootDashboard() {
   for (const button of languageButtons) {
     button.addEventListener("click", () => save({ language: button.dataset.lang }));
   }
+  for (const button of document.querySelectorAll("[data-dashboard-mode]")) {
+    button.addEventListener("click", () => save({ dashboardMode: button.dataset.dashboardMode }));
+  }
+  for (const button of document.querySelectorAll("[data-widget-mode]")) {
+    button.addEventListener("click", () => save({ widgetMode: button.dataset.widgetMode }));
+  }
+  document.querySelector("#onboarding-restart")?.addEventListener("click", () => {
+    restartOnboarding().catch((error) => {
+      const note = document.querySelector("#onboarding-note");
+      if (note) note.textContent = error.message;
+    });
+  });
   document.querySelector("#connect").addEventListener("click", () => startCheckout(email.value, promo.value));
+
+  async function restartOnboarding() {
+    const note = document.querySelector("#onboarding-note");
+    if (!LOCAL || !TOKEN) {
+      if (note) note.textContent = "Start over from the Hooxie widget on this computer.";
+      return;
+    }
+    const result = await request("/api/onboarding/restart", {});
+    settings = { ...settings, onboardingStep: result.phase === "connect" ? "connect" : "download", connectedIde: "" };
+    paint();
+  }
   document.querySelector("#subscribe").addEventListener("click", () => startCheckout(email.value, promo.value));
 
   async function startCheckout(accountEmail, code) {
@@ -265,8 +456,6 @@ function bootDashboard() {
   } else if (params.get("billing") === "cancel") {
     status.textContent = "Checkout was canceled.";
   }
-  refresh().catch((error) => { status.textContent = error.message; });
-  if (LOCAL && TOKEN) window.setInterval(() => { refresh().catch(() => {}); }, 1500);
   wireChimes();
   wireWidget();
 
@@ -287,6 +476,8 @@ function bootDashboard() {
   };
   let previewAudio = null;
   let previewUrl = "";
+  refresh().catch((error) => { status.textContent = error.message; });
+  if (LOCAL && TOKEN) window.setInterval(() => { refresh().catch(() => {}); }, 1500);
 
   function paintChimes() {
     const list = document.querySelector("#chime-list");

@@ -8,6 +8,13 @@
     {
       "source": "/ascii-editor/demos/generated/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    },
+    {
+      "source": "/download/Hooxie-Setup.exe",
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Disposition", "value": "attachment; filename=\"Hooxie-Setup.exe\"" }
+      ]
     }
   ]
 }

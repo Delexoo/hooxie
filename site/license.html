@@ -4,14 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>License · Hooxie by Delexo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/site.css">
 </head>
-<body>
-  <header class="top">
-    <a class="brand" href="/home">Hooxie</a>
-    <nav><a href="https://delexo.store">delexo.store</a><a href="/terms">Terms</a></nav>
+<body class="page">
+  <a class="skip" href="#content">Skip to content</a>
+  <div class="scroll-line is-dark" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="logo" href="/home">Hooxie</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-bars" aria-hidden="true"></span>
+      <span class="sr">Menu</span>
+    </button>
+    <nav class="garden-menu" id="site-menu" aria-label="Primary">
+      <div class="menu-copy">
+        <a href="/home#features">Features</a>
+        <a href="/home#demo">Demo</a>
+        <a href="/home#pricing">Pricing</a>
+        <a href="/help">Help</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/ides">IDEs</a>
+        <a href="/home#download">Download</a>
+      </div>
+    </nav>
   </header>
-  <main class="wrap">
+  <main class="wrap page-main" id="content">
     <article class="doc">
       <h1>Delexo Attribution License</h1>
       <p>Copyright (c) 2026 Delexo (@delexo) · <a href="https://delexo.store">delexo.store</a></p>
@@ -25,9 +44,37 @@
       <p>The full legal text is in the <code>LICENSE</code> file in the source repository.</p>
     </article>
   </main>
-  <footer class="foot">
-    <span>© 2026 Delexo · Hooxie</span>
-    <nav><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/contact">Contact</a></nav>
+  <footer class="site-footer">
+    <a class="to-top" href="#content"><span aria-hidden="true"></span>Scroll up</a>
+    <div class="wrap footer-grid">
+      <div>
+        <p class="footer-label">Product</p>
+        <a href="/home#features">Features</a>
+        <a href="/home#demo">Demo</a>
+        <a href="/home#pricing">Pricing</a>
+        <a href="/ides">IDEs</a>
+        <a href="/home#download">Download</a>
+      </div>
+      <div>
+        <p class="footer-label">Account</p>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/help">Help</a>
+        <a href="/contact">Contact</a>
+        <a href="/releases">Release notes</a>
+      </div>
+      <div>
+        <p class="footer-label">Legal</p>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/refund">Refunds</a>
+        <a href="/license">License</a>
+      </div>
+    </div>
+    <div class="wrap">
+      <p class="footer-note"><strong>hooxie.</strong> A Delexo product. Credit <a href="https://delexo.store">@delexo</a> if you show or remix it. © 2026 Delexo.</p>
+    </div>
   </footer>
+  <script src="/ascii.js"></script>
+  <script src="/site.js"></script>
 </body>
 </html>

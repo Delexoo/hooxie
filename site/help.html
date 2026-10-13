@@ -4,19 +4,38 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Help center · Hooxie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/site.css">
 </head>
-<body>
-  <header class="top">
-    <a class="brand" href="/home">Hooxie</a>
-    <nav><a href="/home#features">Features</a><a href="/home#download">Download</a><a href="/dashboard">Dashboard</a><a href="/contact">Contact</a></nav>
+<body class="page">
+  <a class="skip" href="#content">Skip to content</a>
+  <div class="scroll-line is-dark" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="logo" href="/home">Hooxie</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-bars" aria-hidden="true"></span>
+      <span class="sr">Menu</span>
+    </button>
+    <nav class="garden-menu" id="site-menu" aria-label="Primary">
+      <div class="menu-copy">
+        <a href="/home#features">Features</a>
+        <a href="/home#demo">Demo</a>
+        <a href="/home#pricing">Pricing</a>
+        <a href="/help">Help</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/ides">IDEs</a>
+        <a href="/home#download">Download</a>
+      </div>
+    </nav>
   </header>
-  <main class="wrap">
+  <main class="wrap page-main" id="content">
     <article class="doc">
       <h1>Help center</h1>
       <h2>Before Hooxie can send</h2>
-      <p>Hooxie needs the Cursor desktop app. <a href="https://cursor.com/download">Download Cursor</a>, install it, and sign in. The account also needs an available Cursor plan: Hobby, Pro, Pro+, Ultra, or Business, and that plan has to be active. See <a href="https://cursor.com/pricing">Cursor plans</a>. Hooxie Pro ($4.99/month) is a separate subscription and does not replace a Cursor plan.</p>
-      <p>The widget checks the install, the sign-in, and the plan before a prompt can be sent. If a step is still open, the pill lists it and tells you what to do. Use Download Cursor, Cursor plans, and Check again on that panel.</p>
+      <p>Hooxie needs an IDE on this computer. Step 1 of the widget asks you to <a href="/ides">download an IDE</a> if none is installed. Step 2 lists the IDEs it found and asks you to connect one. The prompt, voice, and the rest of the widget stay hidden until an IDE’s app files are on the machine and that IDE is connected.</p>
+      <p>Cursor also needs a sign-in and an available plan: Hobby, Pro, Pro+, Ultra, or Business. See <a href="https://cursor.com/pricing">Cursor plans</a>. Hooxie Pro ($4.99/month) is a separate subscription and does not replace a Cursor plan.</p>
       <p>Press Connect Cursor on the pill or in the dashboard. Sign-in opens in the browser and links the account. A pasted API key also works if you already have one.</p>
       <h2>Open the widget</h2>
       <p>Start Hooxie on Windows. A pill appears at the top center. Set the project folder before you send. That folder is the agent's workspace.</p>
@@ -36,9 +55,37 @@
       <p>Pro is $4.99 a month. Subscribe from the dashboard. A promotional code goes in the field on that page. Refunds are described on the refund page.</p>
     </article>
   </main>
-  <footer class="foot">
-    <span>© 2026 Delexo · Hooxie</span>
-    <nav><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></nav>
+  <footer class="site-footer">
+    <a class="to-top" href="#content"><span aria-hidden="true"></span>Scroll up</a>
+    <div class="wrap footer-grid">
+      <div>
+        <p class="footer-label">Product</p>
+        <a href="/home#features">Features</a>
+        <a href="/home#demo">Demo</a>
+        <a href="/home#pricing">Pricing</a>
+        <a href="/ides">IDEs</a>
+        <a href="/home#download">Download</a>
+      </div>
+      <div>
+        <p class="footer-label">Account</p>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/help">Help</a>
+        <a href="/contact">Contact</a>
+        <a href="/releases">Release notes</a>
+      </div>
+      <div>
+        <p class="footer-label">Legal</p>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/refund">Refunds</a>
+        <a href="/license">License</a>
+      </div>
+    </div>
+    <div class="wrap">
+      <p class="footer-note"><strong>hooxie.</strong> A Delexo product. Credit <a href="https://delexo.store">@delexo</a> if you show or remix it. © 2026 Delexo.</p>
+    </div>
   </footer>
+  <script src="/ascii.js"></script>
+  <script src="/site.js"></script>
 </body>
 </html>

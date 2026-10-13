@@ -1,4 +1,9 @@
 const token = document.querySelector('meta[name="z-token"]').content;
+fetch("/api/widget/frame", {
+  method: "POST",
+  headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+  body: JSON.stringify({ width: 448, height: 480 }),
+}).catch(() => undefined);
 const statusEl = document.querySelector("#status");
 const ideEl = document.querySelector("#ide");
 const installEl = document.querySelector("#install");
@@ -30,6 +35,7 @@ const folderEl = document.querySelector("#folder");
 const shellEl = document.querySelector("#shell");
 const frameEl = document.querySelector("#frame");
 const pillEl = document.querySelector("#pill");
+queueMicrotask(() => scheduleFit());
 const attachmentsEl = document.querySelector("#attachments");
 
 const SHELL_WIDTH = 440;
@@ -43,6 +49,7 @@ const blurEl = document.querySelector("#blur");
 const traceEl = document.querySelector("#trace");
 const swatchEls = [...document.querySelectorAll(".swatch")];
 let buttonColor = "#ffffff";
+let widgetMode = "dark";
 
 const LABELS = {
   ready: "Ready",
@@ -70,6 +77,9 @@ let renderedReply = "";
 let lastPrompt = "";
 let sendBlocked = true;
 let cursorReady = false;
+let setupReady = false;
+let setupFlight = false;
+let setupQueued = false;
 let busy = false;
 let stopRequested = false;
 let promptQueue = [];
@@ -83,12 +93,17 @@ let voiceTimer = 0;
 let voicePollFlight = false;
 let voiceBase = "";
 let attachments = [];
+let attachNote = "";
 let inflightImageIds = [];
 let lastScreenImage = null;
 let audioEnabled = true;
 let chimeId = "blushing";
 let chimeAudio = null;
 let arrowsApplied = null;
+let blurApplied = null;
+let dragDepth = 0;
+let widgetActive = true;
+let viewingId = null;
 let settingsRevision = 0;
 let settingsTimer = 0;
 let pendingSettings = null;
@@ -116,10 +131,12 @@ function applyLook(publish = true) {
   opacityEl.value = String(opacity);
   opacityValueEl.textContent = `${opacity}%`;
   const blur = blurEl.checked;
+  const light = widgetMode === "light";
   shellEl.classList.toggle("is-blur", blur);
-  document.documentElement.style.setProperty("--glass", `rgba(0, 0, 0, ${opacity / 100})`);
-  document.documentElement.style.setProperty("--blur-shade", (0.25 + opacity / 400).toFixed(3));
-  document.documentElement.style.setProperty("--accent", color);
+  document.documentElement.dataset.widget = light ? "light" : "dark";
+  document.documentElement.style.setProperty("--glass", light ? `rgba(255, 255, 255, ${opacity / 100})` : `rgba(0, 0, 0, ${opacity / 100})`);
+  document.documentElement.style.setProperty("--blur-shade", light ? "0.08" : (0.25 + opacity / 400).toFixed(3));
+  document.documentElement.style.setProperty("--accent", light ? "#111111" : color);
   document.documentElement.style.setProperty("--button", color);
   document.documentElement.style.setProperty("--button-ink", buttonInk(color));
   for (const swatch of swatchEls) {
@@ -161,12 +178,14 @@ for (const id of fields) {
   node.addEventListener("change", () => { touchDraft(); renderTarget(); if (id !== "prompt") publishDelivery(); });
 }
 imagesEl.addEventListener("change", () => {
-  addFileList(imagesEl.files);
+  const files = [...imagesEl.files];
   imagesEl.value = "";
+  addFileList(files);
 });
 folderEl.addEventListener("change", () => {
-  addFileList(folderEl.files);
+  const files = [...folderEl.files];
   folderEl.value = "";
+  addFileList(files);
 });
 sendEl.addEventListener("click", async () => {
   if (busy) {
@@ -178,7 +197,8 @@ sendEl.addEventListener("click", async () => {
     return;
   }
   if (listening) await stopVoice();
-  if (!sendEl.disabled && promptEl.value.trim()) submit(false);
+  if (!promptEl.value.trim()) return;
+  await sendPrompt();
 });
 promptEl.addEventListener("input", syncAction);
 promptEl.addEventListener("focus", () => {
@@ -194,7 +214,6 @@ cancelEl.addEventListener("click", () => { stopAgent(); });
 document.querySelector("#open-ide").addEventListener("click", openIde);
 document.querySelector("#save-key").addEventListener("click", saveKey);
 document.querySelector("#browse").addEventListener("click", browseFolder);
-document.querySelector("#add").addEventListener("click", () => imagesEl.click());
 document.querySelector("#add").addEventListener("contextmenu", (event) => {
   event.preventDefault();
   folderEl.click();
@@ -254,14 +273,14 @@ dashboardToggle.addEventListener("click", () => {
     .then((body) => paintDashboard(body.open === true))
     .catch((error) => {
       paintDashboard(!next);
-      detailEl.textContent = error.message;
+      showNotice(error.message);
     });
 });
 document.querySelector("#more-hide").addEventListener("click", hideHooxie);
 document.querySelector("#more-clear").addEventListener("click", clearChat);
 document.querySelector("#more-move").addEventListener("click", moveHooxie);
 document.querySelector("#more-ghost").addEventListener("click", toggleUndetectable);
-promptEl.addEventListener("keydown", (event) => {
+promptEl.addEventListener("keydown", async (event) => {
   if (event.key !== "Enter" || event.shiftKey) return;
   event.preventDefault();
   const text = promptEl.value.trim();
@@ -270,9 +289,8 @@ promptEl.addEventListener("keydown", (event) => {
     queueMessage(text);
     return;
   }
-  if (sendEl.disabled) return;
   stopVoice();
-  submit(false);
+  await sendPrompt();
 });
 for (const name of ["terminals", "queue", "files"]) {
   document.querySelector(`#${name}-toggle`).addEventListener("click", () => {
@@ -324,27 +342,16 @@ document.querySelector("#drag").addEventListener("pointerdown", (event) => {
 
 new ResizeObserver(() => scheduleFit()).observe(shellEl);
 
-document.querySelector("#cursor-recheck").addEventListener("click", () => {
-  refreshCursorReady().catch((error) => {
-    detailEl.textContent = error.message;
-  });
-});
 document.querySelector("#account-connect").addEventListener("click", () => {
   connectCursor().catch((error) => {
     document.querySelector("#account-note").textContent = error.message;
   });
 });
-document.querySelector("#cursor-connect").addEventListener("click", () => {
-  connectCursor().catch((error) => {
-    document.querySelector("#account-note").textContent = error.message;
-  });
-});
-
 boot();
 
 async function boot() {
   restoreTarget();
-  await refreshCursorReady().catch(() => undefined);
+  await refreshSetup().catch(() => undefined);
   state = await api("/api/state");
   ideEl.replaceChildren(...state.ides.map((ide) => option(ide.ide, ide.label)));
   restoreTarget();
@@ -401,7 +408,7 @@ function paintUsage(percent, credits) {
   const title = value == null ? "Cursor usage" : `Cursor usage ${value}%`;
   button.title = title;
   button.setAttribute("aria-label", title);
-  note.textContent = value == null ? "Cursor usage is not available yet." : `${value}% of included Cursor usage.`;
+  note.textContent = value == null ? "Cursor usage is not available yet." : `${value}% of this account's included usage.`;
   const remaining = Number(credits?.remainingCents);
   const total = Number(credits?.totalCents);
   const hasCredits = Number.isFinite(remaining) && Number.isFinite(total) && total > 0;
@@ -477,28 +484,169 @@ async function applyArrows(enabled) {
   }
 }
 
-async function refreshCursorReady() {
-  const report = await api("/api/cursor/ready");
-  cursorReady = report.ready === true;
-  const gate = document.querySelector("#cursor-gate");
-  const lead = document.querySelector("#cursor-lead");
-  const list = document.querySelector("#cursor-steps");
-  gate.hidden = cursorReady;
-  lead.textContent = cursorReady
-    ? "Cursor is ready."
-    : "Hooxie sends every prompt through the Cursor app. Finish the open steps, then check again.";
-  list.replaceChildren(...(report.steps || []).map((step) => {
-    const item = document.createElement("li");
-    item.classList.toggle("is-done", step.done === true);
-    const title = document.createElement("strong");
-    title.textContent = step.done ? `${step.title} — done` : step.title;
+async function openIdeDownload(id) {
+  await api("/api/ides/open", { method: "POST", body: JSON.stringify({ ide: id }) });
+}
+
+async function refreshSetup() {
+  if (setupFlight) {
+    setupQueued = true;
+    return;
+  }
+  setupFlight = true;
+  try {
+    const report = await api("/api/setup");
+    try {
+      const next = await api("/api/state");
+      state = { ...state, ...next };
+    } catch {
+      /* The setup report still decides which step is showing. */
+    }
+    setupReady = report.phase === "ready";
+    cursorReady = setupReady;
+    paintSetup(report);
+    renderRoute();
+    scheduleFit();
+  } finally {
+    setupFlight = false;
+    if (setupQueued) {
+      setupQueued = false;
+      refreshSetup().catch(() => undefined);
+    }
+  }
+}
+
+let setupSide = "";
+
+function paintSetup(report) {
+  const setup = document.querySelector("#setup");
+  const download = document.querySelector("#setup-download");
+  const connect = document.querySelector("#setup-connect");
+  const switchEl = document.querySelector("#setup-switch");
+  const downloadTab = document.querySelector("#setup-download-tab");
+  const connectTab = document.querySelector("#setup-connect-tab");
+  const showFeatures = report.phase === "ready";
+  if (!showFeatures && !pillEl.hidden) showOnly("none");
+  setup.hidden = showFeatures;
+  pillEl.hidden = !showFeatures;
+  if (showFeatures) {
+    setupSide = "";
+    return;
+  }
+  const side = report.phase === "download" ? "download" : "connect";
+  const slideIn = side === "connect" && setupSide !== "connect";
+  setupSide = side;
+  if (slideIn) {
+    switchEl.classList.remove("is-connect");
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => switchEl.classList.add("is-connect"));
+    });
+  } else {
+    switchEl.classList.toggle("is-connect", side === "connect");
+  }
+  downloadTab.disabled = side === "connect";
+  connectTab.disabled = side === "download";
+  downloadTab.setAttribute("aria-selected", String(side === "download"));
+  connectTab.setAttribute("aria-selected", String(side === "connect"));
+  download.hidden = side !== "download";
+  connect.hidden = side !== "connect";
+  if (side === "download") renderSetupDownloads(report.ides || [], report.more || []);
+  if (side === "connect" && !connectingAccount) renderSetupIdes(report.ides || [], report.connectedIde || "", report.more || []);
+}
+
+function renderSetupDownloads(ides, more) {
+  const list = document.querySelector("#setup-downloads");
+  const rows = [...ides.map((ide) => ({ id: ide.ide, label: ide.label })), ...more];
+  list.replaceChildren(...rows.map((ide) => downloadRow(ide)));
+}
+
+function downloadRow(ide) {
+  const row = document.createElement("div");
+  row.className = "setup-ide";
+  const copy = document.createElement("div");
+  const name = document.createElement("strong");
+  name.textContent = ide.label;
+  copy.className = "setup-ide-copy";
+  copy.append(name);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = "Download";
+  button.setAttribute("aria-label", `Download ${ide.label}`);
+  button.addEventListener("click", () => {
+    openIdeDownload(ide.id).catch((error) => {
+      document.querySelector("#setup-download-note").textContent = error.message;
+    });
+  });
+  row.append(copy, button);
+  return row;
+}
+
+function renderSetupIdes(ides, connectedIde, more = []) {
+  const list = document.querySelector("#setup-ides");
+  list.replaceChildren(...ides.map((ide) => {
+    const connected = ide.ide === connectedIde;
+    const row = document.createElement("div");
+    row.className = connected ? "setup-ide is-connected" : "setup-ide";
+    row.dataset.ide = ide.ide;
+    const copy = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = ide.label;
     const detail = document.createElement("span");
-    detail.textContent = step.detail;
-    item.append(title, detail);
-    return item;
-  }));
-  renderRoute();
-  scheduleFit();
+    detail.textContent = connected ? "Connected" : ide.installed ? "Installed" : "Not installed";
+    copy.className = "setup-ide-copy";
+    copy.append(name, detail);
+    row.append(copy);
+    if (ide.installed && !connected) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Connect";
+      button.setAttribute("aria-label", `Connect ${ide.label}`);
+      button.addEventListener("click", () => {
+        connectIde(ide.ide).catch((error) => {
+          detail.textContent = error.message;
+        });
+      });
+      row.append(button);
+    }
+    return row;
+  }), ...more.map((ide) => downloadRow(ide)));
+}
+
+function markConnected(ide) {
+  const row = document.querySelector(`.setup-ide[data-ide="${ide}"]`);
+  if (!row) return;
+  row.classList.add("is-connected");
+  const detail = row.querySelector("span");
+  if (detail) detail.textContent = "Connected";
+  row.querySelector("button")?.remove();
+}
+
+async function connectIde(ide) {
+  if (connectingAccount) return;
+  if (ide === "cursor" && !state.cursorKeyConfigured) {
+    await connectCursor();
+    if (!state.cursorKeyConfigured) {
+      const note = document.querySelector("#account-note");
+      throw new Error(note?.textContent || "Sign in to Cursor, then connect it.");
+    }
+  }
+  await api("/api/ide/connect", { method: "POST", body: JSON.stringify({ ide }) });
+  markConnected(ide);
+  await new Promise((resolve) => window.setTimeout(resolve, 520));
+  try {
+    const next = await api("/api/state");
+    state = { ...state, ...next };
+  } catch {
+    /* Connect already saved. The next setup check will unlock the widget. */
+  }
+  const match = state.installations.find((item) => item.ide === ide);
+  if (match && [...ideEl.options].some((item) => item.value === ide)) {
+    ideEl.value = ide;
+    renderInstallations();
+    if ([...installEl.options].some((item) => item.value === match.id)) installEl.value = match.id;
+    publishDelivery();
+  }
+  await refreshSetup();
 }
 
 function queueSettings(partial) {
@@ -523,6 +671,7 @@ function applyRemoteSettings(body) {
   settingsRevision = body.revision;
   applyingRemote = true;
   if (BUTTON_COLORS.includes(body.button)) buttonColor = body.button;
+  if (body.widgetMode === "light" || body.widgetMode === "dark") widgetMode = body.widgetMode;
   if (Number.isFinite(Number(body.opacity))) opacityEl.value = String(body.opacity);
   if (body.lookReady === true) {
     blurEl.checked = body.blur === true;
@@ -596,7 +745,7 @@ window.onHooxieHotkey = async (name) => {
 };
 
 async function askAboutContext() {
-  if (busy) return;
+  if (busy || !setupReady) return;
   if (!projectEl.value.trim()) {
     detailEl.textContent = "Choose a project folder before asking about the screen.";
     showOnly("chat");
@@ -607,6 +756,11 @@ async function askAboutContext() {
   syncAction();
   submit(false, { screen: true });
 }
+
+window.setInterval(() => {
+  if (setupReady || connectingAccount) return;
+  refreshSetup().catch(() => undefined);
+}, 3000);
 
 window.setInterval(async () => {
   try {
@@ -625,8 +779,6 @@ function paintAccount(connected) {
   state.cursorKeyConfigured = connected === true;
   const bar = document.querySelector("#account-bar");
   if (bar) bar.hidden = state.cursorKeyConfigured;
-  const gateButton = document.querySelector("#cursor-connect");
-  if (gateButton) gateButton.hidden = state.cursorKeyConfigured;
   const keyNote = document.querySelector("#key-note");
   if (keyNote) {
     keyNote.textContent = state.cursorKeyConfigured
@@ -836,7 +988,15 @@ function renderThread() {
     block.append(who, body);
     threadEl.append(block);
   }
-  if (statusName !== "ready" && !terminal(statusName)) {
+  if (statusName === "failed" && detailEl.textContent) {
+    const last = thread[thread.length - 1];
+    if (!last || last.text !== detailEl.textContent) {
+      const live = document.createElement("p");
+      live.className = "live";
+      live.textContent = detailEl.textContent;
+      threadEl.append(live);
+    }
+  } else if (statusName !== "ready" && !terminal(statusName)) {
     const live = document.createElement("p");
     live.className = "live";
     live.textContent = LABELS[statusName] || statusName;
@@ -894,7 +1054,7 @@ function syncAction() {
   sendEl.setAttribute("aria-pressed", String(voiceOn));
   sendEl.setAttribute("aria-label", mode === "stop" ? "Stop the agent" : mode === "send" ? "Send prompt" : voiceOn ? "Stop voice prompting" : "Prompt by voice");
   sendEl.title = mode === "stop" ? "Stop" : mode === "send" ? "Send" : voiceOn ? "Stop voice prompting" : "Prompt by voice";
-  sendEl.disabled = mode === "send" && sendBlocked;
+  sendEl.disabled = false;
   if (busy && !text) promptEl.placeholder = "Queue a follow-up";
   syncTrace();
 }
@@ -934,19 +1094,27 @@ async function stopVoice() {
   if (!promptEl.value && document.activeElement !== promptEl) startPlaceholder();
 }
 
+function showNotice(message) {
+  sendEl.title = message;
+  statusEl.textContent = message;
+  detailEl.textContent = message;
+  const downloadNote = document.querySelector("#setup-download-note");
+  const connectNote = document.querySelector("#setup-connect-note");
+  if (downloadNote && !document.querySelector("#setup-download").hidden) downloadNote.textContent = message;
+  if (connectNote && !document.querySelector("#setup-connect").hidden) connectNote.textContent = message;
+}
+
 async function toggleVoice() {
   if (listening) {
     await stopVoice();
     return;
   }
   if (!cursorReady) {
-    sendEl.title = "Finish the Cursor steps before prompting.";
-    detailEl.textContent = "Finish the Cursor steps before prompting.";
+    showNotice("Connect an IDE before prompting.");
     return;
   }
   if (!audioEnabled) {
-    sendEl.title = "Turn on the microphone in the dashboard.";
-    detailEl.textContent = "Turn on the microphone in the dashboard.";
+    showNotice("Turn on the microphone in the dashboard.");
     return;
   }
   listening = true;
@@ -991,17 +1159,56 @@ async function pollVoice() {
   }
 }
 
+function explainSendBlock() {
+  if (!cursorReady) return "Connect an IDE before sending.";
+  const project = projectEl.value.trim();
+  const route = selectedRoute();
+  if (!project || !route) return "Choose a project folder before sending.";
+  if (!route.available) return route.reason || "This prompt cannot be sent on the current route.";
+  const images = attachments.filter((item) => item.kind === "image").length;
+  if ((images > 0 || viewScreenEl.checked) && !route.capabilities.images) {
+    return "This route cannot carry a screenshot or other images.";
+  }
+  return "";
+}
+
+function showSendBlock(message) {
+  showNotice(message);
+  setStatus("failed", message);
+  if (pillEl.hidden) return;
+  showOnly("chat");
+  renderThread();
+}
+
+async function sendPrompt() {
+  if (!cursorReady) await refreshSetup();
+  let message = explainSendBlock();
+  if (message === "Choose a project folder before sending.") {
+    showSendBlock(message);
+    await browseFolder();
+    message = explainSendBlock();
+  }
+  if (message) {
+    showSendBlock(message);
+    return;
+  }
+  submit(false);
+}
+
 async function submit(retry, options = {}) {
   if (!cursorReady) {
-    await refreshCursorReady();
+    await refreshSetup();
     if (!cursorReady) {
-      setStatus("failed", "Finish the Cursor steps above before sending.");
+      showSendBlock("Connect an IDE before sending.");
       return;
     }
   }
   const route = selectedRoute();
   const project = projectEl.value.trim();
-  if (!route || !project) return;
+  if (!route || !project) {
+    showSendBlock("Choose a project folder before sending.");
+    return;
+  }
   const text = (retry ? lastPrompt : promptEl.value).trim();
   if (!text) return;
   busy = true;
@@ -1166,7 +1373,6 @@ let placeholderIndex = 0;
 let placeholderPhase = "in";
 let placeholderIde = "";
 let placeholderTimer = 0;
-let widgetActive = true;
 
 function placeholderPhrases() {
   return [`Prompt ${ideLabel()} anything.`, ...PLACEHOLDER_EXAMPLES];
@@ -1574,6 +1780,29 @@ function scheduleFit() {
   fitTimer = setTimeout(fitWindow, 16);
 }
 
+function measureFrame() {
+  const html = document.documentElement;
+  const saved = {
+    htmlHeight: html.style.height,
+    bodyHeight: document.body.style.height,
+    bodyOverflow: document.body.style.overflow,
+    frameMax: frameEl.style.maxHeight,
+    shellMax: shellEl.style.maxHeight,
+  };
+  html.style.height = "auto";
+  document.body.style.height = "auto";
+  document.body.style.overflow = "visible";
+  frameEl.style.maxHeight = "none";
+  shellEl.style.maxHeight = "none";
+  const height = Math.ceil(frameEl.getBoundingClientRect().height);
+  html.style.height = saved.htmlHeight;
+  document.body.style.height = saved.bodyHeight;
+  document.body.style.overflow = saved.bodyOverflow;
+  frameEl.style.maxHeight = saved.frameMax;
+  shellEl.style.maxHeight = saved.shellMax;
+  return Math.max(48, height || 48);
+}
+
 let fitFlight = false;
 let fitQueued = false;
 
@@ -1584,9 +1813,8 @@ async function fitWindow() {
   }
   fitFlight = true;
   try {
-    const box = frameEl.getBoundingClientRect();
-    const width = Math.ceil(box.width) || FRAME_WIDTH;
-    const height = Math.ceil(box.height);
+    const width = FRAME_WIDTH;
+    const height = measureFrame();
     await api("/api/widget/frame", {
       method: "POST",
       body: JSON.stringify({ width, height }),
@@ -1604,10 +1832,13 @@ async function fitWindow() {
 
 function startDrag(event) {
   if (event.button !== 0) return;
-  shellEl.setPointerCapture(event.pointerId);
+  const handle = event.currentTarget;
+  handle.setPointerCapture(event.pointerId);
   let dragDx = 0;
   let dragDy = 0;
   let dragFrame = 0;
+  let lastX = event.screenX;
+  let lastY = event.screenY;
   const headers = {
     authorization: `Bearer ${token}`,
     "content-type": "application/json",
@@ -1621,21 +1852,23 @@ function startDrag(event) {
     fetch("/api/widget/move", { method: "POST", headers, body }).catch(() => undefined);
   };
   const move = (next) => {
-    dragDx += next.movementX;
-    dragDy += next.movementY;
+    dragDx += next.screenX - lastX;
+    dragDy += next.screenY - lastY;
+    lastX = next.screenX;
+    lastY = next.screenY;
     if (dragFrame) return;
     dragFrame = requestAnimationFrame(flushDrag);
   };
   const end = () => {
-    shellEl.removeEventListener("pointermove", move);
-    shellEl.removeEventListener("pointerup", end);
-    shellEl.removeEventListener("pointercancel", end);
+    handle.removeEventListener("pointermove", move);
+    handle.removeEventListener("pointerup", end);
+    handle.removeEventListener("pointercancel", end);
     if (dragFrame) cancelAnimationFrame(dragFrame);
     flushDrag();
   };
-  shellEl.addEventListener("pointermove", move);
-  shellEl.addEventListener("pointerup", end);
-  shellEl.addEventListener("pointercancel", end);
+  handle.addEventListener("pointermove", move);
+  handle.addEventListener("pointerup", end);
+  handle.addEventListener("pointercancel", end);
 }
 
 function setStatus(stateName, detail) {
@@ -1804,57 +2037,79 @@ function readAllEntries(reader) {
 }
 
 async function addFile(file, name = file.name) {
-  if (attachments.length >= MAX_UPLOADS) return "limit";
-  if (isSensitiveName(name)) return "sensitive";
-  const kind = classifyFile(file);
-  if (kind === "image") {
-    if (file.size > 4_000_000) return "large";
-    const mimeType = IMAGE_TYPES.has(file.type) ? file.type : extToMime(extensionOf(name));
+  try {
+    if (attachments.length >= MAX_UPLOADS) return "limit";
+    if (isSensitiveName(name)) return "sensitive";
+    const kind = classifyFile(file);
+    if (kind === "image") {
+      if (file.size > 4_000_000) return "large";
+      const item = {
+        id: crypto.randomUUID(),
+        kind: "image",
+        name,
+        mimeType: IMAGE_TYPES.has(file.type) ? file.type : extToMime(extensionOf(name)),
+        url: URL.createObjectURL(file),
+      };
+      attachments.push(item);
+      renderAttachments();
+      try {
+        item.data = bufferToBase64(await file.arrayBuffer());
+      } catch {
+        removeAttachment(item.id);
+        return "failed";
+      }
+      return "ok";
+    }
+    if (kind === "text") {
+      if (file.size > 200_000) return "large";
+      const text = await file.text();
+      if (text.includes("\u0000") || looksSecret(text)) return text.includes("\u0000") ? "binary" : "sensitive";
+      attachments.push({
+        id: crypto.randomUUID(),
+        kind: "text",
+        name,
+        mimeType: file.type || "text/plain",
+        text,
+        url: URL.createObjectURL(file),
+      });
+      renderAttachments();
+      return "ok";
+    }
     attachments.push({
       id: crypto.randomUUID(),
-      kind: "image",
+      kind: "file",
       name,
-      mimeType,
-      data: bufferToBase64(await file.arrayBuffer()),
+      mimeType: file.type || "application/octet-stream",
+      size: file.size,
       url: URL.createObjectURL(file),
     });
+    renderAttachments();
     return "ok";
+  } catch {
+    return "failed";
   }
-  if (kind === "text") {
-    if (file.size > 200_000) return "large";
-    const text = await file.text();
-    if (text.includes("\u0000") || looksSecret(text)) return text.includes("\u0000") ? "binary" : "sensitive";
-    attachments.push({
-      id: crypto.randomUUID(),
-      kind: "text",
-      name,
-      mimeType: file.type || "text/plain",
-      text,
-      url: URL.createObjectURL(file),
-    });
-    return "ok";
-  }
-  attachments.push({
-    id: crypto.randomUUID(),
-    kind: "file",
-    name,
-    mimeType: file.type || "application/octet-stream",
-    size: file.size,
-    url: URL.createObjectURL(file),
-  });
-  return "ok";
 }
 
-function finishAdd(notes) {
+function removeAttachment(id) {
+  const item = attachments.find((entry) => entry.id === id);
+  attachments = attachments.filter((entry) => entry.id !== id);
+  if (item?.url?.startsWith("blob:")) URL.revokeObjectURL(item.url);
   renderAttachments();
   touchDraft();
   renderRoute();
-  if (notes.includes("sensitive")) detailEl.textContent = "A sensitive file was left out.";
-  else if (notes.includes("large")) detailEl.textContent = "A file was left out because it is over the size limit.";
-  else if (notes.includes("limit")) detailEl.textContent = `Only the first ${MAX_UPLOADS} files were attached.`;
 }
 
-let viewingId = null;
+function finishAdd(notes) {
+  if (notes.includes("sensitive")) attachNote = "A sensitive file was left out.";
+  else if (notes.includes("large")) attachNote = "A file was left out because it is over the size limit.";
+  else if (notes.includes("limit")) attachNote = `Only the first ${MAX_UPLOADS} files were attached.`;
+  else if (notes.includes("failed") || notes.includes("binary")) attachNote = "A file could not be attached.";
+  else attachNote = "";
+  renderAttachments();
+  touchDraft();
+  renderRoute();
+  if (attachNote) detailEl.textContent = attachNote;
+}
 
 function openViewer(item) {
   const id = item.id || item.url || item.name;
@@ -1910,6 +2165,22 @@ function closeViewer() {
   scheduleFit();
 }
 
+function thumbImage(item) {
+  const img = document.createElement("img");
+  img.className = "thumb-preview";
+  img.src = item.url;
+  img.alt = "";
+  return img;
+}
+
+function thumbGlyph() {
+  const icon = document.createElement("span");
+  icon.className = "thumb-preview thumb-glyph";
+  icon.setAttribute("aria-hidden", "true");
+  icon.innerHTML = `<svg viewBox="0 0 16 16"><path d="M3.2 1.5h5.6L13 5.6v8c0 .7-.6 1.3-1.3 1.3H3.2c-.7 0-1.3-.6-1.3-1.3V2.8c0-.7.6-1.3 1.3-1.3z"/><path d="M8.6 1.7V5.8H12.6"/></svg>`;
+  return icon;
+}
+
 function renderAttachments() {
   attachmentsEl.replaceChildren();
   pillEl.classList.toggle("has-files", attachments.length > 0);
@@ -1917,40 +2188,28 @@ function renderAttachments() {
   add.title = attachments.length
     ? `${attachments.length} file${attachments.length === 1 ? "" : "s"} attached. Add more.`
     : "Add any file, or drop a folder. Right-click to choose a folder.";
+  imagesEl.title = add.title;
   if (viewingId && !attachments.some((item) => item.id === viewingId)) closeViewer();
   for (const item of attachments) {
+    const baseName = item.name.split(/[/\\]/).pop() || item.name;
     const thumb = document.createElement("div");
     thumb.className = "thumb";
     thumb.tabIndex = 0;
-    thumb.title = `View ${item.name}`;
-    if (item.kind === "image") {
-      const img = document.createElement("img");
-      img.src = item.url;
-      img.alt = item.name;
-      thumb.append(img);
-    } else {
-      const chip = document.createElement("span");
-      chip.className = "thumb-file";
-      const ext = document.createElement("span");
-      ext.className = "thumb-ext";
-      ext.textContent = (extensionOf(item.name) || "file").slice(0, 4).toUpperCase();
-      const label = document.createElement("span");
-      label.className = "thumb-name";
-      label.textContent = item.name.split(/[/\\]/).pop();
-      chip.append(ext, label);
-      thumb.append(chip);
-    }
+    thumb.title = `View ${baseName}`;
+    thumb.append(item.kind === "image" ? thumbImage(item) : thumbGlyph());
+    const label = document.createElement("span");
+    label.className = "thumb-name";
+    label.textContent = baseName;
+    thumb.append(label);
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "thumb-remove";
-    remove.setAttribute("aria-label", `Remove ${item.name}`);
-    remove.textContent = "×";
+    remove.setAttribute("aria-label", `Remove ${baseName}`);
+    remove.textContent = "x";
     remove.addEventListener("click", (event) => {
       event.stopPropagation();
-      attachments = attachments.filter((entry) => entry.id !== item.id);
-      renderAttachments();
-      touchDraft();
-      renderRoute();
+      event.preventDefault();
+      removeAttachment(item.id);
     });
     const show = () => openViewer(item);
     thumb.addEventListener("click", show);
@@ -1962,6 +2221,13 @@ function renderAttachments() {
     thumb.append(remove);
     attachmentsEl.append(thumb);
   }
+  if (attachNote) {
+    const note = document.createElement("p");
+    note.className = "attach-note";
+    note.textContent = attachNote;
+    attachmentsEl.append(note);
+  }
+  if (attachments.length) attachmentsEl.scrollIntoView({ block: "nearest" });
   scheduleFit();
 }
 

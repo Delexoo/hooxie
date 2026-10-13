@@ -47,6 +47,8 @@ internal sealed class ShellForm : Form
     private long animStart;
     private Rectangle animFrom;
     private Rectangle animTo;
+    private int lastCssWidth = 448;
+    private int lastCssHeight = 236;
 
     public ShellForm(string url)
     {
@@ -57,7 +59,6 @@ internal sealed class ShellForm : Form
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual;
         BackColor = Color.Black;
-        ClientSize = new Size(448, 236);
         PlaceAtTopCenter();
         Controls.Add(view);
         view.DefaultBackgroundColor = Color.Transparent;
@@ -99,11 +100,21 @@ internal sealed class ShellForm : Form
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
+        PlaceAtTopCenter();
         RegisterHotKey(Handle, 1, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, 0x48);
         RegisterHotKey(Handle, 2, MOD_CONTROL | MOD_NOREPEAT, 0xDC);
         RegisterHotKey(Handle, 3, MOD_CONTROL | MOD_NOREPEAT, 0x0D);
         RegisterHotKey(Handle, 4, MOD_CONTROL | MOD_NOREPEAT, 0x52);
         RegisterHotKey(Handle, 5, MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 0xDC);
+    }
+
+    protected override void OnDpiChanged(DpiChangedEventArgs e)
+    {
+        base.OnDpiChanged(e);
+        anim.Stop();
+        animating = false;
+        ApplyBounds(TargetBounds(lastCssWidth, lastCssHeight));
+        if (dashboard != null && !dashboard.IsDisposed) PlaceDashboard(dashboard);
     }
 
     protected override void OnFormClosed(FormClosedEventArgs e)
@@ -266,9 +277,9 @@ internal sealed class ShellForm : Form
     private void MoveToCursor()
     {
         if (!GetCursorPos(out var cursor)) return;
-        var area = Screen.FromControl(this).WorkingArea;
-        var x = Math.Clamp(cursor.X - followGrab.X, area.Left - Width + 80, area.Right - 80);
-        var y = Math.Clamp(cursor.Y - followGrab.Y, area.Top, area.Bottom - 40);
+        var area = Screen.FromPoint(new Point(cursor.X, cursor.Y)).WorkingArea;
+        var x = ClampStart(cursor.X - followGrab.X, area.Left, area.Right, Width);
+        var y = ClampStart(cursor.Y - followGrab.Y, area.Top, area.Bottom, Height);
         var shiftX = x - Left;
         var shiftY = y - Top;
         if (shiftX == 0 && shiftY == 0) return;
@@ -279,7 +290,8 @@ internal sealed class ShellForm : Form
             animTo.X += shiftX;
             animTo.Y += shiftY;
         }
-        SetWindowPos(Handle, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+        Location = new Point(x, y);
+        SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         ScheduleBlur();
     }
 
@@ -301,6 +313,8 @@ internal sealed class ShellForm : Form
         settings.AreDevToolsEnabled = false;
         settings.IsStatusBarEnabled = false;
         settings.IsZoomControlEnabled = false;
+        settings.IsPinchZoomEnabled = false;
+        view.ZoomFactor = 1;
         if (view.CoreWebView2 != null) KeepCursorLinksOutside(view.CoreWebView2);
         view.Source = new Uri(url);
         if (excludeCapture) ApplyCaptureAffinity();
@@ -350,7 +364,6 @@ internal sealed class ShellForm : Form
             Text = "Hooxie",
             StartPosition = FormStartPosition.CenterScreen,
             ClientSize = new Size(1120, 760),
-            MinimumSize = new Size(720, 520),
             BackColor = Color.FromArgb(12, 12, 12),
             ShowInTaskbar = true,
         };
@@ -373,7 +386,9 @@ internal sealed class ShellForm : Form
             dashboardPageStarted = false;
             NotifyDashboard(false);
         };
+        window.DpiChanged += (_, _) => PlaceDashboard(window);
         _ = window.Handle;
+        PlaceDashboard(window);
         return window;
     }
 
@@ -392,7 +407,17 @@ internal sealed class ShellForm : Form
     {
         var window = EnsureDashboardWindow();
         if (window.WindowState == FormWindowState.Minimized) window.WindowState = FormWindowState.Normal;
+        window.TopMost = true;
+        PlaceDashboard(window);
         window.Show();
+        if (window.IsHandleCreated)
+        {
+            // The shell is started with a hidden startup show command, and Windows
+            // ignores the first ShowWindow. A second show is what actually appears.
+            ShowWindow(window.Handle, SW_SHOWNORMAL);
+            ShowWindow(window.Handle, SW_SHOWNORMAL);
+            SetWindowPos(window.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        }
         window.BringToFront();
         window.Activate();
         _ = LoadDashboardPage();
@@ -402,6 +427,7 @@ internal sealed class ShellForm : Form
     private void HideDashboard()
     {
         if (dashboard == null || dashboard.IsDisposed) return;
+        dashboard.TopMost = false;
         dashboard.Hide();
         NotifyDashboard(false);
     }
@@ -433,6 +459,8 @@ internal sealed class ShellForm : Form
             settings.AreDevToolsEnabled = false;
             settings.IsStatusBarEnabled = false;
             settings.IsZoomControlEnabled = false;
+            settings.IsPinchZoomEnabled = false;
+            page.ZoomFactor = 1;
             KeepCursorLinksOutside(page.CoreWebView2);
             var root = pageUrl.TrimEnd('/');
             page.Source = new Uri(root + "/dashboard");
@@ -440,7 +468,6 @@ internal sealed class ShellForm : Form
         catch
         {
             dashboardPageStarted = false;
-            if (!shellClosing && window != null && !window.IsDisposed) window.Hide();
         }
     }
 
@@ -465,7 +492,7 @@ internal sealed class ShellForm : Form
                     case "move":
                         var dx = ReadInt(root, "dx");
                         var dy = ReadInt(root, "dy");
-                        BeginInvoke(() => Nudge(dx, dy));
+                        BeginInvoke(() => Nudge(ScaleDelta(dx), ScaleDelta(dy)));
                         break;
                     case "browse":
                         var initial = root.TryGetProperty("initialPath", out var pathEl) ? pathEl.GetString() ?? "" : "";
@@ -549,8 +576,13 @@ internal sealed class ShellForm : Form
 
     private void PlaceAtTopCenter()
     {
-        var area = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 800);
-        Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + 16);
+        var bounds = TargetBounds(lastCssWidth, lastCssHeight);
+        if (IsHandleCreated) ApplyBounds(bounds);
+        else
+        {
+            ClientSize = new Size(bounds.Width, bounds.Height);
+            Location = new Point(bounds.X, bounds.Y);
+        }
     }
 
     private void Fit(int width, int height)
@@ -606,23 +638,77 @@ internal sealed class ShellForm : Form
             Lerp(animFrom.Height, animTo.Height, eased)));
     }
 
-    private Rectangle TargetBounds(int width, int height)
+    private Rectangle TargetBounds(int cssWidth, int cssHeight)
     {
-        var next = new Size(Math.Clamp(width, 280, 900), Math.Clamp(height, 48, 900));
-        var area = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 800);
-        var top = Top;
+        lastCssWidth = Math.Clamp(cssWidth, 160, 2000);
+        lastCssHeight = Math.Clamp(cssHeight, 48, 4000);
+        var area = CurrentWorkArea();
+        var margin = ScaleDelta(12);
+        var width = Math.Min(ScaleCss(lastCssWidth), Math.Max(ScaleDelta(200), area.Width - margin * 2));
+        var height = Math.Min(ScaleCss(lastCssHeight), Math.Max(ScaleDelta(48), area.Height - margin * 2));
+        var top = userMoved ? Top : area.Top + margin;
         var center = Left + Width / 2.0;
         var left = userMoved
-            ? (int)Math.Round(center - next.Width / 2.0)
-            : area.Left + Math.Max(0, (area.Width - next.Width) / 2);
-        if (top + next.Height > area.Bottom) top = Math.Max(area.Top, area.Bottom - next.Height);
-        return new Rectangle(left, top, next.Width, next.Height);
+            ? (int)Math.Round(center - width / 2.0)
+            : area.Left + Math.Max(0, (area.Width - width) / 2);
+        left = ClampStart(left, area.Left, area.Right, width);
+        top = ClampStart(top, area.Top, area.Bottom, height);
+        return new Rectangle(left, top, width, height);
+    }
+
+    private Rectangle CurrentWorkArea()
+    {
+        Screen? screen = null;
+        if (IsHandleCreated) screen = Screen.FromHandle(Handle);
+        screen ??= Screen.PrimaryScreen;
+        return screen?.WorkingArea ?? new Rectangle(0, 0, 1280, 800);
+    }
+
+    private double DpiScale => (DeviceDpi > 0 ? DeviceDpi : 96) / 96.0;
+
+    private int ScaleCss(int css)
+    {
+        return Math.Max(1, (int)Math.Ceiling(css * DpiScale - 1e-6));
+    }
+
+    private int ScaleDelta(int css)
+    {
+        return (int)Math.Round(css * DpiScale, MidpointRounding.AwayFromZero);
+    }
+
+    private static int ClampStart(int value, int areaStart, int areaEnd, int size)
+    {
+        var max = areaEnd - size;
+        if (max <= areaStart) return areaStart;
+        return Math.Clamp(value, areaStart, max);
+    }
+
+    private void PlaceDashboard(Form window)
+    {
+        if (window.IsDisposed || !window.IsHandleCreated) return;
+        var area = Screen.FromHandle(window.Handle).WorkingArea;
+        var dpi = (window.DeviceDpi > 0 ? window.DeviceDpi : 96) / 96.0;
+        int Scale(int css) => Math.Max(1, (int)Math.Ceiling(css * dpi - 1e-6));
+        var chromeW = Math.Max(0, window.Width - window.ClientSize.Width);
+        var chromeH = Math.Max(0, window.Height - window.ClientSize.Height);
+        var margin = Scale(16);
+        var width = Math.Min(Scale(1120), Math.Max(Scale(320), area.Width - margin * 2 - chromeW));
+        var height = Math.Min(Scale(760), Math.Max(Scale(240), area.Height - margin * 2 - chromeH));
+        window.MaximumSize = new Size(Math.Max(1, area.Width), Math.Max(1, area.Height));
+        window.MinimumSize = new Size(
+            Math.Max(1, Math.Min(area.Width, Math.Min(width, Scale(480)) + chromeW)),
+            Math.Max(1, Math.Min(area.Height, Math.Min(height, Scale(320)) + chromeH)));
+        window.ClientSize = new Size(width, height);
+        window.Location = new Point(
+            ClampStart(area.Left + Math.Max(0, (area.Width - window.Width) / 2), area.Left, area.Right, window.Width),
+            ClampStart(area.Top + Math.Max(0, (area.Height - window.Height) / 2), area.Top, area.Bottom, window.Height));
     }
 
     private void ApplyBounds(Rectangle bounds)
     {
         if (bounds.X == Left && bounds.Y == Top && bounds.Width == Width && bounds.Height == Height) return;
-        SetWindowPos(Handle, HWND_TOPMOST, bounds.X, bounds.Y, bounds.Width, bounds.Height, SWP_NOACTIVATE | SWP_NOCOPYBITS);
+        Bounds = bounds;
+        if (IsHandleCreated) SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         ScheduleBlur();
     }
 
@@ -845,9 +931,11 @@ internal sealed class ShellForm : Form
     {
         userMoved = true;
         follow.Stop();
-        var area = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 800);
-        var x = Math.Clamp(Left + dx, area.Left - Width + 80, area.Right - 80);
-        var y = Math.Clamp(Top + dy, area.Top, area.Bottom - 40);
+        var proposedX = Left + dx;
+        var proposedY = Top + dy;
+        var area = Screen.FromPoint(new Point(proposedX + Width / 2, proposedY + Height / 2)).WorkingArea;
+        var x = ClampStart(proposedX, area.Left, area.Right, Width);
+        var y = ClampStart(proposedY, area.Top, area.Bottom, Height);
         var shiftX = x - Left;
         var shiftY = y - Top;
         if (shiftX == 0 && shiftY == 0) return;
@@ -858,7 +946,8 @@ internal sealed class ShellForm : Form
             animTo.X += shiftX;
             animTo.Y += shiftY;
         }
-        SetWindowPos(Handle, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+        Location = new Point(x, y);
+        SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         ScheduleBlur();
     }
 
@@ -906,10 +995,11 @@ internal sealed class ShellForm : Form
             NotifyHotkey("session");
             return;
         }
-        if (id == 6) Shift(0, -40);
-        else if (id == 7) Shift(0, 40);
-        else if (id == 8) Shift(-40, 0);
-        else if (id == 9) Shift(40, 0);
+        var step = ScaleDelta(40);
+        if (id == 6) Shift(0, -step);
+        else if (id == 7) Shift(0, step);
+        else if (id == 8) Shift(-step, 0);
+        else if (id == 9) Shift(step, 0);
     }
 
     private void NotifyHotkey(string name)
@@ -1088,6 +1178,8 @@ internal sealed class ShellForm : Form
     private const uint SWP_NOMOVE = 0x0002;
     private const uint SWP_NOZORDER = 0x0004;
     private const uint SWP_NOACTIVATE = 0x0010;
+    private const uint SWP_SHOWWINDOW = 0x0040;
+    private const int SW_SHOWNORMAL = 1;
     private const uint SWP_NOCOPYBITS = 0x0100;
     private const uint MOD_ALT = 0x0001;
     private const uint MOD_CONTROL = 0x0002;
@@ -1134,6 +1226,9 @@ internal sealed class ShellForm : Form
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint affinity);

@@ -68,7 +68,7 @@ const INK_GARDEN = {
   mask: { enabled: false, tool: "freehand", brushSize: 30, showOverlay: true, invert: false, dataUrl: null, shapes: [] },
 };
 
-function mountInkGarden(canvas, photoUrl, params = INK_GARDEN) {
+function mountInkGarden(canvas, photoUrl, params = INK_GARDEN, opts = {}) {
   const cfg = { ...INK_GARDEN, ...params, pfx: { ...INK_GARDEN.pfx, ...(params.pfx || {}) } };
   const gl = canvas.getContext("2d", { alpha: false });
   if (!gl) return () => undefined;
@@ -81,22 +81,32 @@ function mountInkGarden(canvas, photoUrl, params = INK_GARDEN) {
   let raf = 0;
   let start = performance.now();
   let photoReady = false;
+  let paused = opts.autoplay === false;
   const scratch = document.createElement("canvas");
   const sx = scratch.getContext("2d", { willReadFrequently: true });
   const maskImg = new Image();
   if (cfg.mask?.enabled && cfg.mask.dataUrl) maskImg.src = cfg.mask.dataUrl;
 
-  function sizeCanvas() {
+  function viewSize() {
     const parent = canvas.parentElement || canvas;
-    const w = Math.max(320, Math.floor(parent.clientWidth || window.innerWidth));
-    const h = Math.max(320, Math.floor(parent.clientHeight || window.innerHeight));
+    const useView = opts.viewport === true || getComputedStyle(canvas).position === "fixed";
+    return {
+      w: Math.max(1, Math.floor(useView ? window.innerWidth : (parent.clientWidth || window.innerWidth))),
+      h: Math.max(1, Math.floor(useView ? window.innerHeight : (parent.clientHeight || window.innerHeight))),
+    };
+  }
+
+  function sizeCanvas() {
+    const { w, h } = viewSize();
+    const width = Math.max(320, w);
+    const height = Math.max(320, h);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.floor(w * dpr);
-    canvas.height = Math.floor(h * dpr);
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
     gl.setTransform(dpr, 0, 0, dpr, 0, 0);
-    sample(w, h);
+    sample(width, height);
   }
 
   function sample(w, h) {
@@ -166,9 +176,7 @@ function mountInkGarden(canvas, photoUrl, params = INK_GARDEN) {
   }
 
   function drawFrame(now) {
-    const parent = canvas.parentElement || canvas;
-    const w = Math.max(1, parent.clientWidth || window.innerWidth);
-    const h = Math.max(1, parent.clientHeight || window.innerHeight);
+    const { w, h } = viewSize();
     const pulse = anim(now - start);
     gl.globalCompositeOperation = "source-over";
     drawBackground(gl, w, h);
@@ -203,32 +211,57 @@ function mountInkGarden(canvas, photoUrl, params = INK_GARDEN) {
       }
     }
 
-    applyBlur(gl, w, h, cfg);
     applyTint(gl, w, h, cfg);
+    applyBlur(gl, w, h, cfg);
     applyPfx(gl, w, h, cfg, now);
     applyLights(gl, w, h, cfg);
     applyMask(gl, w, h, cfg);
+    if (!paused) raf = window.requestAnimationFrame(drawFrame);
+  }
+
+  function play() {
+    if (!paused && raf) return;
+    paused = false;
+    window.cancelAnimationFrame(raf);
+    sizeCanvas();
+    start = performance.now();
     raf = window.requestAnimationFrame(drawFrame);
   }
 
   photo.onload = () => {
     photoReady = true;
     sizeCanvas();
-    window.cancelAnimationFrame(raf);
-    start = performance.now();
-    raf = window.requestAnimationFrame(drawFrame);
+    if (!paused) play();
   };
   photo.onerror = () => {
+    if (photoUrl.endsWith(".webp")) {
+      photo.onerror = () => {
+        photoReady = false;
+        sizeCanvas();
+        if (!paused) play();
+      };
+      photo.src = photoUrl.replace(/\.webp$/i, ".jpg");
+      return;
+    }
     photoReady = false;
     sizeCanvas();
-    raf = window.requestAnimationFrame(drawFrame);
+    if (!paused) play();
   };
   photo.src = photoUrl;
   window.addEventListener("resize", sizeCanvas);
-  return () => {
+  const stop = () => {
+    paused = true;
     window.removeEventListener("resize", sizeCanvas);
     window.cancelAnimationFrame(raf);
+    raf = 0;
   };
+  stop.pause = () => {
+    paused = true;
+    window.cancelAnimationFrame(raf);
+    raf = 0;
+  };
+  stop.resume = play;
+  return stop;
 
   function drawBackground(ctx, w, h) {
     ctx.fillStyle = "#050505";
@@ -252,7 +285,13 @@ function drawCell(ctx, mode, x, y, size, lum, color, chars, density, cx, cy, rai
   const m = 1 + density * 2.2;
   ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  if (mode === "dither") {
+  if (mode === "dither" || mode === "mixed") {
+    if (mode === "mixed" && hash(cx, cy) > 0.55) {
+      ctx.beginPath();
+      ctx.arc(x + size / 2, y + size / 2, (size / 2) * lum * m * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
     const t = (BAYER8[cy & 7][cx & 7] + 0.5) / 64;
     if (lum > t * (1.05 - density * 0.45)) {
       const s = Math.max(1, size * (0.28 + lum * 0.72));

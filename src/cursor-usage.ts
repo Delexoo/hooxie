@@ -21,13 +21,21 @@ export type CursorUsage = {
 let cache: { at: number; usage: CursorUsage } | null = null;
 
 export function usagePercent(body: unknown): number | null {
-  const plan = asRecord(asRecord(body).planUsage ?? asRecord(body).plan_usage);
+  const root = asRecord(body);
+  const individual = asRecord(root.individualUsage ?? root.individual_usage);
+  const plan = asRecord(
+    root.planUsage
+    ?? root.plan_usage
+    ?? individual.plan
+    ?? asRecord(individual).planUsage
+    ?? root.plan,
+  );
   if (!hasFields(plan)) return null;
-  const limit = num(plan.limit);
-  const included = num(plan.includedSpend ?? plan.included_spend);
   const reported = num(plan.totalPercentUsed ?? plan.total_percent_used);
-  if (limit != null && limit > 0 && included != null) return clamp(Math.round((included / limit) * 100));
   if (reported != null) return clamp(Math.round(reported));
+  const limit = num(plan.limit);
+  const included = num(plan.includedSpend ?? plan.included_spend ?? plan.used);
+  if (limit != null && limit > 0 && included != null) return clamp(Math.round((included / limit) * 100));
   return null;
 }
 

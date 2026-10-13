@@ -20,7 +20,7 @@
   },
   "scripts": {
     "start": "node --experimental-strip-types src/server.ts",
-    "test": "node --experimental-strip-types --test test/delivery.test.ts test/platform.test.ts test/sdk-shape.test.ts test/cursor-ready.test.ts test/cursor-account.test.ts test/run-activity.test.ts test/cursor-usage.test.ts",
+    "test": "node --experimental-strip-types --test test/delivery.test.ts test/platform.test.ts test/sdk-shape.test.ts test/cursor-ready.test.ts test/cursor-account.test.ts test/run-activity.test.ts test/cursor-usage.test.ts test/setup.test.ts",
     "typecheck": "tsc --noEmit",
     "pack:win": "powershell -File scripts/package-windows.ps1"
   },

@@ -23,7 +23,53 @@ export function assertLoginUrl(url: string): string {
 }
 
 export function openLoginUrl(url: string): void {
-  const target = assertLoginUrl(url);
+  openBrowser(assertLoginUrl(url));
+}
+
+export function assertLoopbackIdes(url: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("browser");
+  }
+  if (parsed.protocol !== "http:") throw new Error("browser");
+  if (parsed.hostname !== "127.0.0.1" && parsed.hostname !== "localhost") throw new Error("browser");
+  if (parsed.pathname !== "/ides") throw new Error("browser");
+  if (parsed.username || parsed.password || parsed.search || parsed.hash) throw new Error("browser");
+  return parsed.toString();
+}
+
+export function openLoopbackIdes(url: string): void {
+  openBrowser(assertLoopbackIdes(url));
+}
+
+const DOWNLOAD_HOSTS = new Set([
+  "cursor.com",
+  "code.visualstudio.com",
+  "windsurf.com",
+  "www.jetbrains.com",
+  "visualstudio.microsoft.com",
+  "zed.dev",
+  "www.sublimetext.com",
+  "developer.android.com",
+  "neovim.io",
+]);
+
+export function openIdeDownload(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("browser");
+  }
+  if (parsed.protocol !== "https:") throw new Error("browser");
+  if (!DOWNLOAD_HOSTS.has(parsed.hostname)) throw new Error("browser");
+  if (parsed.username || parsed.password) throw new Error("browser");
+  openBrowser(parsed.toString());
+}
+
+function openBrowser(target: string): void {
   const child = spawn("rundll32", ["url.dll,FileProtocolHandler", target], {
     detached: true,
     stdio: "ignore",

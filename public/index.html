@@ -12,35 +12,17 @@
     <div id="trace" aria-hidden="true"></div>
     <div id="shell">
     <div id="blur-plate" aria-hidden="true"></div>
-    <div id="pill">
-      <div id="attachments" aria-label="Attached files"></div>
-      <div id="composer">
-        <textarea id="prompt" rows="3" placeholder="Prompt Cursor anything." autocomplete="off"></textarea>
-      </div>
-      <div id="dock">
+    <div id="pill" hidden>
+      <div id="toolbar-band">
       <div id="account-bar" hidden>
         <p id="account-note">Connect Cursor to send from this account.</p>
         <button id="account-connect" type="button">Connect Cursor</button>
       </div>
-      <div id="context-bar">
-        <label class="switch">
-          <span class="switch-track" aria-hidden="true"></span>
-          <span class="switch-label">View the screen</span>
-          <input id="view-screen" type="checkbox" role="switch" aria-label="View the screen">
-        </label>
-        <button id="project-path" type="button">Project Path: none</button>
-      </div>
-      <div id="activity" hidden>
-        <button id="terminals-toggle" type="button" aria-expanded="false" hidden>Terminals</button>
-        <button id="queue-toggle" type="button" aria-expanded="false" hidden>Queued</button>
-        <button id="files-toggle" type="button" aria-expanded="false" hidden>Files</button>
-      </div>
-      <div id="activity-panel" hidden></div>
       <div id="toolbar">
-      <button id="add" type="button" aria-label="Add files" title="Add any file, or drop a folder. Right-click to choose a folder.">
+      <label id="add" title="Add any file, or drop a folder. Right-click to choose a folder.">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
-      </button>
-      <input id="images" type="file" multiple hidden>
+        <input id="images" type="file" multiple aria-label="Add files">
+      </label>
       <input id="folder" type="file" webkitdirectory hidden>
       <button id="chat-toggle" class="circle" type="button" aria-label="Chat" aria-expanded="false" title="Chat">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -102,6 +84,29 @@
           <circle cx="7.8" cy="13.8" r="1.55"/>
         </svg>
       </div>
+      </div>
+      <div id="activity" hidden>
+        <button id="terminals-toggle" type="button" aria-expanded="false" hidden>Terminals</button>
+        <button id="queue-toggle" type="button" aria-expanded="false" hidden>Queued</button>
+        <button id="files-toggle" type="button" aria-expanded="false" hidden>Files</button>
+      </div>
+      <div id="activity-panel" hidden></div>
+      </div>
+      <div id="context-bar">
+        <label class="switch">
+          <span class="switch-track" aria-hidden="true"></span>
+          <span class="switch-label">View the screen</span>
+          <input id="view-screen" type="checkbox" role="switch" aria-label="View the screen">
+        </label>
+        <button id="project-path" type="button">Project Path: none</button>
+      </div>
+      <div id="chat-band">
+      <section id="chat" hidden>
+        <div id="thread"></div>
+      </section>
+      <div id="attachments" aria-label="Attached files"></div>
+      <div id="composer">
+        <textarea id="prompt" rows="2" placeholder="Prompt Cursor anything." autocomplete="off"></textarea>
       </div>
       </div>
     </div>
@@ -168,20 +173,20 @@
       <div id="viewer-body"></div>
     </div>
 
-    <section id="cursor-gate">
-      <h2>Set up Cursor first</h2>
-      <p class="note" id="cursor-lead">Hooxie sends every prompt through the Cursor app. Checking it on this computer.</p>
-      <ol id="cursor-steps"></ol>
-      <div class="row">
-        <a href="https://cursor.com/download" target="_blank" rel="noreferrer">Download Cursor</a>
-        <a href="https://cursor.com/pricing" target="_blank" rel="noreferrer">Cursor plans</a>
-        <button id="cursor-connect" type="button">Connect Cursor</button>
-        <button id="cursor-recheck" type="button">Check again</button>
+    <section id="setup" aria-live="polite">
+      <div id="setup-switch" class="setup-switch" role="tablist" aria-label="IDE setup">
+        <span class="setup-switch-thumb" aria-hidden="true"></span>
+        <button id="setup-download-tab" type="button" role="tab" aria-selected="true" aria-controls="setup-download">Download</button>
+        <button id="setup-connect-tab" type="button" role="tab" aria-selected="false" aria-controls="setup-connect" disabled>Connect</button>
       </div>
-    </section>
-
-    <section id="chat" hidden>
-      <div id="thread"></div>
+      <div id="setup-download" role="tabpanel">
+        <p class="note" id="setup-download-note">Pick an IDE and install it. Connect turns on when Hooxie finds one it can use.</p>
+        <div id="setup-downloads"></div>
+      </div>
+      <div id="setup-connect" role="tabpanel" hidden>
+        <p class="note" id="setup-connect-note">Connect an IDE Hooxie found on this computer.</p>
+        <div id="setup-ides"></div>
+      </div>
     </section>
 
     <section id="usage" hidden>

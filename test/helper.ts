@@ -72,6 +72,7 @@ export function memoryClipboard(): ClipboardPort & { value: string } {
 export async function boot(options?: {
   installations?: Installation[];
   opener?: (executable: string, projectPath: string) => void;
+  openUrl?: (url: string) => void;
   companionTimeoutMs?: number;
   sdk?: FakeSdk;
 }) {
@@ -88,6 +89,7 @@ export async function boot(options?: {
     apiKey: "test-key-value",
     installations: options?.installations ?? [],
     opener: options?.opener,
+    openUrl: options?.openUrl,
     companionTimeoutMs: options?.companionTimeoutMs ?? 400,
     sessionTtlMs: 5000,
   });

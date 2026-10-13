@@ -6,11 +6,12 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { AdapterRegistry, clipboardAdapter, companionAdapter, cursorSdkAdapter, loadRealCursorSdk } from "./adapters.ts";
 import type { AdapterContext, ClipboardPort, CursorSdkClient } from "./adapters.ts";
-import { IDE_CATALOG } from "./catalog.ts";
+import { IDE_CATALOG, ideDownloadUrl } from "./catalog.ts";
 import { CompanionHub } from "./companion.ts";
 import { DeliveryService } from "./delivery.ts";
 import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
-import { accountConnected, openLoginUrl, publicConnectError } from "./cursor-account.ts";
+import { accountConnected, openIdeDownload, openLoginUrl, openLoopbackIdes, publicConnectError } from "./cursor-account.ts";
+import { describeSetup, onboardingStep } from "./setup.ts";
 import { readCursorUsage } from "./cursor-usage.ts";
 import { readCursorReady } from "./cursor-ready.ts";
 import { detectInstallations } from "./detect.ts";
@@ -44,7 +45,9 @@ const SITE_FILES: Record<string, string> = {
   "/help": "help.html",
   "/contact": "contact.html",
   "/license": "license.html",
+  "/ides": "ides.html",
   "/site.css": "site.css",
+  "/dash.css": "dash.css",
   "/site.js": "site.js",
   "/ascii.js": "ascii.js",
   "/download/hooxie-windows.ps1": "download/hooxie-windows.ps1",
@@ -66,6 +69,7 @@ export interface BridgeOptions {
   installations?: Installation[];
   apiKey?: string;
   widget?: WidgetControl;
+  openUrl?: (url: string) => void;
 }
 
 export interface BridgeHandle {
@@ -156,6 +160,24 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     return { ...settings, cursorConnected: accountConnected(apiKey, sdkAccount) };
   }
 
+  function setupPayload() {
+    return describeSetup({
+      installations,
+      connectedIde: settings.connectedIde,
+      cursorConnected: accountConnected(apiKey, sdkAccount),
+      onboardingStep: settings.onboardingStep,
+    });
+  }
+
+  async function reloadInstallations(): Promise<void> {
+    if (options.installations) return;
+    try {
+      installations = await detectInstallations(options.detect);
+    } catch {
+      /* Keep the installations found at startup. */
+    }
+  }
+
   async function beginCursorLogin(signal: AbortSignal): Promise<void> {
     if (accountConnected(apiKey, sdkAccount)) return;
     if (!connectTask) {
@@ -211,6 +233,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       return;
     }
     const url = new URL(req.url ?? "/", `http://127.0.0.1:${port}`);
+    if (!url.pathname.startsWith("/sounds/")) console.log(`${req.method} ${url.pathname}`);
     if (url.pathname.startsWith("/api/bridge/")) {
       if (!authorized(req, bridgeToken)) {
         sendJson(res, 401, { error: "Unauthorized extension." });
@@ -260,13 +283,73 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
 
   async function uiRoute(req: http.IncomingMessage, res: http.ServerResponse, url: URL): Promise<void> {
     if (req.method === "GET" && url.pathname === "/api/cursor/ready") {
-      try {
-        installations = await detectInstallations(options.detect);
-      } catch {
-        /* Keep the installations found at startup. */
-      }
+      await reloadInstallations();
       const cursor = installations.find((item) => item.ide === "cursor");
       sendJson(res, 200, await readCursorReady({ executable: cursor?.executable }));
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/setup") {
+      await reloadInstallations();
+      sendJson(res, 200, setupPayload());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/ide/connect") {
+      const body = asRecord(await readJson(req, 4000));
+      const ide = stringField(body, "ide");
+      if (!isIde(ide)) throw new DeliveryError(400, "Unknown IDE.");
+      await reloadInstallations();
+      const found = installations.find((item) => item.ide === ide);
+      if (!found) throw new DeliveryError(409, "That IDE is not installed on this computer.");
+      if (ide === "cursor" && !accountConnected(apiKey, sdkAccount)) {
+        throw new DeliveryError(409, "Sign in to Cursor, then connect it.");
+      }
+      settings = normalizeSettings({
+        ...settings,
+        connectedIde: ide,
+        ide,
+        installationId: found.id,
+        deliveryReady: true,
+        onboardingStep: "",
+        revision: settings.revision + 1,
+      });
+      await saveSettings(configDir, settings);
+      sendJson(res, 200, setupPayload());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/onboarding/restart") {
+      settings = normalizeSettings({
+        ...settings,
+        onboardingStep: "download",
+        connectedIde: "",
+        revision: settings.revision + 1,
+      });
+      await saveSettings(configDir, settings);
+      sendJson(res, 200, setupPayload());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/onboarding/advance") {
+      await reloadInstallations();
+      if (settings.onboardingStep === "download" && installations.length > 0) {
+        settings = normalizeSettings({
+          ...settings,
+          onboardingStep: "connect",
+          revision: settings.revision + 1,
+        });
+        await saveSettings(configDir, settings);
+      }
+      sendJson(res, 200, setupPayload());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/ides/open") {
+      const body = asRecord(await readJson(req, 4000));
+      const ide = stringField(body, "ide");
+      const listed = ide ? ideDownloadUrl(ide) : "";
+      if (ide && !listed) throw new DeliveryError(400, "Unknown IDE.");
+      const target = listed || `http://127.0.0.1:${port}/ides`;
+      if (options.openUrl) options.openUrl(target);
+      else if (listed) openIdeDownload(listed);
+      else openLoopbackIdes(target);
+      sendJson(res, 200, { ok: true });
       return;
     }
     if (req.method === "GET" && url.pathname === "/api/cursor/usage") {
@@ -355,9 +438,10 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       const body = asRecord(await readJson(req, 4000));
       const width = finiteNumber(body.width, "width");
       const height = finiteNumber(body.height, "height");
-      if (width < 280 || width > 900 || height < 48 || height > 900) {
+      if (width < 160 || width > 2000 || height < 48 || height > 4000) {
         throw new DeliveryError(400, "Widget size is out of range.");
       }
+      console.log(`widget frame ${width}x${height}`);
       await options.widget?.resize(width, height);
       sendJson(res, 200, { ok: true });
       return;
@@ -869,6 +953,10 @@ interface HooxieSettings {
   includeStack: boolean;
   unsandboxed: boolean;
   experimental: boolean;
+  connectedIde: string;
+  onboardingStep: string;
+  dashboardMode: string;
+  widgetMode: string;
 }
 
 async function loadSettings(configDir: string): Promise<HooxieSettings> {
@@ -905,6 +993,10 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
     includeStack: false,
     unsandboxed: false,
     experimental: false,
+    connectedIde: "",
+    onboardingStep: "",
+    dashboardMode: "dark",
+    widgetMode: "dark",
   };
   const saved = await readOptional(path.join(configDir, "hooxie-settings.json"));
   if (!saved) return base;
@@ -943,6 +1035,10 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
     includeStack: input.includeStack === true,
     unsandboxed: input.unsandboxed === true,
     experimental: input.experimental === true,
+    connectedIde: isIde(input.connectedIde) ? input.connectedIde : "",
+    onboardingStep: onboardingStep(input.onboardingStep),
+    dashboardMode: input.dashboardMode === "light" ? "light" : "dark",
+    widgetMode: input.widgetMode === "light" ? "light" : "dark",
   };
 }
 
