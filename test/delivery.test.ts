@@ -370,6 +370,23 @@ test("unsupported IDEs stay labeled and a new adapter can be registered", async 
   }
 });
 
+test("exit closes through the widget route and leaves the test server running", async () => {
+  const ctx = await boot();
+  try {
+    const result = await api(ctx.bridge, "/api/widget/exit", ctx.bridge.pageToken, { method: "POST", body: "{}" });
+    assert.equal(result.status, 200);
+    assert.equal(result.body.ok, true);
+    const page = await fetch(ctx.bridge.baseUrl);
+    const html = await page.text();
+    assert.match(html, /id="more-exit"/);
+    assert.match(html, /Exit Hooxie/);
+    const still = await api(ctx.bridge, "/api/state");
+    assert.equal(still.status, 200);
+  } finally {
+    await ctx.bridge.close();
+  }
+});
+
 test("opening an IDE uses the selected installation and project", async () => {
   const opened: string[][] = [];
   const ctx = await boot({
@@ -395,6 +412,122 @@ test("bridge messages reject unexpected fields", () => {
   const job = validateJob({ id: "abc123", promptText: "hi", projectPath: "E:\\work\\app", experimentalSubmit: false });
   assert.equal(job.ok, true);
   if (job.ok) assert.equal(chatOpenArgs({ ...job.value, experimentalSubmit: true }).isPartialQuery, false);
+});
+
+test("the Cursor connection is open before the prompt is sent", async () => {
+  const sdk = createFakeSdk();
+  let creates = 0;
+  let releaseCreate: () => void = () => undefined;
+  const gate = new Promise<void>((resolve) => {
+    releaseCreate = resolve;
+  });
+  const original = sdk.client.createAgent.bind(sdk.client);
+  sdk.client.createAgent = async (options) => {
+    creates += 1;
+    if (creates === 1) await gate;
+    return original(options);
+  };
+  const ctx = await boot({ sdk });
+  try {
+    const listed = await api(ctx.bridge, `/api/routes?ide=cursor&projectPath=${encodeURIComponent(ctx.project)}`);
+    assert.equal(listed.status, 200);
+    assert.equal(creates, 1);
+    const sent = sendDelivery(ctx.bridge, ctx.project, { idempotencyKey: "warm-connection-1" });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal(creates, 1);
+    assert.equal(sdk.calls.length, 0);
+    releaseCreate();
+    const delivery = await sent;
+    assert.equal(delivery.status, 200);
+    assert.equal(delivery.body.status, "agent_working");
+    assert.equal(sdk.calls.length, 1);
+  } finally {
+    releaseCreate();
+    await ctx.bridge.close();
+  }
+});
+
+test("the next Cursor connection opens while the first prompt is still running", async () => {
+  const sdk = createFakeSdk();
+  sdk.mode = "hang";
+  let creates = 0;
+  let releaseNext: () => void = () => undefined;
+  const gate = new Promise<void>((resolve) => {
+    releaseNext = resolve;
+  });
+  const original = sdk.client.createAgent.bind(sdk.client);
+  sdk.client.createAgent = async (options) => {
+    creates += 1;
+    if (creates > 1) await gate;
+    return original(options);
+  };
+  const ctx = await boot({ sdk });
+  try {
+    const listed = await api(ctx.bridge, `/api/routes?ide=cursor&projectPath=${encodeURIComponent(ctx.project)}`);
+    assert.equal(listed.status, 200);
+    assert.equal(creates, 1);
+    const delivery = await sendDelivery(ctx.bridge, ctx.project, { idempotencyKey: "warm-connection-2" });
+    assert.equal(delivery.status, 200);
+    assert.equal(delivery.body.status, "agent_working");
+    assert.equal(creates, 2);
+    await api(ctx.bridge, `/api/deliveries/${delivery.body.id}/cancel`, ctx.bridge.pageToken, { method: "POST" });
+  } finally {
+    releaseNext();
+    await ctx.bridge.close();
+  }
+});
+
+test("a connected IDE receives a prompt on the open connection", async () => {
+  const ctx = await boot({ companionTimeoutMs: 2000 });
+  try {
+    const hello = await api(ctx.bridge, "/api/bridge/hello", ctx.bridge.bridgeToken, {
+      method: "POST",
+      body: JSON.stringify({
+        v: 1,
+        ide: "vscode",
+        appName: "Visual Studio Code",
+        extensionVersion: "0.1.0",
+        workspaces: [{ path: ctx.project, name: "demo" }],
+      }),
+    });
+    const session = hello.body.sessionId as string;
+    const waiting = api(ctx.bridge, "/api/bridge/poll?wait=2000", ctx.bridge.bridgeToken, {
+      headers: { "x-z-session": session },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    const started = Date.now();
+    const pending = sendDelivery(ctx.bridge, ctx.project, {
+      routeId: "companion",
+      ide: "vscode",
+      idempotencyKey: "fast-bridge-1",
+      prompt: "Explain the entry point.",
+    });
+    const polled = await waiting;
+    assert.ok(polled.body.job, "prompt was not delivered on the open connection");
+    assert.ok(Date.now() - started < 1000);
+    assert.match(polled.body.job.promptText, /Explain the entry point/);
+    const posted = await api(ctx.bridge, "/api/bridge/result", ctx.bridge.bridgeToken, {
+      method: "POST",
+      headers: { "x-z-session": session },
+      body: JSON.stringify({
+        v: 1,
+        id: polled.body.job.id,
+        outcome: "placed",
+        detail: "The prompt is in the chat input. The agent has not accepted it.",
+      }),
+    });
+    assert.equal(posted.status, 200);
+    const delivery = await pending;
+    assert.equal(delivery.body.status, "awaiting_user_action");
+    const quietStarted = Date.now();
+    const quiet = await api(ctx.bridge, "/api/bridge/poll?wait=80", ctx.bridge.bridgeToken, {
+      headers: { "x-z-session": session },
+    });
+    assert.equal(quiet.body.job, null);
+    assert.ok(Date.now() - quietStarted >= 70);
+  } finally {
+    await ctx.bridge.close();
+  }
 });
 
 async function waitFor(predicate: () => boolean) {

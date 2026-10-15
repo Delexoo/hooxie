@@ -103,8 +103,32 @@ export async function findPaidDeviceCheckout(secretKey: string, deviceId: string
     const payload = await stripeForm(secretKey, "GET", `/v1/checkout/sessions/search?${params}`, new URLSearchParams());
     return paidCheckoutFromSearch(payload, deviceId);
   } catch {
-    return null;
+    return findPaidDeviceInList(secretKey, deviceId);
   }
+}
+
+async function findPaidDeviceInList(secretKey: string, deviceId: string): Promise<{ sessionId: string; email: string } | null> {
+  let startingAfter = "";
+  for (let page = 0; page < 10; page += 1) {
+    const params = new URLSearchParams();
+    params.set("limit", "100");
+    params.set("status", "complete");
+    if (startingAfter) params.set("starting_after", startingAfter);
+    let payload: Record<string, unknown>;
+    try {
+      payload = await stripeForm(secretKey, "GET", `/v1/checkout/sessions?${params}`, new URLSearchParams());
+    } catch {
+      return null;
+    }
+    const found = paidCheckoutFromSearch(payload, deviceId);
+    if (found) return found;
+    const rows = Array.isArray(payload.data) ? payload.data : [];
+    const last = rows.at(-1);
+    const lastId = last && typeof last === "object" && "id" in last && typeof last.id === "string" ? last.id : "";
+    if (payload.has_more !== true || !lastId) return null;
+    startingAfter = lastId;
+  }
+  return null;
 }
 
 export async function checkoutIsComplete(secretKey: string, sessionId: string): Promise<{ active: boolean; email: string; device: string }> {

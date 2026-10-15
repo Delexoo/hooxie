@@ -46,7 +46,6 @@ const LOOK_KEY = "hooxie-look";
 const BUTTON_COLORS = ["#ffffff", "#4d9fff", "#3ddc97", "#ff8a3d", "#ff5d8f", "#b07bff", "#ffe14a", "#ff4d4d", "#3ee0d2"];
 const opacityEl = document.querySelector("#opacity");
 const opacityValueEl = document.querySelector("#opacity-value");
-const blurEl = document.querySelector("#blur");
 const traceEl = document.querySelector("#trace-toggle");
 const swatchEls = [...document.querySelectorAll(".swatch")];
 let buttonColor = "#ffffff";
@@ -118,7 +117,6 @@ let voiceWakeAt = 0;
 let chimeId = "blushing";
 let chimeAudio = null;
 let arrowsApplied = null;
-let blurApplied = null;
 let dragDepth = 0;
 let widgetActive = true;
 let viewingId = null;
@@ -148,12 +146,10 @@ function applyLook(publish = true) {
   buttonColor = color;
   opacityEl.value = String(opacity);
   opacityValueEl.textContent = `${opacity}%`;
-  const blur = blurEl.checked;
   const light = widgetMode === "light";
-  shellEl.classList.toggle("is-blur", blur);
   document.documentElement.dataset.widget = light ? "light" : "dark";
-  document.documentElement.style.setProperty("--glass", light ? `rgba(255, 255, 255, ${opacity / 100})` : `rgba(0, 0, 0, ${opacity / 100})`);
-  document.documentElement.style.setProperty("--blur-shade", light ? "0.08" : (0.25 + opacity / 400).toFixed(3));
+  const wash = opacity / 100;
+  document.documentElement.style.setProperty("--glass", light ? `rgba(255, 255, 255, ${wash})` : `rgba(0, 0, 0, ${wash})`);
   document.documentElement.style.setProperty("--accent", light ? "#111111" : color);
   document.documentElement.style.setProperty("--button", color);
   document.documentElement.style.setProperty("--button-ink", buttonInk(color));
@@ -162,9 +158,8 @@ function applyLook(publish = true) {
     swatch.classList.toggle("is-selected", on);
     swatch.setAttribute("aria-checked", String(on));
   }
-  localStorage.setItem(LOOK_KEY, JSON.stringify({ opacity, button: color, blur: blurEl.checked, trace: traceEl.checked }));
-  if (publish) queueSettings({ button: color, opacity });
-  applyBlur(blurEl.checked);
+  localStorage.setItem(LOOK_KEY, JSON.stringify({ opacity, button: color, trace: traceEl.checked }));
+  if (publish) queueSettings({ button: color, opacity, lookReady: true });
   syncTrace();
 }
 
@@ -173,7 +168,6 @@ function restoreLook() {
     const saved = JSON.parse(localStorage.getItem(LOOK_KEY) || "null");
     if (saved && Number.isFinite(Number(saved.opacity))) opacityEl.value = String(saved.opacity);
     if (saved && BUTTON_COLORS.includes(saved.button)) buttonColor = saved.button;
-    blurEl.checked = saved?.blur === true;
     if (saved) traceEl.checked = saved.trace !== false;
   } catch {
     localStorage.removeItem(LOOK_KEY);
@@ -193,7 +187,12 @@ installEl.addEventListener("change", () => publishDelivery());
 for (const id of fields) {
   const node = document.querySelector("#" + id);
   node.addEventListener("input", () => { touchDraft(); renderTarget(); if (id !== "prompt") publishDelivery(); });
-  node.addEventListener("change", () => { touchDraft(); renderTarget(); if (id !== "prompt") publishDelivery(); });
+  node.addEventListener("change", () => {
+    touchDraft();
+    renderTarget();
+    if (id !== "prompt") publishDelivery();
+    if (id === "unsandboxed") refreshRoutes();
+  });
 }
 imagesEl.addEventListener("change", () => {
   const files = [...imagesEl.files];
@@ -221,10 +220,14 @@ sendEl.addEventListener("click", async () => {
   if (!promptEl.value.trim()) return;
   await sendPrompt();
 });
-promptEl.addEventListener("input", syncAction);
+promptEl.addEventListener("input", () => {
+  syncAction();
+  warmPromptConnection();
+});
 promptEl.addEventListener("focus", () => {
   stopPlaceholder();
   syncTrace();
+  warmPromptConnection();
 });
 promptEl.addEventListener("blur", () => {
   promptBlurred = true;
@@ -243,7 +246,6 @@ document.querySelector("#add").addEventListener("contextmenu", (event) => {
 });
 document.querySelector("#viewer-close").addEventListener("click", closeViewer);
 opacityEl.addEventListener("input", applyLook);
-blurEl.addEventListener("change", applyLook);
 traceEl.addEventListener("change", applyLook);
 for (const swatch of swatchEls) {
   swatch.addEventListener("click", () => {
@@ -301,8 +303,12 @@ dashboardToggle.addEventListener("click", () => {
 document.querySelector("#more-open-ide").addEventListener("click", openIde);
 document.querySelector("#more-hide").addEventListener("click", hideHooxie);
 document.querySelector("#more-clear").addEventListener("click", clearChat);
+document.querySelector("#chat-clear").addEventListener("click", clearChat);
+document.querySelector("#chat-copy").addEventListener("click", () => { copyReply().catch(() => undefined); });
+document.querySelector("#chat-again").addEventListener("click", () => { if (lastPrompt && !busy) submit(true); });
 document.querySelector("#more-move").addEventListener("click", moveHooxie);
 document.querySelector("#more-ghost").addEventListener("click", toggleUndetectable);
+document.querySelector("#more-exit").addEventListener("click", exitHooxie);
 const ESC_HOLD_MS = 750;
 let escHoldTimer = 0;
 let escHoldDone = false;
@@ -615,22 +621,6 @@ window.setInterval(() => {
   refreshUsage().catch(() => undefined);
 }, 60000);
 
-window.setHooxieBlur = (url) => {
-  const plate = document.querySelector("#blur-plate");
-  if (!plate) return;
-  plate.style.backgroundImage = url ? `url("${url}")` : "";
-};
-
-async function applyBlur(enabled) {
-  if (blurApplied === enabled) return;
-  blurApplied = enabled;
-  try {
-    await api("/api/widget/blur", { method: "POST", body: JSON.stringify({ enabled }) });
-  } catch {
-    blurApplied = null;
-  }
-}
-
 async function applyArrows(enabled) {
   const next = enabled === true;
   if (arrowsApplied === next) return;
@@ -936,10 +926,7 @@ function applyRemoteSettings(body) {
   if (BUTTON_COLORS.includes(body.button)) buttonColor = body.button;
   if (body.widgetMode === "light" || body.widgetMode === "dark") widgetMode = body.widgetMode;
   if (Number.isFinite(Number(body.opacity))) opacityEl.value = String(body.opacity);
-  if (body.lookReady === true) {
-    blurEl.checked = body.blur === true;
-    traceEl.checked = body.trace !== false;
-  }
+  if (body.lookReady === true) traceEl.checked = body.trace !== false;
   const nextAudio = body.audio !== false;
   const nextVoice = body.voiceActivation === true;
   const voiceChanged = nextAudio !== audioEnabled || nextVoice !== voiceActivation;
@@ -958,7 +945,6 @@ function deliverySnapshot() {
   return {
     lookReady: true,
     deliveryReady: true,
-    blur: blurEl.checked,
     trace: traceEl.checked,
     ide: ideEl.value,
     installationId: installEl.value,
@@ -1115,6 +1101,16 @@ function renderWorkspaces() {
   }
 }
 
+let promptConnectionAt = 0;
+
+function warmPromptConnection() {
+  if (!projectEl.value.trim()) return;
+  const now = Date.now();
+  if (now - promptConnectionAt < 8000) return;
+  promptConnectionAt = now;
+  refreshRoutes();
+}
+
 async function refreshRoutes() {
   const project = projectEl.value.trim();
   if (!project) {
@@ -1124,8 +1120,10 @@ async function refreshRoutes() {
     renderRoute();
     return;
   }
+  promptConnectionAt = Date.now();
   try {
-    const body = await api(`/api/routes?ide=${encodeURIComponent(ideEl.value)}&projectPath=${encodeURIComponent(project)}`);
+    const sandbox = document.querySelector("#unsandboxed").checked ? "1" : "0";
+    const body = await api(`/api/routes?ide=${encodeURIComponent(ideEl.value)}&projectPath=${encodeURIComponent(project)}&allowUnsandboxed=${sandbox}`);
     routes = body.routes;
   } catch (error) {
     routes = [];
@@ -1227,12 +1225,28 @@ function renderTarget() {
   renderThread();
 }
 
+let editingIndex = -1;
+let editingDraft = "";
+let editingCaret = null;
+
 function renderThread() {
+  const scroll = threadEl.scrollTop;
+  const previous = threadEl.querySelector(".bubble-edit");
+  if (previous && document.activeElement === previous) editingCaret = previous.selectionStart;
   threadEl.replaceChildren();
-  for (const message of thread) {
+  thread.forEach((message, index) => {
     if (message.role === "user") {
       const bubble = document.createElement("div");
-      bubble.className = "bubble";
+      const editing = index === editingIndex;
+      bubble.className = editing ? "bubble is-editing" : "bubble";
+      if (!editing) {
+        bubble.title = "Edit message";
+        bubble.addEventListener("click", (event) => {
+          if (event.target.closest("img")) return;
+          if (window.getSelection()?.toString()) return;
+          openMessageEditor(index);
+        });
+      }
       if (message.previews?.length) {
         const row = document.createElement("div");
         row.className = "bubble-images";
@@ -1247,11 +1261,14 @@ function renderThread() {
         }
         bubble.append(row);
       }
-      const text = document.createElement("p");
-      text.textContent = message.text;
-      bubble.append(text);
+      if (editing) bubble.append(messageEditor(index));
+      else {
+        const text = document.createElement("p");
+        text.textContent = message.text;
+        bubble.append(text);
+      }
       threadEl.append(bubble);
-      continue;
+      return;
     }
     const block = document.createElement("div");
     block.className = "reply";
@@ -1263,7 +1280,7 @@ function renderThread() {
     body.textContent = message.text;
     block.append(who, body);
     threadEl.append(block);
-  }
+  });
   if (statusName === "failed" && detailEl.textContent) {
     const last = thread[thread.length - 1];
     if (!last || last.text !== detailEl.textContent) {
@@ -1285,8 +1302,91 @@ function renderThread() {
     }
     threadEl.append(live);
   }
-  threadEl.scrollTop = threadEl.scrollHeight;
+  if (editingIndex >= 0) threadEl.scrollTop = scroll;
+  else threadEl.scrollTop = threadEl.scrollHeight;
   syncFold();
+  syncChatActions();
+}
+
+function messageEditor(index) {
+  const wrap = document.createElement("div");
+  const box = document.createElement("textarea");
+  box.className = "bubble-edit";
+  box.value = editingDraft;
+  box.setAttribute("aria-label", "Edit your message");
+  const actions = document.createElement("div");
+  actions.className = "bubble-edit-actions";
+  const resend = document.createElement("button");
+  resend.type = "button";
+  resend.className = "bubble-resend";
+  resend.textContent = "Resend";
+  resend.disabled = busy || !editingDraft.trim();
+  resend.addEventListener("mousedown", (event) => event.preventDefault());
+  resend.addEventListener("click", () => closeMessageEditor(index, true));
+  actions.append(resend);
+  box.addEventListener("input", () => {
+    editingDraft = box.value;
+    resend.disabled = busy || !box.value.trim();
+  });
+  box.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      editingDraft = thread[index].text;
+      editingIndex = -1;
+      renderThread();
+    } else if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      closeMessageEditor(index, true);
+    }
+  });
+  box.addEventListener("blur", () => {
+    setTimeout(() => {
+      if (editingIndex !== index || !box.isConnected) return;
+      if (document.activeElement?.closest?.(".bubble.is-editing")) return;
+      closeMessageEditor(index, false);
+    }, 0);
+  });
+  wrap.append(box, actions);
+  queueMicrotask(() => {
+    if (editingIndex !== index) return;
+    box.focus();
+    const pos = editingCaret == null ? box.value.length : editingCaret;
+    editingCaret = null;
+    box.setSelectionRange(pos, pos);
+  });
+  return wrap;
+}
+
+function openMessageEditor(index) {
+  const message = thread[index];
+  if (!message || message.role !== "user") return;
+  editingIndex = index;
+  editingDraft = message.text;
+  renderThread();
+}
+
+function closeMessageEditor(index, resend) {
+  if (editingIndex !== index) return;
+  const message = thread[index];
+  if (!message) {
+    editingIndex = -1;
+    return;
+  }
+  const text = editingDraft.trim();
+  if (resend && (busy || !text)) return;
+  editingIndex = -1;
+  if (text) message.text = text;
+  if (!resend || !text) {
+    renderThread();
+    return;
+  }
+  thread.splice(index + 1);
+  renderedReply = "";
+  lastPrompt = text;
+  touchDraft();
+  lastScreenImage = null;
+  renderThread();
+  submit(true, { freshScreen: viewScreenEl.checked });
 }
 
 function rememberTarget() {
@@ -1339,6 +1439,7 @@ function syncAction() {
   syncTrace();
   fitPrompt();
   syncFold();
+  syncChatActions();
 }
 
 function promptNeedsRoom() {
@@ -1666,12 +1767,12 @@ async function submit(retry, options = {}) {
     showSendBlock("Choose a project folder before sending.");
     return;
   }
-  const text = (retry ? lastPrompt : promptEl.value).trim();
+  const text = (typeof options.text === "string" ? options.text : retry ? lastPrompt : promptEl.value).trim();
   if (!text) return;
   busy = true;
   stopRequested = false;
   syncAction();
-  if (!retry && (options.screen === true || viewScreenEl.checked)) {
+  if (options.freshScreen || (!retry && (options.screen === true || viewScreenEl.checked))) {
     setStatus("sending", "Capturing the screen.");
     try {
       lastScreenImage = await captureScreen();
@@ -2164,6 +2265,52 @@ async function hideHooxie() {
   }
 }
 
+async function exitHooxie() {
+  closeMore();
+  try {
+    await api("/api/widget/exit", { method: "POST", body: "{}" });
+  } catch (error) {
+    detailEl.textContent = error.message;
+  }
+}
+
+function latestReply() {
+  for (let index = thread.length - 1; index >= 0; index -= 1) {
+    const message = thread[index];
+    if (message.role === "agent" && message.text) return message.text;
+  }
+  return "";
+}
+
+function syncChatActions() {
+  const copy = document.querySelector("#chat-copy");
+  const again = document.querySelector("#chat-again");
+  const clear = document.querySelector("#chat-clear");
+  if (!copy || !again || !clear) return;
+  copy.disabled = !latestReply();
+  again.disabled = busy || !lastPrompt;
+  clear.disabled = thread.length === 0;
+  if (copy.textContent !== "Copied") copy.textContent = "Copy reply";
+}
+
+let copyReplyTimer = 0;
+
+async function copyReply() {
+  const text = latestReply();
+  if (!text) return;
+  const button = document.querySelector("#chat-copy");
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = "Copied";
+    clearTimeout(copyReplyTimer);
+    copyReplyTimer = setTimeout(() => {
+      if (button.textContent === "Copied") button.textContent = "Copy reply";
+    }, 1200);
+  } catch (error) {
+    detailEl.textContent = error.message;
+  }
+}
+
 function clearChat() {
   thread = [];
   renderedReply = "";
@@ -2276,9 +2423,16 @@ function savePreset() {
   renderPresets();
 }
 
-function scheduleFit() {
+let fitInstant = false;
+
+function scheduleFit(instant = false) {
+  if (instant) fitInstant = true;
   clearTimeout(fitTimer);
-  fitTimer = setTimeout(fitWindow, 16);
+  fitTimer = setTimeout(() => {
+    const snap = fitInstant;
+    fitInstant = false;
+    fitWindow(snap);
+  }, 16);
 }
 
 function fitTrace() {
@@ -2385,30 +2539,81 @@ function measureFrame() {
 
 let fitFlight = false;
 let fitQueued = false;
+let fittedFrame = "";
 
-async function fitWindow() {
+async function fitWindow(instant = false) {
   if (fitFlight) {
     fitQueued = true;
+    if (instant) fitInstant = true;
     return;
   }
   fitFlight = true;
   try {
     const width = FRAME_WIDTH;
     const height = measureFrame();
+    const next = `${width}x${height}`;
+    if (next === fittedFrame && !instant) return;
     await api("/api/widget/frame", {
       method: "POST",
-      body: JSON.stringify({ width, height }),
+      body: JSON.stringify({ width, height, instant }),
     });
+    fittedFrame = next;
   } catch {
     /* The page also loads in a normal browser tab. */
   } finally {
     fitFlight = false;
     if (fitQueued) {
       fitQueued = false;
-      fitWindow();
+      const snap = fitInstant;
+      fitInstant = false;
+      fitWindow(snap);
     }
   }
 }
+
+const CHAT_H_MIN = 80;
+const CHAT_H_MAX = 640;
+
+function clampChatHeight(px) {
+  return Math.min(CHAT_H_MAX, Math.max(CHAT_H_MIN, Math.round(px)));
+}
+
+function setChatHeight(px, persist) {
+  const next = clampChatHeight(px);
+  document.querySelector("#chat-band").style.setProperty("--chat-h", `${next}px`);
+  if (persist) localStorage.setItem("hooxie-chat-h", String(next));
+  scheduleFit(true);
+}
+
+const savedChatHeight = Number(localStorage.getItem("hooxie-chat-h"));
+if (Number.isFinite(savedChatHeight) && savedChatHeight > 0) setChatHeight(savedChatHeight, false);
+
+const chatResize = document.querySelector("#chat-resize");
+chatResize.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return;
+  event.preventDefault();
+  event.stopPropagation();
+  chatResize.setPointerCapture(event.pointerId);
+  const startY = event.screenY;
+  const start = chatEl.getBoundingClientRect().height;
+  const move = (ev) => setChatHeight(start + (ev.screenY - startY), false);
+  const end = (ev) => {
+    chatResize.removeEventListener("pointermove", move);
+    chatResize.removeEventListener("pointerup", end);
+    chatResize.removeEventListener("pointercancel", end);
+    setChatHeight(start + (ev.screenY - startY), true);
+  };
+  chatResize.addEventListener("pointermove", move);
+  chatResize.addEventListener("pointerup", end);
+  chatResize.addEventListener("pointercancel", end);
+});
+chatResize.addEventListener("keydown", (event) => {
+  const step = event.shiftKey ? 48 : 24;
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  event.preventDefault();
+  const current = chatEl.getBoundingClientRect().height;
+  setChatHeight(current + (event.key === "ArrowDown" ? step : -step), true);
+});
 
 function startDrag(event) {
   if (event.button !== 0) return;

@@ -46,10 +46,10 @@ export class DeliveryService {
     this.contextFor = contextFor;
   }
 
-  async routes(ide: IdeId, projectPath: string) {
+  async routes(ide: IdeId, projectPath: string, options?: { allowUnsandboxed?: boolean }) {
     assertProjectDirectory(projectPath);
     await assertDirectoryExists(projectPath);
-    const ctx = this.contextFor(blank(ide, projectPath));
+    const ctx = this.contextFor({ ...blank(ide, projectPath), allowUnsandboxed: options?.allowUnsandboxed === true });
     const routes = [];
     for (const adapter of this.registry.list()) {
       if (adapter.ide !== "any" && adapter.ide !== ide) continue;

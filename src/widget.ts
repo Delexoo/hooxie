@@ -11,7 +11,7 @@ const PILL_WIDTH = 448;
 const PILL_HEIGHT = 236;
 
 export interface WidgetControl {
-  resize(width: number, height: number): Promise<void>;
+  resize(width: number, height: number, instant?: boolean): Promise<void>;
   move(dx: number, dy: number): Promise<void>;
   browse(initialPath?: string): Promise<string>;
   capture(): Promise<{ data: string; mimeType: string }>;
@@ -24,9 +24,9 @@ export interface WidgetControl {
   setShown(shown: boolean): Promise<boolean>;
   follow(): Promise<void>;
   setUndetectable(enabled: boolean): Promise<boolean>;
-  setBlur(enabled: boolean): Promise<boolean>;
   setMoveKeys(enabled: boolean): Promise<boolean>;
   toggleDashboard(): Promise<boolean>;
+  quit(): Promise<void>;
   open(pageUrl: string): Promise<void>;
 }
 
@@ -53,8 +53,8 @@ interface HostResponse {
 export function createWidgetController(): WidgetControl {
   let host: WidgetHost | undefined;
   return {
-    async resize(width, height) {
-      host?.queueFit(width, height);
+    async resize(width, height, instant = false) {
+      host?.queueFit(width, height, instant);
     },
     async move(dx, dy) {
       host?.nudge(dx, dy);
@@ -128,12 +128,6 @@ export function createWidgetController(): WidgetControl {
       if (!response.ok) throw new Error(response.error || "Undetectable mode could not be changed.");
       return response.enabled === true;
     },
-    async setBlur(enabled) {
-      if (!host) return false;
-      const response = await host.call({ cmd: "blur", enabled }, 4000);
-      if (!response.ok) throw new Error(response.error || "Background blur could not be changed.");
-      return response.enabled === true;
-    },
     async setMoveKeys(enabled) {
       if (!host) return false;
       const response = await host.call({ cmd: "arrows", enabled }, 4000);
@@ -146,6 +140,11 @@ export function createWidgetController(): WidgetControl {
       if (!response.ok) throw new Error(response.error || "The dashboard could not open.");
       return response.open === true;
     },
+    async quit() {
+      if (!host) return;
+      const response = await host.call({ cmd: "quit" }, 4000);
+      if (!response.ok) throw new Error(response.error || "Hooxie could not exit.");
+    },
     async open(pageUrl) {
       if (process.platform !== "win32") {
         console.log(`Desktop widget is available on Windows. Open ${pageUrl}`);
@@ -154,9 +153,7 @@ export function createWidgetController(): WidgetControl {
       await closePreviousWidget();
       host = new WidgetHost(pageUrl);
       await host.ready();
-      const placed = await host.call({ cmd: "fit", cssWidth: PILL_WIDTH, cssHeight: PILL_HEIGHT }, 12000);
-      if (placed.ok) console.log("Hooxie is open at the top center of the screen.");
-      else console.log(`Hooxie launched. If you do not see it, open ${pageUrl}`);
+      await host.call({ cmd: "fit", cssWidth: PILL_WIDTH, cssHeight: PILL_HEIGHT }, 12000);
     },
   };
 }
@@ -183,7 +180,7 @@ class WidgetHost {
   private readonly child: ChildProcessWithoutNullStreams;
   private readonly queue: { payload: unknown; resolve: (value: HostResponse) => void; reject: (error: Error) => void; timer: NodeJS.Timeout }[] = [];
   private pending: { resolve: (value: HostResponse) => void; reject: (error: Error) => void; timer: NodeJS.Timeout } | undefined;
-  private pendingFit: { width: number; height: number } | null = null;
+  private pendingFit: { width: number; height: number; instant: boolean } | null = null;
   private fitActive = false;
   private pendingDx = 0;
   private pendingDy = 0;
@@ -222,8 +219,8 @@ class WidgetHost {
     return this.readyPromise;
   }
 
-  queueFit(width: number, height: number): void {
-    this.pendingFit = { width, height };
+  queueFit(width: number, height: number, instant = false): void {
+    this.pendingFit = { width, height, instant };
     this.kickFit();
   }
 
@@ -238,7 +235,7 @@ class WidgetHost {
     const next = this.pendingFit;
     this.pendingFit = null;
     this.fitActive = true;
-    this.call({ cmd: "fit", cssWidth: next.width, cssHeight: next.height }, 12000)
+    this.call({ cmd: "fit", cssWidth: next.width, cssHeight: next.height, instant: next.instant }, 12000)
       .catch(() => undefined)
       .finally(() => {
         this.fitActive = false;

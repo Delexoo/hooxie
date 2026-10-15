@@ -15,7 +15,7 @@ The extension connects to Z on `127.0.0.1`, reads `%APPDATA%\Z\bridge.json`, and
 
 1. Start Z with `npm start` so it writes `bridge.json`.
 2. In Cursor or VS Code, run **Developer: Install Extension from Location…** and choose this folder.
-3. Reload the window. The extension polls Z about once a second.
+3. Reload the window. The extension keeps a connection open, so a prompt is picked up as soon as it is sent.
 
 The bridge token is a file in your user profile, readable by your user. Z listens only on `127.0.0.1` and rejects malformed messages. Do not expose that port.
 

@@ -27,7 +27,6 @@
       <rect fill="none"/>
     </svg>
     <div id="shell">
-    <div id="blur-plate" aria-hidden="true"></div>
     <div id="pill" hidden>
       <div id="account-bar" hidden>
         <p id="account-note">Connect Cursor to send from this account.</p>
@@ -117,10 +116,16 @@
           </label>
           <button id="project-path" type="button">Project Path: none</button>
         </div>
+        <div id="chat-actions">
+          <button id="chat-clear" type="button" disabled>Clear chat</button>
+          <button id="chat-copy" type="button" disabled>Copy reply</button>
+          <button id="chat-again" type="button" disabled>Send again</button>
+        </div>
         <div id="attachments" aria-label="Attached files"></div>
         <section id="chat">
           <div id="thread"></div>
         </section>
+        <div id="chat-resize" role="separator" aria-orientation="horizontal" aria-label="Resize chat" title="Drag to resize the chat" tabindex="0"></div>
       </div>
     </div>
 
@@ -185,6 +190,17 @@
         <span class="more-copy">
           <strong>Undetectable</strong>
           <span id="more-ghost-note">Hidden from screen share and recordings</span>
+        </span>
+      </button>
+      <button id="more-exit" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10 7V5.5A1.5 1.5 0 0 1 11.5 4h7A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 10 18.5V17"/>
+          <path d="M13 12H4"/>
+          <path d="m7 9-3 3 3 3"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Exit Hooxie</strong>
+          <span>Close the program</span>
         </span>
       </button>
     </section>
@@ -290,11 +306,6 @@
     <div id="delivery" hidden>
       <label class="slider" for="opacity">Background opacity <span id="opacity-value">50%</span></label>
       <input id="opacity" type="range" min="10" max="100" step="5" value="50">
-      <label class="switch blur-row">
-        <span class="switch-label">Blur background</span>
-        <span class="switch-track" aria-hidden="true"></span>
-        <input id="blur" type="checkbox" role="switch" aria-label="Blur background">
-      </label>
       <label class="switch trace-row">
         <span class="switch-label">Typing outline</span>
         <span class="switch-track" aria-hidden="true"></span>

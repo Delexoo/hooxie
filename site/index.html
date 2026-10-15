@@ -3,278 +3,230 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hooxie by Delexo · The overlay for Cursor</title>
-  <meta name="description" content="Hooxie by Delexo. Always on your screen. Invisible on a screen share. Prompt Cursor from Windows.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <title>Hooxie by Delexo</title>
+  <meta name="description" content="Hooxie is a Windows overlay for your coding agent. It stays on your screen and off a screen share.">
   <link rel="stylesheet" href="/site.css">
 </head>
-<body class="marketing" data-page="home">
-  <a class="skip" href="#content">Skip to content</a>
-  <div class="scroll-line" aria-hidden="true"></div>
-  <header class="topbar">
-    <a class="logo" href="/">Hooxie</a>
+<body class="home">
+  <header>
+    <a class="brand" href="/">Hooxie</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
       <span class="menu-bars" aria-hidden="true"></span>
       <span class="sr">Menu</span>
     </button>
-    <nav class="garden-menu" id="site-menu" aria-label="Primary">
-      <div class="menu-copy">
-        <a href="#features">Features</a>
-        <a href="#demo">Demo</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#onboarding">Onboarding</a>
-        <a href="/help">Help</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/ides">IDEs</a>
-        <a href="#download">Download</a>
-      </div>
+    <nav class="menu-screen" id="site-menu" aria-label="Pages">
+      <a href="/#download">Download</a>
+      <a href="/#features">Features</a>
+      <a href="/#faq">FAQ</a>
+      <a href="/help">Help</a>
+      <a href="/ides">IDEs</a>
+      <a href="/dashboard">Dashboard</a>
     </nav>
   </header>
-
-  <main id="content">
-    <section class="hero-stage">
-      <div class="hero-veil"></div>
+  <main>
+    <section class="hero">
       <div class="hero-copy">
-        <h1>A compact IDE for developers</h1>
-        <p class="lede">Type, talk, or attach the screen. Cursor gets the prompt. A screen share never sees the pill.</p>
-        <div class="actions">
-          <a class="dl-btn" href="https://github.com/Delexoo/hooxie/releases/download/v0.2.0/Hooxie-Setup-0.2.0.exe" download="Hooxie-Setup.exe" data-phase="idle">
-            <span class="sr" aria-live="polite"></span>
-            <span class="dl-icon" aria-hidden="true">
-              <svg class="dl-idle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
-              <svg class="dl-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9"/></svg>
-              <svg class="dl-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5 9-9"/></svg>
-            </span>
-            <span class="dl-labels" aria-hidden="true">
-              <span class="dl-idle-label">Download for Windows</span>
-              <span class="dl-busy-label">Downloading…</span>
-              <span class="dl-done-label">Downloaded</span>
-            </span>
-          </a>
-          <a class="ghost" href="#demo">Watch the widget</a>
-        </div>
-        <p class="hero-note">Independent. Not affiliated with Cursor or any other IDE.</p>
+        <h1><span>#1 Widget</span><span>for Developers</span></h1>
+        <p id="download"><a class="button" href="/download/Hooxie-Setup.exe" download="Hooxie-Setup.exe">Download</a></p>
+        <p class="note">Independent. Not affiliated with any IDE.</p>
       </div>
-    </section>
-
-    <section class="band" id="proof">
-      <div class="wrap">
-        <p class="eyebrow">Why Hooxie</p>
-        <h2 class="section-title">Sits over the work. Stays off the share.</h2>
-        <div class="proof-row">
-          <article>
-            <h2>Does not join the call</h2>
-            <p>Hooxie never appears as a bot, a guest, or a meeting participant. It lives on your desktop, above the windows you already have open.</p>
-          </article>
-          <article>
-            <h2>Invisible to screen share</h2>
-            <p>Turn Detectable off. You still see the widget. Standard capture, recordings, and shared screens do not.</p>
-          </article>
-          <article>
-            <h2>Follows the work</h2>
-            <p>Drag it. Ctrl plus an arrow moves it. Ctrl+\ hides it. The tray and Ctrl+Alt+H bring it back.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="band demo-band" id="demo">
-      <div class="wrap demo-grid">
-        <div>
-          <p class="eyebrow">UI demo</p>
-          <h2>The pill, as it sits on your screen.</h2>
-          <p class="lede">Type a prompt. The mic becomes send. Attach files, flip on the screen, and watch usage, terminals, and modified files appear only when they have something to show.</p>
-          <a class="section-link" href="#download">Get the Windows build</a>
-        </div>
-        <div class="demo-stage">
-          <div class="demo-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
-          <div class="demo-pill" id="demo-pill">
-            <textarea id="demo-prompt" rows="3" placeholder="Prompt Cursor anything."></textarea>
-            <div class="demo-dock">
-              <label class="demo-switch"><span></span> View the screen</label>
-              <p class="demo-path">Project Path: C:\work\app</p>
-              <div class="demo-tools">
-                <button type="button" aria-label="Add files">+</button>
-                <button type="button" data-demo="chat">Chat</button>
-                <button type="button" data-demo="usage">68</button>
-                <button type="button" class="demo-send" id="demo-send">Send</button>
-                <span class="demo-grip" aria-hidden="true">⋮⋮</span>
+      <div class="desk">
+        <div class="monitor">
+          <div class="screen" id="demo-screen">
+            <div class="site-preview" id="site-preview"></div>
+            <div class="pill" id="demo-pill">
+              <svg class="pill-trace" id="pill-trace" aria-hidden="true">
+                <defs>
+                  <linearGradient id="pill-trace-grad" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#3a78ff"/>
+                    <stop offset="42%" stop-color="#9eb6ff"/>
+                    <stop offset="72%" stop-color="#f6d0c6"/>
+                    <stop offset="100%" stop-color="#f0aa98"/>
+                  </linearGradient>
+                </defs>
+                <rect pathLength="100" fill="none"/>
+                <rect class="lag-5" pathLength="100" fill="none"/>
+                <rect class="lag-10" pathLength="100" fill="none"/>
+                <rect class="lag-16" pathLength="100" fill="none"/>
+              </svg>
+              <svg class="pill-stealth" id="pill-stealth" aria-hidden="true"><rect fill="none"/></svg>
+              <form class="pill-field" id="demo-form">
+                <span class="pill-add" aria-hidden="true">+</span>
+                <span class="pill-type">
+                  <input id="pill-input" type="text" placeholder="Prompt anything." autocomplete="off" aria-label="Prompt">
+                  <span class="pill-measure" id="pill-measure" aria-hidden="true"></span>
+                  <span class="pill-caret" id="pill-caret" hidden></span>
+                </span>
+                <button class="pill-send" id="demo-send" type="button" aria-label="Voice">
+                  <svg class="send-mic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.2" width="6" height="11" rx="3"></rect><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"></path><path d="M12 17v3.2"></path><path d="M8.8 20.2h6.4"></path></svg>
+                  <svg class="send-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6"></path><path d="M6.8 11.2 12 6l5.2 5.2"></path></svg>
+                </button>
+              </form>
+              <div class="pill-tools">
+                <button class="pill-icon" id="demo-preset" type="button" aria-label="Preset prompts" aria-expanded="false" title="Preset prompts">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14l-6.5-3.2L5.5 20V6A1.5 1.5 0 0 1 7 4.5z"/><path d="M9 9h6"/></svg>
+                </button>
+                <button class="pill-icon" id="demo-more" type="button" aria-label="More options" aria-expanded="false" title="More options">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg>
+                </button>
+                <button class="pill-usage" id="demo-usage" type="button" aria-label="AI usage" aria-expanded="false" title="AI usage">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="usage-track" cx="12" cy="12" r="10"></circle><circle class="usage-ring" cx="12" cy="12" r="10"></circle></svg>
+                  <span>42</span>
+                </button>
+                <button class="pill-icon" id="demo-dash" type="button" aria-label="Dashboard" aria-expanded="false" title="Dashboard">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+                </button>
+                <div class="pill-drag" id="demo-drag" title="Drag to move" aria-label="Drag to move">
+                  <svg viewBox="0 0 10 16" aria-hidden="true"><circle cx="2.2" cy="2.2" r="1.55"/><circle cx="7.8" cy="2.2" r="1.55"/><circle cx="2.2" cy="8" r="1.55"/><circle cx="7.8" cy="8" r="1.55"/><circle cx="2.2" cy="13.8" r="1.55"/><circle cx="7.8" cy="13.8" r="1.55"/></svg>
+                </div>
+              </div>
+              <div class="pill-pop" id="demo-presets" hidden>
+                <p class="pill-pop-title">Presets</p>
+                <button type="button" data-preset="Look at the failing test and explain the cause.">Bug check</button>
+                <button type="button" data-preset="Shorten this to half the length.">Shorten</button>
+                <button type="button" data-preset="Explain the last change in plain language.">Explain</button>
+              </div>
+              <div class="pill-pop" id="demo-more-menu" hidden>
+                <button type="button" data-more="hide">Hide Hooxie</button>
+                <button type="button" data-more="clear">Clear</button>
+                <button type="button" data-more="ghost" aria-pressed="false">Undetectable</button>
+                <p class="pill-note" id="demo-ghost-note">Visible on a screen share.</p>
+              </div>
+              <div class="pill-pop" id="demo-usage-panel" hidden>
+                <p class="pill-pop-title">AI usage</p>
+                <p class="pill-stat">42%</p>
+                <p class="pill-note">Included this month. Resets in 12 days.</p>
+              </div>
+              <div class="pill-pop" id="demo-dash-panel" hidden>
+                <p class="pill-pop-title">Dashboard</p>
+                <p class="pill-note">License on this computer.</p>
+                <button type="button" id="demo-voice" aria-pressed="true">Voice on</button>
+                <a href="/dashboard">Open dashboard</a>
               </div>
             </div>
+            <button class="demo-show" id="demo-show" type="button" hidden>Show Hooxie</button>
           </div>
-          <p class="demo-status" id="demo-status">Ready. This preview stays in the browser.</p>
         </div>
       </div>
     </section>
 
     <section class="band" id="features">
-      <div class="wrap">
-        <p class="eyebrow">Features</p>
-        <h2 class="section-title">Built to sit over Cursor, not inside it.</h2>
-        <div class="feature-list">
-          <article>
-            <p class="feat-no">01</p>
-            <h3>New agent sessions</h3>
-            <p>Each send starts a Cursor agent on the project folder on the pill. It is not a paste into an already-open Composer thread.</p>
-          </article>
-          <article>
-            <p class="feat-no">02</p>
-            <h3>Voice, then send</h3>
-            <p>An empty prompt is a microphone. Words turn the same control into send. A stop square appears while the agent is working.</p>
-          </article>
-          <article>
-            <p class="feat-no">03</p>
-            <h3>The screen, on purpose</h3>
-            <p>“View the screen” attaches a screenshot. Ctrl+Enter asks about the current display even if that switch is off.</p>
-          </article>
-          <article>
-            <p class="feat-no">04</p>
-            <h3>Files and folders</h3>
-            <p>Drop files, add a folder, and keep them on the pill. Secrets such as .env and private keys are refused.</p>
-          </article>
-          <article>
-            <p class="feat-no">05</p>
-            <h3>Live run detail</h3>
-            <p>Terminals, queued follow-ups, and modified files show only when the run has them. Queue the next prompt with Enter while the agent works.</p>
-          </article>
-          <article>
-            <p class="feat-no">06</p>
-            <h3>Your Cursor account</h3>
-            <p>Connect Cursor in the widget. Sign-in opens in the browser. A pasted official SDK key also works.</p>
-          </article>
-        </div>
+      <h2>Features</h2>
+      <div class="cards">
+        <article>
+          <h3>Undetectable</h3>
+          <p>Invisible to screen share.</p>
+        </article>
+        <article>
+          <h3>Close</h3>
+          <p>Drag it. Ctrl+\ hides it.</p>
+        </article>
+        <article>
+          <h3>One computer</h3>
+          <p>The license stays on this device.</p>
+        </article>
       </div>
     </section>
 
-    <section class="band needs-band">
-      <div class="wrap">
-        <p class="eyebrow">Setup</p>
-        <h2>What Hooxie needs</h2>
-        <ol class="need-steps">
-          <li><strong>Install Cursor.</strong> Get the desktop app from cursor.com and open it once.</li>
-          <li><strong>Sign in.</strong> Hooxie talks to the Cursor account on this computer.</li>
-          <li><strong>Keep a Cursor plan available.</strong> Hobby, Pro, Pro+, Ultra, or Business — and it has to be active. Hooxie Pro does not replace that plan.</li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="band" id="onboarding">
-      <div class="wrap">
-        <p class="eyebrow">Onboarding</p>
-        <h2>Two chapters, then the widget.</h2>
-        <ol class="need-steps">
-          <li><strong>IDE.</strong> Turn on the IDE Hooxie should use. Off means that IDE is disconnected. Download is there if it is not installed yet.</li>
-          <li><strong>License.</strong> $5.99 once for this computer. The license stays on this device. A copied app does not unlock another one.</li>
-        </ol>
-        <p class="lede">The bar in setup fills as each chapter is finished. Back and Next move between them.</p>
-        <a class="section-link" href="/help#onboarding">Learn more about setup</a>
-      </div>
-    </section>
-
-    <section class="band price-band" id="pricing">
-      <div class="wrap price-stage">
-        <div class="price-copy">
-          <p class="eyebrow">Hooxie Pro</p>
-          <p class="price-tag">$5.99<span> once</span></p>
-          <p class="lede">One license for this computer. The overlay, undetectable mode, voice, screen attach, and dashboard. A copied app does not run on another device.</p>
-          <a class="discover" href="/dashboard#billing">Get Pro</a>
+    <section class="band voice" id="voice">
+      <p class="kicker">Optional voice activation</p>
+      <blockquote>“Hey Hooxie! Can you extend that word count from 10 to 20!”</blockquote>
+      <p class="lede">Say it. The prompt fills itself.</p>
+      <div class="desk voice-desk">
+        <div class="monitor">
+          <div class="screen" id="voice-screen">
+            <div class="voice-stage">
+              <article class="voice-note">
+                <div class="mini-top">
+                  <p class="mini-brand">Note</p>
+                  <p class="voice-count" id="voice-count">10 words</p>
+                </div>
+                <p class="voice-body" id="voice-body">This short note gives the page room to breathe well.</p>
+              </article>
+            </div>
+            <div class="pill voice-pill" id="voice-pill">
+              <span class="pill-add" aria-hidden="true">+</span>
+              <span class="pill-type">
+                <textarea id="voice-input" rows="1" placeholder="Listening…" readonly aria-label="Voice prompt"></textarea>
+                <span class="pill-measure" id="voice-measure" aria-hidden="true"></span>
+                <span class="pill-caret" id="voice-caret" hidden></span>
+              </span>
+              <button class="pill-send" id="voice-mic" type="button" aria-label="Listening">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.2" width="6" height="11" rx="3"></rect><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"></path><path d="M12 17v3.2"></path><path d="M8.8 20.2h6.4"></path></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="band faq-home" id="faq">
-      <div class="wrap faq-layout">
-        <div>
-          <h2>FAQ</h2>
-          <div class="faq-list">
-            <div class="faq-item">
-              <button class="faq-q" type="button" aria-expanded="false">Does a screen share see Hooxie?</button>
-              <div class="faq-a"><div><p>Not when Detectable is off. You still see the pill. Standard capture, recordings, and shared screens do not.</p></div></div>
-            </div>
-            <div class="faq-item">
-              <button class="faq-q" type="button" aria-expanded="false">Do I need a Cursor plan?</button>
-              <div class="faq-a"><div><p>Yes. Install Cursor, sign in, and keep a Cursor plan active. Hooxie Pro is separate and does not replace it.</p></div></div>
-            </div>
-            <div class="faq-item">
-              <button class="faq-q" type="button" aria-expanded="false">What does Pro include?</button>
-              <div class="faq-a"><div><p>$5.99 once for this computer. It covers the overlay, undetectable mode, voice, screen attach, and the dashboard. The license does not transfer with a copied app.</p></div></div>
-            </div>
-          </div>
-          <a class="section-link" href="/help">Read the help center</a>
+      <h2>FAQ</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">Does a screen share see it?<span aria-hidden="true"></span></button>
+          <div class="faq-a"><p>Not when Detectable is off. You still see it.</p></div>
         </div>
-        <div class="faq-actions" aria-label="Quick actions">
-          <a href="/ides">IDEs</a>
-          <a href="#download">Download</a>
-          <a href="/dashboard#billing">Get Pro</a>
-          <a href="/help">Help</a>
-          <a href="/license">License</a>
+        <div class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">Do I need a coding agent?<span aria-hidden="true"></span></button>
+          <div class="faq-a"><p>Yes. Sign in on this computer and keep that plan. Hooxie does not replace it.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">Is voice required?<span aria-hidden="true"></span></button>
+          <div class="faq-a"><p>No. Type, or say “Hey Hooxie” when you want the prompt filled.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">What does $5.99 cover?<span aria-hidden="true"></span></button>
+          <div class="faq-a"><p>This computer. The overlay, voice, screen attach, and the dashboard.</p></div>
         </div>
       </div>
     </section>
 
-    <section class="band" id="download">
-      <div class="wrap download-panel">
-        <p class="eyebrow">Windows</p>
-        <h2>Download Hooxie</h2>
-        <p class="lede">Windows 10 or 11. Node.js 22.13 or newer is required. Run Hooxie Setup 0.2.0. Delexo publishes Hooxie at <a href="https://hooxie.com">hooxie.com</a>.</p>
-        <div class="actions">
-          <a class="dl-btn" id="download-win" href="https://github.com/Delexoo/hooxie/releases/download/v0.2.0/Hooxie-Setup-0.2.0.exe" download="Hooxie-Setup.exe" data-phase="idle">
-            <span class="sr" aria-live="polite"></span>
-            <span class="dl-icon" aria-hidden="true">
-              <svg class="dl-idle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
-              <svg class="dl-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9"/></svg>
-              <svg class="dl-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5 9-9"/></svg>
-            </span>
-            <span class="dl-labels" aria-hidden="true">
-              <span class="dl-idle-label">Download for Windows</span>
-              <span class="dl-busy-label">Downloading…</span>
-              <span class="dl-done-label">Downloaded</span>
-            </span>
-          </a>
-          <a class="ghost on-light" href="https://cursor.com/download">Download Cursor</a>
-        </div>
-        <pre class="install">git clone https://github.com/Delexoo/hooxie.git
-cd hooxie
-npm install
-npm start</pre>
-        <p class="hero-note">Hooxie is a Delexo product. The product site is <a href="https://hooxie.com">hooxie.com</a>. Credit @delexo if you show or remix it. License details are on the <a href="/license">license</a> page.</p>
-      </div>
+    <section class="cta">
+      <h2>On the desktop. Off the share.</h2>
+      <a class="button" href="/download/Hooxie-Setup.exe" download="Hooxie-Setup.exe">Download</a>
     </section>
   </main>
-
-  <footer class="site-footer">
-    <a class="to-top" href="#content"><span aria-hidden="true"></span>Scroll up</a>
-    <div class="wrap footer-grid">
+  <footer>
+    <div class="footer-grid">
       <div>
-        <p class="footer-label">Product</p>
-        <a href="#features">Features</a>
-        <a href="#demo">Demo</a>
-        <a href="#pricing">Pricing</a>
-        <a href="/ides">IDEs</a>
+        <p>Product</p>
         <a href="#download">Download</a>
-      </div>
-      <div>
-        <p class="footer-label">Account</p>
-        <a href="/dashboard">Dashboard</a>
         <a href="/help">Help</a>
-        <a href="/contact">Contact</a>
-        <a href="/releases">Release notes</a>
+        <a href="/ides">IDEs</a>
+        <a href="/releases">Releases</a>
       </div>
       <div>
-        <p class="footer-label">Legal</p>
+        <p>Account</p>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/contact">Contact</a>
+      </div>
+      <div>
+        <p>Legal</p>
         <a href="/terms">Terms</a>
         <a href="/privacy">Privacy</a>
         <a href="/refund">Refunds</a>
         <a href="/license">License</a>
       </div>
     </div>
-    <div class="wrap">
-      <p class="footer-note"><strong>hooxie.</strong> A Delexo product. Windows overlay for Cursor. <a href="https://hooxie.com">hooxie.com</a>. Credit @delexo if you show or remix it. © 2026 Delexo.</p>
-    </div>
+    <p class="fine">A Delexo product.</p>
   </footer>
-  <script src="/ascii.js"></script>
-  <script src="/site.js"></script>
+  <script>
+    for (const link of document.querySelectorAll("a.button")) {
+      link.addEventListener("click", () => {
+        link.classList.remove("is-expand");
+        void link.offsetWidth;
+        link.classList.add("is-expand");
+      });
+    }
+    for (const button of document.querySelectorAll(".faq-q")) {
+      button.addEventListener("click", () => {
+        const open = button.getAttribute("aria-expanded") !== "true";
+        button.setAttribute("aria-expanded", String(open));
+      });
+    }
+  </script>
+  <script src="/demo.js"></script>
+  <script src="/menu.js"></script>
 </body>
 </html>

@@ -57,10 +57,10 @@ const SITE_FILES: Record<string, string> = {
   "/site.css": "site.css",
   "/dash.css": "dash.css",
   "/site.js": "site.js",
-  "/ascii.js": "ascii.js",
+  "/menu.js": "menu.js",
+  "/demo.js": "demo.js",
+  "/wallpaper.jpg": "wallpaper.jpg",
   "/download/hooxie-windows.ps1": "download/hooxie-windows.ps1",
-  "/ascii-editor/demos/generated/ref-029.webp": "ascii-editor/demos/generated/ref-029.jpg",
-  "/ascii-editor/demos/generated/ref-029.jpg": "ascii-editor/demos/generated/ref-029.jpg",
 };
 
 export interface BridgeOptions {
@@ -80,6 +80,7 @@ export interface BridgeOptions {
   openUrl?: (url: string) => void;
   deviceId?: string;
   licenseSecret?: string;
+  exitProcess?: boolean;
 }
 
 export interface BridgeHandle {
@@ -139,7 +140,14 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
   }
 
   const fileEnv = await readOptional(path.join(rootDir, ".env"));
-  const mergedEnv = { ...(fileEnv ? readDotEnv(fileEnv) : {}), ...process.env };
+  const userEnv = await readOptional(path.join(defaultConfigDir(), "billing.env"));
+  const mergedEnv: NodeJS.ProcessEnv = { ...process.env };
+  for (const [key, value] of Object.entries(userEnv ? readDotEnv(userEnv) : {})) {
+    if (!mergedEnv[key] && value) mergedEnv[key] = value;
+  }
+  for (const [key, value] of Object.entries(fileEnv ? readDotEnv(fileEnv) : {})) {
+    if (value) mergedEnv[key] = value;
+  }
   const billing: BillingConfig = {
     secretKey: mergedEnv.STRIPE_SECRET_KEY || "",
     priceId: mergedEnv.STRIPE_PRICE_ID || "",
@@ -147,6 +155,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     promoId: mergedEnv.STRIPE_PROMO_ID || "",
   };
   const licenseSecret = options.licenseSecret || billing.secretKey;
+  const billingOrigin = (mergedEnv.HOOXIE_BILLING_ORIGIN || "https://hooxie.com").replace(/\/$/, "");
   let deviceId = options.deviceId || "";
   if (!deviceId) {
     try {
@@ -192,15 +201,70 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
   }
 
   let licenseLookupAt = 0;
+  let hostedLicense: { at: number; active: boolean } | null = null;
   async function licensedForDevice(): Promise<boolean> {
-    if (!deviceId || !licenseSecret) return false;
-    if (await readStoredLicense(configDir, licenseSecret, deviceId)) return true;
-    if (!billing.secretKey || Date.now() - licenseLookupAt < 8000) return false;
-    licenseLookupAt = Date.now();
-    const found = await findPaidDeviceCheckout(billing.secretKey, deviceId);
-    if (!found) return false;
-    await saveLicense(configDir, licenseSecret, deviceId, found.sessionId, found.email);
-    return true;
+    if (!deviceId) return false;
+    if (licenseSecret && await readStoredLicense(configDir, licenseSecret, deviceId)) return true;
+    if (billing.secretKey) {
+      if (!licenseSecret || Date.now() - licenseLookupAt < 8000) return false;
+      licenseLookupAt = Date.now();
+      const found = await findPaidDeviceCheckout(billing.secretKey, deviceId);
+      if (!found) return false;
+      await saveLicense(configDir, licenseSecret, deviceId, found.sessionId, found.email);
+      return true;
+    }
+    if (hostedLicense && Date.now() - hostedLicense.at < 8000) return hostedLicense.active;
+    try {
+      const payload = await hostedBilling("/api/license", { device: deviceId });
+      hostedLicense = { at: Date.now(), active: payload.active === true };
+    } catch {
+      hostedLicense = { at: Date.now(), active: false };
+    }
+    return hostedLicense.active;
+  }
+
+  async function hostedBilling(path: string, body: Record<string, string>): Promise<Record<string, unknown>> {
+    let response: Response;
+    try {
+      response = await fetch(`${billingOrigin}${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      throw new DeliveryError(502, "Billing could not be reached.");
+    }
+    const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
+    if (!response.ok) {
+      const message = typeof payload.error === "string" ? payload.error : "Billing could not start.";
+      throw new DeliveryError(response.status >= 400 && response.status < 500 ? 400 : 502, message.slice(0, 180));
+    }
+    return payload;
+  }
+
+  async function hostedCheckoutUrl(body: Record<string, string>): Promise<string> {
+    const probe = await fetch(`${billingOrigin}/api/license`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ device: body.device }),
+    }).catch(() => null);
+    if (!probe || probe.status === 404) throw new DeliveryError(400, "Billing is not configured yet.");
+    const payload = await hostedBilling("/api/checkout", body);
+    const checkoutUrl = payload.url;
+    if (typeof checkoutUrl !== "string" || !checkoutUrl.startsWith("https://")) {
+      throw new DeliveryError(502, "Billing could not start.");
+    }
+    return checkoutUrl;
+  }
+
+  async function presentCheckout(checkoutUrl: string, present: string | undefined): Promise<void> {
+    if (present !== "widget") return;
+    try {
+      if (options.openUrl) options.openUrl(checkoutUrl);
+      else openStripeCheckout(checkoutUrl);
+    } catch {
+      throw new DeliveryError(502, "Checkout could not be opened.");
+    }
   }
 
   async function setupPayload() {
@@ -256,6 +320,14 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     await connectTask;
   }
 
+  function warmCursor() {
+    const project = settings.project.trim();
+    if (!project || !sdk || !accountConnected(apiKey, sdkAccount)) return;
+    if (settings.connectedIde && settings.connectedIde !== "cursor") return;
+    void service.routes("cursor", project, { allowUnsandboxed: settings.unsandboxed }).catch(() => undefined);
+  }
+  warmCursor();
+
   const server = http.createServer(async (req, res) => {
     try {
       await route(req, res);
@@ -271,13 +343,14 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
   const port = typeof address === "object" && address ? address.port : 0;
   await writeBridgeFile(configDir, port, bridgeToken);
 
+  let lastWidgetFrame = "";
+
   async function route(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     if (!isLocal(req)) {
       sendJson(res, 403, { error: "Hooxie only accepts local connections." });
       return;
     }
     const url = new URL(req.url ?? "/", `http://127.0.0.1:${port}`);
-    if (!url.pathname.startsWith("/sounds/")) console.log(`${req.method} ${url.pathname}`);
     if (url.pathname.startsWith("/api/bridge/")) {
       if (!authorized(req, bridgeToken)) {
         sendJson(res, 401, { error: "Unauthorized extension." });
@@ -543,8 +616,11 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       if (width < 160 || width > 2000 || height < 48 || height > 4000) {
         throw new DeliveryError(400, "Widget size is out of range.");
       }
-      console.log(`widget frame ${width}x${height}`);
-      await options.widget?.resize(width, height);
+      const frameKey = `${width}x${height}`;
+      if (frameKey !== lastWidgetFrame) {
+        lastWidgetFrame = frameKey;
+        await options.widget?.resize(width, height, body.instant === true);
+      }
       sendJson(res, 200, { ok: true });
       return;
     }
@@ -581,6 +657,20 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       sendJson(res, 200, await options.widget.capture());
       return;
     }
+    if (req.method === "POST" && url.pathname === "/api/widget/exit") {
+      sendJson(res, 200, { ok: true });
+      setImmediate(() => {
+        void (async () => {
+          try {
+            await options.widget?.quit();
+          } catch {
+            /* The window may already be closed. */
+          }
+          if (options.exitProcess) process.exit(0);
+        })();
+      });
+      return;
+    }
     if (req.method === "POST" && url.pathname === "/api/widget/visible") {
       if (!options.widget) throw new DeliveryError(400, "Hiding Hooxie is available in the desktop widget.");
       const body = asRecord(await readJson(req, 4000));
@@ -592,13 +682,6 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       if (!options.widget) throw new DeliveryError(400, "Moving Hooxie is available in the desktop widget.");
       await options.widget.follow();
       sendJson(res, 200, { ok: true });
-      return;
-    }
-    if (req.method === "POST" && url.pathname === "/api/widget/blur") {
-      if (!options.widget) throw new DeliveryError(400, "Background blur is available in the desktop widget.");
-      const body = asRecord(await readJson(req, 4000));
-      const enabled = await options.widget.setBlur(body.enabled === true);
-      sendJson(res, 200, { ok: true, enabled });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/widget/arrows") {
@@ -634,6 +717,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       if (options.widget && arrowsChanged) await options.widget.setMoveKeys(next.arrows);
       await saveSettings(configDir, settings);
       await applyAudioDevices();
+      warmCursor();
       sendJson(res, 200, settingsBody());
       return;
     }
@@ -692,28 +776,27 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       const promo = stringField(body, "promo");
       const origin = `http://127.0.0.1:${port}`;
       if (!deviceId) throw new DeliveryError(400, "This computer could not be identified.");
-      const url = await createCheckoutSession(billing, {
-        email,
-        promo,
-        deviceId,
-        successUrl: `${origin}/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${origin}/dashboard?billing=cancel`,
-      });
-      if (stringField(body, "present") === "widget") {
-        try {
-          if (options.openUrl) options.openUrl(url);
-          else openStripeCheckout(url);
-        } catch {
-          throw new DeliveryError(502, "Checkout could not be opened.");
-        }
-      }
-      sendJson(res, 200, { url });
+      const successUrl = `${origin}/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`;
+      const cancelUrl = `${origin}/dashboard?billing=cancel`;
+      const checkoutUrl = billing.secretKey
+        ? await createCheckoutSession(billing, { email, promo, deviceId, successUrl, cancelUrl })
+        : await hostedCheckoutUrl({ email: email ?? "", promo: promo ?? "", device: deviceId, successUrl, cancelUrl });
+      await presentCheckout(checkoutUrl, stringField(body, "present"));
+      sendJson(res, 200, { url: checkoutUrl });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/billing/confirm") {
       const body = asRecord(await readJson(req, 4000));
       const sessionId = stringField(body, "sessionId");
-      if (!sessionId || !billing.secretKey || !licenseSecret || !deviceId) throw new DeliveryError(400, "Checkout could not be confirmed.");
+      if (!billing.secretKey) {
+        if (!sessionId || !deviceId) throw new DeliveryError(400, "Checkout could not be confirmed.");
+        const payload = await hostedBilling("/api/license", { device: deviceId, sessionId });
+        const active = payload.active === true;
+        if (active) hostedLicense = { at: Date.now(), active: true };
+        sendJson(res, 200, { active, email: typeof payload.email === "string" ? payload.email : "" });
+        return;
+      }
+      if (!sessionId || !licenseSecret || !deviceId) throw new DeliveryError(400, "Checkout could not be confirmed.");
       const result = await checkoutIsComplete(billing.secretKey, sessionId);
       if (result.active && result.device !== deviceId) {
         throw new DeliveryError(403, "This payment belongs to a different computer.");
@@ -763,7 +846,19 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       return;
     }
     if (req.method === "GET" && url.pathname === "/api/bridge/poll") {
-      sendJson(res, 200, { job: hub.poll(session.id) });
+      const wait = pollWaitMs(url);
+      if (wait <= 0) {
+        sendJson(res, 200, { job: hub.poll(session.id) });
+        return;
+      }
+      const abort = new AbortController();
+      const onClose = () => {
+        if (!res.writableEnded) abort.abort();
+      };
+      res.on("close", onClose);
+      const job = await hub.waitForJob(session.id, wait, abort.signal);
+      res.off("close", onClose);
+      if (!res.writableEnded) sendJson(res, 200, { job });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/bridge/result") {
@@ -886,6 +981,14 @@ function isIde(value: unknown): value is IdeId {
 function sessionId(req: http.IncomingMessage): string {
   const header = req.headers["x-z-session"];
   return typeof header === "string" ? header : "";
+}
+
+function pollWaitMs(url: URL): number {
+  const raw = url.searchParams.get("wait");
+  if (!raw) return 0;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.min(20_000, Math.floor(value));
 }
 
 function authorized(req: http.IncomingMessage, token: string): boolean {
@@ -1084,7 +1187,6 @@ interface HooxieSettings {
   language: string;
   lookReady: boolean;
   deliveryReady: boolean;
-  blur: boolean;
   trace: boolean;
   chime: string;
   chimeCustom: boolean;
@@ -1127,7 +1229,6 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
     language: "en",
     lookReady: false,
     deliveryReady: false,
-    blur: false,
     trace: true,
     chime: "blushing",
     chimeCustom: false,
@@ -1172,7 +1273,6 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
     language: LANGUAGES.has(input.language) ? input.language : "en",
     lookReady: input.lookReady === true,
     deliveryReady: input.deliveryReady === true,
-    blur: input.blur === true,
     trace: input.trace !== false,
     chime: CHIMES.has(input.chime) ? input.chime : "blushing",
     chimeCustom: input.chimeCustom === true,
@@ -1273,8 +1373,7 @@ if (launchedDirectly) {
   const clipboard = process.platform === "win32" ? (await import("./clipboard.ts")).createWindowsClipboard() : createUnavailableClipboard();
   const { createWidgetController } = await import("./widget.ts");
   const widget = createWidgetController();
-  const bridge = await startBridge({ clipboard, widget });
-  console.log(`Hooxie listening on ${bridge.baseUrl}`);
+  const bridge = await startBridge({ clipboard, widget, exitProcess: true });
   try {
     await widget.open(bridge.baseUrl);
     await widget.setAudioDevices(bridge.inputDevice, bridge.outputDevice).catch((error: unknown) => {

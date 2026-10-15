@@ -5,10 +5,9 @@ import * as vscode from "vscode";
 import { chatOpenArgs, validateJob } from "./protocol.js";
 
 const CHAT_OPEN = "workbench.action.chat.open";
-let timer;
+const POLL_WAIT_MS = 12000;
 let sessionId;
 let stopped = false;
-let busy = false;
 
 export async function activate(context) {
   context.subscriptions.push(
@@ -17,8 +16,7 @@ export async function activate(context) {
       void vscode.window.showInformationMessage(`Z Agent Bridge: ${where}`);
     }),
   );
-  void connect();
-  timer = setInterval(() => void connect(), 1000);
+  void pump();
   context.subscriptions.push({ dispose: () => stop() });
 }
 
@@ -28,36 +26,47 @@ export function deactivate() {
 
 function stop() {
   stopped = true;
-  if (timer) clearInterval(timer);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function pump() {
+  while (!stopped) {
+    const started = Date.now();
+    let outcome = "error";
+    try {
+      outcome = await connect();
+    } catch {
+      sessionId = undefined;
+      outcome = "error";
+    }
+    if (stopped) return;
+    if (outcome === "job") continue;
+    if (outcome === "idle" && Date.now() - started >= 200) continue;
+    await delay(400);
+  }
 }
 
 async function connect() {
-  if (stopped || busy) return;
-  busy = true;
-  try {
-    const bridge = await readBridge();
-    if (!bridge) return;
-    try {
-      if (!sessionId) sessionId = await hello(bridge);
-      const response = await bridgeFetch(bridge, "/api/bridge/poll", { method: "GET" });
-      if (response.status === 401) {
-        sessionId = undefined;
-        return;
-      }
-      if (!response.ok) return;
-      const body = await response.json();
-      if (!body.job) return;
-      const outcome = await deliver(body.job);
-      await bridgeFetch(bridge, "/api/bridge/result", {
-        method: "POST",
-        body: JSON.stringify({ v: 1, ...outcome }),
-      });
-    } catch {
-      sessionId = undefined;
-    }
-  } finally {
-    busy = false;
+  const bridge = await readBridge();
+  if (!bridge) return "missing";
+  if (!sessionId) sessionId = await hello(bridge);
+  const response = await bridgeFetch(bridge, `/api/bridge/poll?wait=${POLL_WAIT_MS}`, { method: "GET" });
+  if (response.status === 401) {
+    sessionId = undefined;
+    return "error";
   }
+  if (!response.ok) return "error";
+  const body = await response.json();
+  if (!body.job) return "idle";
+  const outcome = await deliver(body.job);
+  await bridgeFetch(bridge, "/api/bridge/result", {
+    method: "POST",
+    body: JSON.stringify({ v: 1, ...outcome }),
+  });
+  return "job";
 }
 
 async function hello(bridge) {

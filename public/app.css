@@ -154,24 +154,6 @@ textarea::-webkit-scrollbar-thumb:hover {
   clip-path: inset(0 round 25px);
   overflow: hidden;
 }
-#blur-plate {
-  display: none;
-  position: absolute;
-  inset: -28px;
-  z-index: 0;
-  pointer-events: none;
-  background-position: center;
-  background-size: cover;
-}
-#shell.is-blur #blur-plate { display: block; }
-#blur-plate::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, var(--blur-shade, 0.4));
-}
-#shell > :not(#blur-plate) { position: relative; z-index: 1; }
-
 #pill[hidden] { display: none; }
 
 #setup {
@@ -466,6 +448,7 @@ textarea::-webkit-scrollbar-thumb:hover {
 #more-menu button strong { font-size: 13px; font-weight: 600; }
 #more-menu button span span { font-size: 11px; color: var(--muted); }
 #more-ghost[aria-pressed="true"] { background: var(--fill); }
+#more-exit { margin-top: 6px; }
 
 #chat {
   max-height: 112px;
@@ -569,7 +552,43 @@ textarea::-webkit-scrollbar-thumb:hover {
   color: #3a3a3a;
   font-size: 12.5px;
   line-height: 1.35;
+  cursor: pointer;
 }
+.bubble.is-editing {
+  width: 100%;
+  max-width: 100%;
+  cursor: text;
+}
+.bubble-edit {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  resize: vertical;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1.35;
+}
+.bubble-edit:focus { outline: none; }
+.bubble-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.bubble-resend {
+  border: 0;
+  border-radius: 999px;
+  background: #2a2a2a;
+  color: #fff;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.bubble-resend:disabled { opacity: 0.4; cursor: default; }
 
 .bubble-images {
   display: flex;
@@ -663,6 +682,29 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 #project-path[data-empty="true"] { color: color-mix(in srgb, var(--accent) 92%, transparent); }
 
+#chat-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 0 4px;
+}
+#chat-actions button {
+  min-width: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--fill);
+  color: var(--text);
+  padding: 7px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#chat-actions button:hover:not(:disabled) { background: var(--fill-hover); }
+#chat-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 #presets {
   max-height: 420px;
   overflow: auto;
@@ -706,7 +748,6 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 #delivery[hidden] { display: none !important; }
 
-#presets .blur-row,
 #presets .trace-row {
   justify-content: space-between;
   width: 100%;
@@ -714,7 +755,7 @@ textarea::-webkit-scrollbar-thumb:hover {
   color: var(--text);
   font-size: 13px;
 }
-#presets > label:not(.check):not(.blur-row):not(.trace-row) {
+#presets > label:not(.check):not(.trace-row) {
   margin-top: 10px;
   font-size: 12px;
   color: var(--muted);
@@ -836,6 +877,8 @@ label.slider {
 .row { display: flex; gap: 8px; }
 .row input { flex: 1; min-width: 0; }
 .row button, #save-key, .actions button, .chips button { width: auto; }
+#presets > .row { display: grid; grid-template-columns: 1fr 1fr; }
+#presets > .row button { width: 100%; text-align: center; }
 
 .check {
   display: flex;
@@ -1090,7 +1133,41 @@ label.slider {
 #chat-band[hidden] { display: none; }
 #chat-band #chat {
   border-top: 0;
-  max-height: 112px;
+  flex: none;
+  height: var(--chat-h, 112px);
+  max-height: var(--chat-h, 112px);
+}
+#chat-resize {
+  flex: none;
+  height: 14px;
+  margin: -2px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+#chat-resize::before {
+  content: "";
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 42%, transparent);
+}
+#chat-resize:hover::before,
+#chat-resize:active::before,
+#chat-resize:focus-visible::before {
+  background: var(--accent);
+}
+#chat-resize:focus-visible { outline: none; }
+#chat-band:not(:has(#thread:not(:empty))) #chat-resize { display: none; }
+#chat:has(#thread:empty) { display: none; }
+#chat-band:not(:has(#thread:not(:empty))):not(:has(#attachments:not(:empty))) {
+  padding-bottom: 0;
+}
+#chat-band:not(:has(#thread:not(:empty))):not(:has(#attachments:not(:empty))) #context-bar {
+  border-bottom: 0;
 }
 
 #shell.is-dropping { box-shadow: inset 0 0 0 2px var(--accent); }

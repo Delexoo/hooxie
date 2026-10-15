@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-appearance="dark">
+<html lang="en" data-appearance="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,10 +22,6 @@
         </button>
       </div>
       <input id="side-filter" type="search" placeholder="Search" aria-label="Search the dashboard" hidden>
-      <button id="toggle-hooxie" class="pin" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14.5H7.2A1.7 1.7 0 0 1 5.5 12.8V7.2A1.7 1.7 0 0 1 7.2 5.5h5.6A1.7 1.7 0 0 1 14.5 7.2V10"/><path d="M13 11.2 19 5.2"/><path d="M14.2 5.2H19v4.8"/></svg>
-        <span>Toggle Hooxie</span>
-      </button>
       <button type="button" data-open="general" title="General">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16"/><path d="M4 16h16"/><circle cx="9" cy="8" r="2.1"/><circle cx="15" cy="16" r="2.1"/></svg>
         <span data-i18n="nav.general">General</span>
@@ -67,6 +63,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m5 8 7 5 7-5"/></svg>
         <span data-i18n="nav.contact">Contact support</span>
       </button>
+      <button id="toggle-hooxie" class="pin" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14.5H7.2A1.7 1.7 0 0 1 5.5 12.8V7.2A1.7 1.7 0 0 1 7.2 5.5h5.6A1.7 1.7 0 0 1 14.5 7.2V10"/><path d="M13 11.2 19 5.2"/><path d="M14.2 5.2H19v4.8"/></svg>
+        <span>Toggle Hooxie</span>
+      </button>
     </nav>
     <main class="main">
       <p class="status" id="status"></p>
@@ -87,8 +87,8 @@
           <div class="row">
             <div><strong>Dashboard</strong><span>Light or dark for this window. White stays the primary color.</span></div>
             <div class="modes" role="radiogroup" aria-label="Dashboard appearance">
-              <button type="button" data-dashboard-mode="light" aria-checked="false">Light</button>
-              <button type="button" data-dashboard-mode="dark" aria-checked="true">Dark</button>
+              <button type="button" data-dashboard-mode="light" aria-checked="true">Light</button>
+              <button type="button" data-dashboard-mode="dark" aria-checked="false">Dark</button>
             </div>
           </div>
           <div class="row">
@@ -126,10 +126,6 @@
           <div class="row">
             <div><strong>Voice activation</strong><span>Say “Say Hooxie.” The open sound means you can speak. A pause sends the prompt.</span></div>
             <label class="switch"><input id="voice-activation" type="checkbox"><i></i></label>
-          </div>
-          <div class="row">
-            <div><strong>Blur background</strong><span>Frost the desktop behind the pill.</span></div>
-            <label class="switch"><input id="blur" type="checkbox"><i></i></label>
           </div>
           <div class="row">
             <div><strong>Typing outline</strong><span>A light blue, blue, and purple line around the pill while you type or talk.</span></div>
@@ -246,16 +242,20 @@
       </section>
       <section data-section="billing" hidden>
         <h1 data-i18n="billing.title">Billing</h1>
-        <p class="note">Hooxie is a one-time purchase for this computer. Copying the app or its files does not license another device.</p>
-        <div class="rows">
-          <div class="row">
-            <div><strong data-i18n="billing.plan">This computer</strong><span>The widget, voice, screen context, and undetectable mode.</span></div>
-            <strong>$5.99</strong>
-          </div>
-        </div>
-        <div class="field" style="margin-top:16px">
-          <input id="promo" type="text" autocomplete="off" placeholder="Promotional code" aria-label="Promotional code">
+        <p class="note">One purchase covers this computer. Copying the app or its files does not license another device.</p>
+        <article class="plan">
+          <p class="plan-name" data-i18n="billing.plan">This computer</p>
+          <p class="plan-price">$5.99 <span>once</span></p>
+          <p class="plan-lead">Included with Hooxie:</p>
+          <ul>
+            <li>The widget, voice, and screen context</li>
+            <li>Undetectable mode on this computer</li>
+            <li>A license that stays on this device</li>
+          </ul>
           <button class="btn" id="subscribe" type="button" data-i18n="billing.subscribe">Buy for this computer</button>
+        </article>
+        <div class="field promo-field">
+          <input id="promo" type="text" autocomplete="off" placeholder="Promotional code" aria-label="Promotional code">
         </div>
       </section>
       <section data-section="releases" hidden>

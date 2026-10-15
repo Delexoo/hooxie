@@ -30,19 +30,16 @@ internal sealed class ShellForm : Form
     private bool userMoved;
     private bool animating;
     private bool excludeCapture;
-    private bool blurBackground;
+    private int shapeWidth;
+    private int shapeHeight;
     private bool followArmed;
     private Point followGrab;
     private readonly System.Windows.Forms.Timer follow = new() { Interval = 16 };
-    private readonly System.Windows.Forms.Timer blurTimer = new() { Interval = 180 };
-    private int blurBusy;
-    private long blurSignature;
-    private Rectangle blurSample;
     private NotifyIcon? tray;
     private readonly string pageUrl;
     private Form? dashboard;
     private WebView2? dashboardView;
-    private bool dashboardPageStarted;
+    private bool dashboardLoading;
     private bool shellClosing;
     private long animStart;
     private Rectangle animFrom;
@@ -65,11 +62,6 @@ internal sealed class ShellForm : Form
         anim.Tick += (_, _) => StepAnim();
         pin.Tick += (_, _) => PinTopmost();
         follow.Tick += (_, _) => StepFollow();
-        blurTimer.Tick += (_, _) =>
-        {
-            blurTimer.Stop();
-            RefreshBlur();
-        };
         Shown += (_, _) =>
         {
             PinTopmost();
@@ -100,12 +92,14 @@ internal sealed class ShellForm : Form
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
+        ClearBackdrop();
         PlaceAtTopCenter();
         RegisterHotKey(Handle, 1, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, 0x48);
         RegisterHotKey(Handle, 2, MOD_CONTROL | MOD_NOREPEAT, 0xDC);
         RegisterHotKey(Handle, 3, MOD_CONTROL | MOD_NOREPEAT, 0x0D);
         RegisterHotKey(Handle, 4, MOD_CONTROL | MOD_NOREPEAT, 0x52);
         RegisterHotKey(Handle, 5, MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 0xDC);
+        InstallVisibilityHook();
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
@@ -120,6 +114,11 @@ internal sealed class ShellForm : Form
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
         for (var id = 1; id <= 9; id++) UnregisterHotKey(Handle, id);
+        if (keyboardHook != IntPtr.Zero)
+        {
+            UnhookWindowsHookEx(keyboardHook);
+            keyboardHook = IntPtr.Zero;
+        }
         if (tray != null)
         {
             tray.Visible = false;
@@ -212,17 +211,31 @@ internal sealed class ShellForm : Form
     {
         follow.Stop();
         Hide();
+        if (IsHandleCreated) ShowWindow(Handle, SW_HIDE);
         EnsureTray();
         tray!.Visible = true;
     }
 
     private void ShowWidget()
     {
+        if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
         Show();
+        if (IsHandleCreated)
+        {
+            // The process starts hidden, and Windows ignores the first ShowWindow.
+            ShowWindow(Handle, SW_SHOWNORMAL);
+            ShowWindow(Handle, SW_SHOWNORMAL);
+            SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        }
         Activate();
         PinTopmost();
         if (excludeCapture) ApplyCaptureAffinity();
         if (tray != null) tray.Visible = false;
+    }
+
+    private bool WidgetOnScreen()
+    {
+        return IsHandleCreated && IsWindowVisible(Handle);
     }
 
     private void EnsureTray()
@@ -301,7 +314,6 @@ internal sealed class ShellForm : Form
         }
         Location = new Point(x, y);
         SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        ScheduleBlur();
     }
 
     private async Task OpenPage(string url)
@@ -373,11 +385,11 @@ internal sealed class ShellForm : Form
             Text = "Hooxie",
             StartPosition = FormStartPosition.CenterScreen,
             ClientSize = new Size(1120, 760),
-            BackColor = Color.FromArgb(12, 12, 12),
+            BackColor = Color.FromArgb(236, 236, 238),
             ShowInTaskbar = true,
         };
         var page = new WebView2 { Dock = DockStyle.Fill };
-        page.DefaultBackgroundColor = Color.FromArgb(12, 12, 12);
+        page.DefaultBackgroundColor = Color.FromArgb(236, 236, 238);
         window.Controls.Add(page);
         dashboardView = page;
         dashboard = window;
@@ -392,7 +404,7 @@ internal sealed class ShellForm : Form
             if (!ReferenceEquals(dashboard, window)) return;
             dashboard = null;
             dashboardView = null;
-            dashboardPageStarted = false;
+            dashboardLoading = false;
             NotifyDashboard(false);
         };
         window.DpiChanged += (_, _) => PlaceDashboard(window);
@@ -429,7 +441,7 @@ internal sealed class ShellForm : Form
         }
         window.BringToFront();
         window.Activate();
-        _ = LoadDashboardPage();
+        window.BeginInvoke(() => { _ = LoadDashboardPage(); });
         NotifyDashboard(true);
     }
 
@@ -453,30 +465,41 @@ internal sealed class ShellForm : Form
     {
         var window = dashboard;
         var page = dashboardView;
-        if (window == null || page == null || window.IsDisposed || dashboardPageStarted) return;
-        dashboardPageStarted = true;
+        if (window == null || page == null || window.IsDisposed || dashboardLoading) return;
+        if (page.CoreWebView2 == null && (!window.Visible || window.WindowState == FormWindowState.Minimized)) return;
+        dashboardLoading = true;
         try
         {
-            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Z", "webview-dashboard");
-            Directory.CreateDirectory(folder);
-            var environment = await CoreWebView2Environment.CreateAsync(null, folder);
-            if (window.IsDisposed) return;
-            await page.EnsureCoreWebView2Async(environment);
-            if (window.IsDisposed || page.CoreWebView2 == null) return;
-            var settings = page.CoreWebView2.Settings;
-            settings.AreDefaultContextMenusEnabled = false;
-            settings.AreDevToolsEnabled = false;
-            settings.IsStatusBarEnabled = false;
-            settings.IsZoomControlEnabled = false;
-            settings.IsPinchZoomEnabled = false;
-            page.ZoomFactor = 1;
-            KeepCursorLinksOutside(page.CoreWebView2);
-            var root = pageUrl.TrimEnd('/');
-            page.Source = new Uri(root + "/dashboard");
+            if (page.CoreWebView2 == null)
+            {
+                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Z", "webview-dashboard");
+                Directory.CreateDirectory(folder);
+                var environment = await CoreWebView2Environment.CreateAsync(null, folder);
+                if (window.IsDisposed || page.IsDisposed) return;
+                await page.EnsureCoreWebView2Async(environment);
+                if (window.IsDisposed || page.CoreWebView2 == null) return;
+                var settings = page.CoreWebView2.Settings;
+                settings.AreDefaultContextMenusEnabled = false;
+                settings.AreDevToolsEnabled = false;
+                settings.IsStatusBarEnabled = false;
+                settings.IsZoomControlEnabled = false;
+                settings.IsPinchZoomEnabled = false;
+                page.ZoomFactor = 1;
+                KeepCursorLinksOutside(page.CoreWebView2);
+            }
+            if (page.CoreWebView2 == null) return;
+            var target = pageUrl.TrimEnd('/') + "/dashboard";
+            var source = page.CoreWebView2.Source ?? "";
+            if (!source.StartsWith(target, StringComparison.OrdinalIgnoreCase))
+                page.CoreWebView2.Navigate(target);
         }
         catch
         {
-            dashboardPageStarted = false;
+            /* The next open tries again. */
+        }
+        finally
+        {
+            dashboardLoading = false;
         }
     }
 
@@ -496,7 +519,8 @@ internal sealed class ShellForm : Form
                     case "fit":
                         var width = ReadInt(root, "cssWidth");
                         var height = ReadInt(root, "cssHeight");
-                        BeginInvoke(() => Fit(width, height));
+                        var instant = root.TryGetProperty("instant", out var instantEl) && instantEl.ValueKind == JsonValueKind.True;
+                        BeginInvoke(() => Fit(width, height, instant));
                         break;
                     case "move":
                         var dx = ReadInt(root, "dx");
@@ -586,11 +610,6 @@ internal sealed class ShellForm : Form
                         BeginInvoke(StartFollow);
                         Emit(new { ok = true });
                         break;
-                    case "blur":
-                        var blurOn = root.TryGetProperty("enabled", out var blurEl) && blurEl.ValueKind == JsonValueKind.True;
-                        Invoke(() => SetBlur(blurOn));
-                        Emit(new { ok = true, enabled = blurBackground });
-                        break;
                     case "arrows":
                         var arrowsOn = root.TryGetProperty("enabled", out var arrowsEl) && arrowsEl.ValueKind == JsonValueKind.True;
                         Invoke(() => SetMoveKeys(arrowsOn));
@@ -614,7 +633,11 @@ internal sealed class ShellForm : Form
                         break;
                     case "quit":
                         Emit(new { ok = true });
-                        BeginInvoke(Close);
+                        BeginInvoke(() =>
+                        {
+                            if (dashboard != null && !dashboard.IsDisposed) dashboard.Close();
+                            Application.Exit();
+                        });
                         return;
                     default:
                         Emit(new { ok = false, error = "unknown" });
@@ -639,7 +662,7 @@ internal sealed class ShellForm : Form
         }
     }
 
-    private void Fit(int width, int height)
+    private void Fit(int width, int height, bool instant = false)
     {
         var target = TargetBounds(width, height);
         var same = target.X == Left && target.Y == Top && target.Width == Width && target.Height == Height;
@@ -656,8 +679,13 @@ internal sealed class ShellForm : Form
         var tiny = Math.Abs(target.Height - Height) < 6
             && Math.Abs(target.Width - Width) < 2
             && Math.Abs(target.Y - Top) < 6;
-        if (tiny)
+        if (instant || tiny)
         {
+            if (animating)
+            {
+                anim.Stop();
+                animating = false;
+            }
             ApplyBounds(target);
             Emit(new { ok = true });
             return;
@@ -764,216 +792,63 @@ internal sealed class ShellForm : Form
         if (bounds.X == Left && bounds.Y == Top && bounds.Width == Width && bounds.Height == Height) return;
         Bounds = bounds;
         if (IsHandleCreated) SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        ScheduleBlur();
+        ApplyWindowShape();
     }
 
-    private void ScheduleBlur()
+    protected override void OnResize(EventArgs e)
     {
-        if (!blurBackground) return;
-        blurTimer.Stop();
-        blurTimer.Start();
+        base.OnResize(e);
+        ApplyWindowShape();
     }
 
-    private void SetBlur(bool enabled)
+    private void ClearBackdrop()
     {
-        blurBackground = enabled;
-        if (!enabled)
+        if (!IsHandleCreated) return;
+        var backdrop = 1;
+        DwmSetWindowAttribute(Handle, 38, ref backdrop, sizeof(int));
+        var border = unchecked((int)0xFFFFFFFE);
+        DwmSetWindowAttribute(Handle, 34, ref border, sizeof(int));
+        var accent = new AccentPolicy();
+        var size = System.Runtime.InteropServices.Marshal.SizeOf<AccentPolicy>();
+        var pointer = System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
+        try
         {
-            blurTimer.Stop();
-            blurSignature = 0;
-            view.CoreWebView2?.ExecuteScriptAsync("window.setHooxieBlur&&window.setHooxieBlur('')");
-            return;
-        }
-        RefreshBlur();
-    }
-
-    private void RefreshBlur()
-    {
-        if (!blurBackground || !IsHandleCreated || !Visible || view.CoreWebView2 == null) return;
-        if (System.Threading.Interlocked.Exchange(ref blurBusy, 1) == 1) return;
-        if (!GetWindowRect(Handle, out var window))
-        {
-            System.Threading.Interlocked.Exchange(ref blurBusy, 0);
-            return;
-        }
-        var width = window.Right - window.Left;
-        var height = window.Bottom - window.Top;
-        if (width < 8 || height < 8)
-        {
-            System.Threading.Interlocked.Exchange(ref blurBusy, 0);
-            return;
-        }
-        var restore = !excludeCapture;
-        if (restore) HideFromCapture();
-        var sample = new Rectangle(window.Left, window.Top, width, height);
-        ThreadPool.QueueUserWorkItem(_ =>
-        {
-            string? encoded = null;
-            try
+            System.Runtime.InteropServices.Marshal.StructureToPtr(accent, pointer, false);
+            var data = new WindowCompositionAttributeData
             {
-                if (restore) Thread.Sleep(30);
-                encoded = CaptureSmoothBlur(sample, restore);
-            }
-            catch
-            {
-                encoded = null;
-                if (restore) BeginInvoke(() => { if (!excludeCapture) ApplyCaptureAffinity(); });
-            }
-            try
-            {
-                BeginInvoke(() =>
-                {
-                    if (blurBackground && encoded != null && view.CoreWebView2 != null)
-                        view.CoreWebView2.ExecuteScriptAsync($"window.setHooxieBlur&&window.setHooxieBlur('data:image/png;base64,{encoded}')");
-                    System.Threading.Interlocked.Exchange(ref blurBusy, 0);
-                });
-            }
-            catch
-            {
-                System.Threading.Interlocked.Exchange(ref blurBusy, 0);
-            }
-        });
-    }
-
-    private void HideFromCapture()
-    {
-        SetWindowDisplayAffinity(Handle, WDA_EXCLUDEFROMCAPTURE);
-        EnumChildWindows(Handle, (child, _) =>
-        {
-            SetWindowDisplayAffinity(child, WDA_EXCLUDEFROMCAPTURE);
-            return true;
-        }, IntPtr.Zero);
-    }
-
-    private string? CaptureSmoothBlur(Rectangle sample, bool restoreCapture)
-    {
-        using var raw = new Bitmap(sample.Width, sample.Height, PixelFormat.Format32bppArgb);
-        using (var graphics = Graphics.FromImage(raw))
-            graphics.CopyFromScreen(sample.Left, sample.Top, 0, 0, raw.Size, CopyPixelOperation.SourceCopy);
-        if (restoreCapture)
-        {
-            try { BeginInvoke(() => { if (!excludeCapture) ApplyCaptureAffinity(); }); }
-            catch { /* The widget is closing. */ }
+                Attribute = 19,
+                Data = pointer,
+                SizeOfData = size,
+            };
+            SetWindowCompositionAttribute(Handle, ref data);
         }
-        var previewWidth = Math.Clamp(sample.Width / 2, 180, 520);
-        var previewHeight = Math.Max(48, sample.Height * previewWidth / sample.Width);
-        using var preview = new Bitmap(previewWidth, previewHeight, PixelFormat.Format32bppArgb);
-        using (var graphics = Graphics.FromImage(preview))
+        finally
         {
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            graphics.CompositingQuality = CompositingQuality.HighQuality;
-            graphics.DrawImage(raw, new Rectangle(0, 0, previewWidth, previewHeight));
-        }
-        var radius = Math.Max(14, previewWidth / 8);
-        Soften(preview, radius);
-        Soften(preview, radius);
-        var signature = BlurSignature(preview);
-        var shifted = Math.Abs(sample.X - blurSample.X) + Math.Abs(sample.Y - blurSample.Y);
-        var resized = sample.Width != blurSample.Width || sample.Height != blurSample.Height;
-        if (signature == blurSignature && shifted < 10 && !resized) return null;
-        blurSignature = signature;
-        blurSample = sample;
-        using var smooth = new Bitmap(sample.Width, sample.Height, PixelFormat.Format32bppArgb);
-        using (var graphics = Graphics.FromImage(smooth))
-        {
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            graphics.DrawImage(preview, new Rectangle(0, 0, sample.Width, sample.Height));
-        }
-        using var stream = new MemoryStream();
-        smooth.Save(stream, ImageFormat.Png);
-        return Convert.ToBase64String(stream.ToArray());
-    }
-
-    private static long BlurSignature(Bitmap bitmap)
-    {
-        long hash = 17;
-        for (var y = 0; y < bitmap.Height; y += 6)
-        {
-            for (var x = 0; x < bitmap.Width; x += 6)
-            {
-                var color = bitmap.GetPixel(x, y);
-                hash = unchecked(hash * 33 + (color.R >> 3) + (color.G >> 3) * 19 + (color.B >> 3) * 41);
-            }
-        }
-        return hash;
-    }
-
-    private static void Soften(Bitmap bitmap, int radius)
-    {
-        var area = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-        var data = bitmap.LockBits(area, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-        var bytes = new byte[Math.Abs(data.Stride) * data.Height];
-        System.Runtime.InteropServices.Marshal.Copy(data.Scan0, bytes, 0, bytes.Length);
-        var horizontal = new byte[bytes.Length];
-        BlurHorizontal(bytes, horizontal, data.Width, data.Height, data.Stride, radius);
-        BlurVertical(horizontal, bytes, data.Width, data.Height, data.Stride, radius);
-        System.Runtime.InteropServices.Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
-        bitmap.UnlockBits(data);
-    }
-
-    private static void BlurHorizontal(byte[] source, byte[] target, int width, int height, int stride, int radius)
-    {
-        var window = radius * 2 + 1;
-        for (var y = 0; y < height; y++)
-        {
-            var row = y * stride;
-            var blue = 0;
-            var green = 0;
-            var red = 0;
-            for (var offset = -radius; offset <= radius; offset++)
-            {
-                var index = row + Math.Clamp(offset, 0, width - 1) * 4;
-                blue += source[index];
-                green += source[index + 1];
-                red += source[index + 2];
-            }
-            for (var x = 0; x < width; x++)
-            {
-                var indexOut = row + x * 4;
-                target[indexOut] = (byte)(blue / window);
-                target[indexOut + 1] = (byte)(green / window);
-                target[indexOut + 2] = (byte)(red / window);
-                target[indexOut + 3] = 255;
-                var leaving = row + Math.Clamp(x - radius, 0, width - 1) * 4;
-                var entering = row + Math.Clamp(x + radius + 1, 0, width - 1) * 4;
-                blue += source[entering] - source[leaving];
-                green += source[entering + 1] - source[leaving + 1];
-                red += source[entering + 2] - source[leaving + 2];
-            }
+            System.Runtime.InteropServices.Marshal.FreeHGlobal(pointer);
         }
     }
 
-    private static void BlurVertical(byte[] source, byte[] target, int width, int height, int stride, int radius)
+    private void ApplyWindowShape()
     {
-        var window = radius * 2 + 1;
-        for (var x = 0; x < width; x++)
-        {
-            var blue = 0;
-            var green = 0;
-            var red = 0;
-            for (var offset = -radius; offset <= radius; offset++)
-            {
-                var index = Math.Clamp(offset, 0, height - 1) * stride + x * 4;
-                blue += source[index];
-                green += source[index + 1];
-                red += source[index + 2];
-            }
-            for (var y = 0; y < height; y++)
-            {
-                var indexOut = y * stride + x * 4;
-                target[indexOut] = (byte)(blue / window);
-                target[indexOut + 1] = (byte)(green / window);
-                target[indexOut + 2] = (byte)(red / window);
-                target[indexOut + 3] = 255;
-                var leaving = Math.Clamp(y - radius, 0, height - 1) * stride + x * 4;
-                var entering = Math.Clamp(y + radius + 1, 0, height - 1) * stride + x * 4;
-                blue += source[entering] - source[leaving];
-                green += source[entering + 1] - source[leaving + 1];
-                red += source[entering + 2] - source[leaving + 2];
-            }
-        }
+        if (!IsHandleCreated) return;
+        var dpi = (DeviceDpi > 0 ? DeviceDpi : 96) / 96f;
+        var radius = Math.Max(8, (int)Math.Round(29 * dpi));
+        var diameter = radius * 2;
+        var width = Math.Max(diameter + 2, ClientSize.Width);
+        var height = Math.Max(diameter + 2, ClientSize.Height);
+        if (width == shapeWidth && height == shapeHeight && Region != null) return;
+        using var path = new GraphicsPath();
+        path.AddArc(0, 0, diameter, diameter, 180, 90);
+        path.AddArc(width - diameter - 1, 0, diameter, diameter, 270, 90);
+        path.AddArc(width - diameter - 1, height - diameter - 1, diameter, diameter, 0, 90);
+        path.AddArc(0, height - diameter - 1, diameter, diameter, 90, 90);
+        path.CloseFigure();
+        var next = new Region(path);
+        var old = Region;
+        shapeWidth = width;
+        shapeHeight = height;
+        Region = next;
+        old?.Dispose();
     }
 
     private void Nudge(int dx, int dy)
@@ -1003,7 +878,6 @@ internal sealed class ShellForm : Form
         }
         Location = new Point(x, y);
         SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        ScheduleBlur();
     }
 
     private bool moveKeys;
@@ -1029,8 +903,7 @@ internal sealed class ShellForm : Form
     {
         if (id == 1 || id == 2)
         {
-            if (Visible) HideWidget();
-            else ShowWidget();
+            ToggleVisibility();
             return;
         }
         if (id == 3)
@@ -1055,6 +928,66 @@ internal sealed class ShellForm : Form
         else if (id == 7) Shift(0, step);
         else if (id == 8) Shift(-step, 0);
         else if (id == 9) Shift(step, 0);
+    }
+
+    private IntPtr keyboardHook;
+    private LowLevelKeyboardProc? keyboardProc;
+    private bool backslashDown;
+    private int backslashVk = 0xDC;
+
+    private void InstallVisibilityHook()
+    {
+        var mapped = VkKeyScan('\\');
+        if (mapped >= 0 && (mapped & 0x100) == 0) backslashVk = mapped & 0xFF;
+        keyboardProc = VisibilityHook;
+        keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, GetModuleHandle(null), 0);
+        if (keyboardHook != IntPtr.Zero) UnregisterHotKey(Handle, 2);
+    }
+
+    private void ToggleVisibility()
+    {
+        if (IsDisposed) return;
+        if (WidgetOnScreen()) HideWidget();
+        else ShowWidget();
+    }
+
+    private IntPtr VisibilityHook(int nCode, IntPtr wParam, IntPtr lParam)
+    {
+        if (nCode < 0 || keyboardHook == IntPtr.Zero) return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
+        var info = System.Runtime.InteropServices.Marshal.PtrToStructure<KbdLlHook>(lParam);
+        var up = (info.flags & LLKHF_UP) != 0;
+        if (IsBackslashKey(info.vkCode))
+        {
+            var ctrl = KeyHeld(0x11) || KeyHeld(0xA2) || KeyHeld(0xA3);
+            var shift = KeyHeld(0x10) || KeyHeld(0xA0) || KeyHeld(0xA1);
+            var alt = KeyHeld(0x12) || KeyHeld(0xA4) || KeyHeld(0xA5);
+            if (up)
+            {
+                var eaten = backslashDown;
+                backslashDown = false;
+                if (eaten) return (IntPtr)1;
+            }
+            else if (ctrl && !shift && !alt && (info.flags & LLKHF_INJECTED) == 0)
+            {
+                if (!backslashDown)
+                {
+                    backslashDown = true;
+                    BeginInvoke(ToggleVisibility);
+                }
+                return (IntPtr)1;
+            }
+        }
+        return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
+    }
+
+    private bool IsBackslashKey(uint vk)
+    {
+        return vk == 0xDC || vk == 0xE2 || (backslashVk > 0 && vk == (uint)backslashVk);
+    }
+
+    private static bool KeyHeld(int vk)
+    {
+        return (GetAsyncKeyState(vk) & 0x8000) != 0;
     }
 
     private void NotifyHotkey(string name)
@@ -1395,7 +1328,11 @@ internal sealed class ShellForm : Form
     private const uint SWP_NOZORDER = 0x0004;
     private const uint SWP_NOACTIVATE = 0x0010;
     private const uint SWP_SHOWWINDOW = 0x0040;
+    private const int SW_HIDE = 0;
     private const int SW_SHOWNORMAL = 1;
+    private const int WH_KEYBOARD_LL = 13;
+    private const uint LLKHF_UP = 0x80;
+    private const uint LLKHF_INJECTED = 0x10;
     private const uint SWP_NOCOPYBITS = 0x0100;
     private const uint MOD_ALT = 0x0001;
     private const uint MOD_CONTROL = 0x0002;
@@ -1453,6 +1390,36 @@ internal sealed class ShellForm : Form
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern short VkKeyScan(char ch);
+
+    private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct KbdLlHook
+    {
+        public uint vkCode;
+        public uint scanCode;
+        public uint flags;
+        public uint time;
+        public IntPtr extra;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+    private static extern IntPtr GetModuleHandle(string? lpModuleName);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint affinity);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -1469,4 +1436,27 @@ internal sealed class ShellForm : Form
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern int SetWindowCompositionAttribute(IntPtr hWnd, ref WindowCompositionAttributeData data);
+
+    [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hWnd, int attribute, ref int value, int size);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct AccentPolicy
+    {
+        public int AccentState;
+        public int AccentFlags;
+        public int GradientColor;
+        public int AnimationId;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct WindowCompositionAttributeData
+    {
+        public int Attribute;
+        public IntPtr Data;
+        public int SizeOfData;
+    }
 }

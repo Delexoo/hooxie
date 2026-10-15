@@ -101,6 +101,7 @@ export interface AgentAdapter {
   available(ctx: AdapterContext): Promise<{ ok: boolean; reason?: string }>;
   prepare(input: SubmitInput, ctx: AdapterContext): Promise<PreparedDelivery>;
   send(prepared: PreparedDelivery, ctx: AdapterContext, report: (update: DeliveryUpdate) => void): Promise<SendResult>;
+  close?(): Promise<void>;
 }
 
 export class AdapterRegistry {
@@ -158,8 +159,56 @@ export async function prepareShared(input: SubmitInput, destination: string): Pr
   return { text, images: input.images, projectPath: path.resolve(input.projectPath), hash, destination };
 }
 
+type HeldAgent = Awaited<ReturnType<CursorSdkClient["createAgent"]>>;
+
 export function cursorSdkAdapter(): AgentAdapter {
   const profile = catalogFor("cursor");
+  const warming = new Map<string, Promise<HeldAgent>>();
+  let closed = false;
+
+  const open = (ctx: AdapterContext, projectPath: string, sandbox: boolean) =>
+    Promise.resolve().then(() => ctx.sdk!.createAgent({
+      cwd: projectPath,
+      apiKey: ctx.apiKey,
+      model: "auto",
+      sandbox,
+      storeDir: ctx.storeDir,
+    }));
+
+  const prime = (ctx: AdapterContext, projectPath: string, sandbox: boolean) => {
+    if (closed || !ctx.sdk) return;
+    const key = warmKey(ctx, projectPath, sandbox);
+    if (warming.has(key)) return;
+    for (const [other, pendingAgent] of warming) {
+      warming.delete(other);
+      void pendingAgent.then((agent) => agent.dispose()).catch(() => undefined);
+    }
+    const pending = open(ctx, projectPath, sandbox);
+    const guarded = pending.then(
+      (agent) => agent,
+      (error: unknown) => {
+        if (warming.get(key) === guarded) warming.delete(key);
+        throw error;
+      },
+    );
+    warming.set(key, guarded);
+    void guarded.catch(() => undefined);
+  };
+
+  const claim = async (ctx: AdapterContext, projectPath: string, sandbox: boolean): Promise<HeldAgent> => {
+    const key = warmKey(ctx, projectPath, sandbox);
+    const pending = warming.get(key);
+    warming.delete(key);
+    let agent: HeldAgent;
+    try {
+      agent = pending ? await pending : await open(ctx, projectPath, sandbox);
+    } catch {
+      agent = await open(ctx, projectPath, sandbox);
+    }
+    prime(ctx, projectPath, sandbox);
+    return agent;
+  };
+
   return {
     id: "cursor-sdk",
     ide: "cursor",
@@ -168,11 +217,18 @@ export function cursorSdkAdapter(): AgentAdapter {
     capabilities: profile.capabilities,
     limitations: profile.limitations,
     unsupported: ["Native file attachments. Selected files are inlined as text."],
+    async close() {
+      closed = true;
+      const pending = [...warming.values()];
+      warming.clear();
+      await Promise.all(pending.map((item) => item.then((agent) => agent.dispose()).catch(() => undefined)));
+    },
     async available(ctx) {
       if (ctx.ide !== "cursor") return { ok: false, reason: "The Cursor SDK only targets Cursor." };
       if (!ctx.sdkReady && !ctx.sdk) return { ok: false, reason: "@cursor/sdk is not installed." };
       if (!ctx.apiKey && !ctx.sdkAccount) return { ok: false, reason: "Connect the Cursor account on this computer." };
       if (!ctx.sdk) return { ok: false, reason: "The Cursor SDK client is not loaded." };
+      prime(ctx, path.resolve(ctx.projectPath), !ctx.allowUnsandboxed);
       return { ok: true };
     },
     prepare(input, _ctx) {
@@ -188,21 +244,14 @@ export function cursorSdkAdapter(): AgentAdapter {
       if (prepared.images.length && !this.capabilities.images) {
         return failed(this, "This route cannot accept images.", false);
       }
-      let agent: Awaited<ReturnType<CursorSdkClient["createAgent"]>> | undefined;
+      let agent: HeldAgent | undefined;
       let fellBackFromSandbox = false;
       try {
-        const openAgent = (sandbox: boolean) => ctx.sdk!.createAgent({
-          cwd: prepared.projectPath,
-          apiKey: ctx.apiKey!,
-          model: "auto",
-          sandbox,
-          storeDir: ctx.storeDir,
-        });
         const message = prepared.images.length
           ? { text: prepared.text, images: prepared.images }
           : prepared.text;
         const start = async (sandbox: boolean) => {
-          const next = await openAgent(sandbox);
+          const next = await claim(ctx, prepared.projectPath, sandbox);
           try {
             const run = await next.send(message);
             return { agent: next, run };
@@ -223,8 +272,11 @@ export function cursorSdkAdapter(): AgentAdapter {
         const run = started.run;
         const handle = agent;
         const adapter = this;
+        const nextSandbox = !fellBackFromSandbox && !ctx.allowUnsandboxed;
         setImmediate(() => {
-          void observeRun(run, handle, adapter, prepared.projectPath, report);
+          void observeRun(run, handle, adapter, prepared.projectPath, report).finally(() => {
+            prime(ctx, prepared.projectPath, nextSandbox);
+          });
         });
         return {
           committed: true,
@@ -247,6 +299,7 @@ export function cursorSdkAdapter(): AgentAdapter {
         };
       } catch (error) {
         if (agent) await agent.dispose().catch(() => undefined);
+        prime(ctx, prepared.projectPath, ctx.allowUnsandboxed ? false : !sandboxUnsupported(error));
         const retryable = Boolean((error as { isRetryable?: boolean }).isRetryable);
         const message = error instanceof Error ? error.message : "The Cursor SDK rejected the prompt.";
         return failed(this, `The Cursor agent did not start. ${message}`, retryable);
@@ -550,6 +603,10 @@ export function clipboardAdapter(): AgentAdapter {
       };
     },
   };
+}
+
+function warmKey(ctx: AdapterContext, projectPath: string, sandbox: boolean): string {
+  return `${path.resolve(projectPath)}\0${sandbox ? "1" : "0"}\0${ctx.apiKey ?? ""}\0${ctx.storeDir}`;
 }
 
 function sandboxUnsupported(error: unknown): boolean {

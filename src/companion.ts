@@ -23,9 +23,14 @@ interface PendingJob {
   dispatched: boolean;
 }
 
+interface PollWaiter {
+  push(job: BridgeJob | null): void;
+}
+
 export class CompanionHub {
   private sessions = new Map<string, CompanionSession>();
   private pending = new Map<string, PendingJob[]>();
+  private waiters = new Map<string, PollWaiter[]>();
   private ttlMs: number;
   private resultTimeoutMs: number;
 
@@ -63,7 +68,9 @@ export class CompanionHub {
 
   list(): CompanionSession[] {
     const now = Date.now();
-    return [...this.sessions.values()].filter((session) => now - session.lastSeen <= this.ttlMs);
+    return [...this.sessions.values()].filter(
+      (session) => now - session.lastSeen <= this.ttlMs || this.parked(session.id),
+    );
   }
 
   matching(ide: IdeId, projectPath: string): CompanionSession[] {
@@ -83,11 +90,46 @@ export class CompanionHub {
     return next.job;
   }
 
+  waitForJob(sessionId: string, timeoutMs: number, signal?: AbortSignal): Promise<BridgeJob | null> {
+    if (!this.sessions.has(sessionId)) return Promise.resolve(null);
+    const immediate = this.poll(sessionId);
+    if (immediate || timeoutMs <= 0 || signal?.aborted) return Promise.resolve(immediate);
+    return new Promise((resolve) => {
+      let settled = false;
+      const waiter: PollWaiter = {
+        push: (job) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          signal?.removeEventListener("abort", onAbort);
+          this.removeWaiter(sessionId, waiter);
+          resolve(job);
+        },
+      };
+      const onAbort = () => waiter.push(null);
+      const timer = setTimeout(() => waiter.push(null), timeoutMs);
+      const list = this.waiters.get(sessionId) ?? [];
+      list.push(waiter);
+      this.waiters.set(sessionId, list);
+      signal?.addEventListener("abort", onAbort, { once: true });
+      const raced = this.poll(sessionId);
+      if (raced) waiter.push(raced);
+    });
+  }
+
+  abandon(): void {
+    for (const list of this.waiters.values()) {
+      for (const waiter of [...list]) waiter.push(null);
+    }
+  }
+
   enqueue(sessionId: string, job: BridgeJob): Promise<JobOutcome> {
     const session = this.sessions.get(sessionId);
-    if (!session || Date.now() - session.lastSeen > this.ttlMs) {
+    const live = this.parked(sessionId) || (session !== undefined && Date.now() - session.lastSeen <= this.ttlMs);
+    if (!session || !live) {
       return Promise.reject(new Error("disconnected"));
     }
+    session.lastSeen = Date.now();
     const queue = this.pending.get(sessionId);
     if (!queue) return Promise.reject(new Error("disconnected"));
     return new Promise((resolve) => {
@@ -108,6 +150,7 @@ export class CompanionHub {
         }, this.resultTimeoutMs),
       };
       queue.push(entry);
+      this.notify(sessionId);
     });
   }
 
@@ -120,6 +163,25 @@ export class CompanionHub {
     clearTimeout(item.timer);
     item.resolve({ ...outcome, handedOff: true });
     return true;
+  }
+
+  private parked(sessionId: string): boolean {
+    return (this.waiters.get(sessionId)?.length ?? 0) > 0;
+  }
+
+  private notify(sessionId: string): void {
+    const list = this.waiters.get(sessionId);
+    if (!list?.length) return;
+    const job = this.poll(sessionId);
+    if (job) list[0].push(job);
+  }
+
+  private removeWaiter(sessionId: string, waiter: PollWaiter): void {
+    const list = this.waiters.get(sessionId);
+    if (!list) return;
+    const index = list.indexOf(waiter);
+    if (index >= 0) list.splice(index, 1);
+    if (list.length === 0) this.waiters.delete(sessionId);
   }
 
   private remove(sessionId: string, jobId: string): void {

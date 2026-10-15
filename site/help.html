@@ -3,37 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Help center · Hooxie</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <title>Help · Hooxie</title>
   <link rel="stylesheet" href="/site.css">
 </head>
-<body class="page">
-  <a class="skip" href="#content">Skip to content</a>
-  <div class="scroll-line is-dark" aria-hidden="true"></div>
-  <header class="topbar">
-    <a class="logo" href="/home">Hooxie</a>
+<body>
+  <header>
+    <a class="brand" href="/">Hooxie</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
       <span class="menu-bars" aria-hidden="true"></span>
       <span class="sr">Menu</span>
     </button>
-    <nav class="garden-menu" id="site-menu" aria-label="Primary">
-      <div class="menu-copy">
-        <a href="/home#features">Features</a>
-        <a href="/home#demo">Demo</a>
-        <a href="/home#pricing">Pricing</a>
-        <a href="/help#onboarding">Onboarding</a>
-        <a href="/help">Help</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/ides">IDEs</a>
-        <a href="/home#download">Download</a>
-      </div>
+    <nav class="menu-screen" id="site-menu" aria-label="Pages">
+      <a href="/#download">Download</a>
+      <a href="/#features">Features</a>
+      <a href="/#faq">FAQ</a>
+      <a href="/help">Help</a>
+      <a href="/ides">IDEs</a>
+      <a href="/dashboard">Dashboard</a>
     </nav>
   </header>
-  <main class="wrap page-main" id="content">
-    <article class="doc">
-      <h1>Help center</h1>
+  <main>
+<h1>Help center</h1>
       <h2 id="onboarding">Onboarding</h2>
       <p>The widget stays on setup until both chapters are finished. A progress bar at the top fills as you get closer. Back and Next move one chapter at a time.</p>
       <h3>Chapter 1 · IDE</h3>
@@ -43,13 +33,13 @@
       <h3>Move through setup</h3>
       <p>Help in the widget opens this section. Drag the top bar to move setup. Minimize collapses it to that bar. Close hides Hooxie, and Ctrl+\ shows it again. The prompt, voice, and the rest of the widget stay hidden until an IDE is on and this computer is licensed.</p>
       <h2>Before Hooxie can send</h2>
-      <p>Hooxie needs an IDE on this computer. <a href="/ides">Download an IDE</a> from the first chapter if none is installed, then turn its switch on. Cursor also needs a sign-in. The rest of the widget stays hidden until that IDE is connected and this computer is licensed.</p>
-      <p>Cursor also needs a sign-in and an available plan: Hobby, Pro, Pro+, Ultra, or Business. See <a href="https://cursor.com/pricing">Cursor plans</a>. The $5.99 Hooxie license does not replace a Cursor plan.</p>
-      <p>Press Connect Cursor on the pill or in the dashboard. Sign-in opens in the browser and links the account. A pasted API key also works if you already have one.</p>
+      <p>Hooxie needs an IDE on this computer. <a href="/ides">Download an IDE</a> from the first chapter if none is installed, then turn its switch on. The agent also needs a sign-in. The rest of the widget stays hidden until that IDE is connected and this computer is licensed.</p>
+      <p>Sign in to the agent and keep its plan active. The $5.99 Hooxie license does not replace that plan.</p>
+      <p>Press connect on the pill or in the dashboard. Sign-in opens in the browser and links the account. A pasted API key also works if you already have one.</p>
       <h2>Open the widget</h2>
       <p>Start Hooxie on Windows. A pill appears at the top center. Set the project folder before you send. That folder is the agent's workspace.</p>
       <h2>Send a prompt</h2>
-      <p>Type and press Enter, or use the send icon. Each prompt starts a new agent session for that folder. It does not continue an already-open Composer thread.</p>
+      <p>Type and press Enter, or use the send icon. Each prompt starts a new agent session for that folder. It does not continue an already-open chat thread.</p>
       <h2>Voice</h2>
       <p>With an empty prompt, the round button is the microphone. Click it to start, click again to stop. Words appear as you speak, and a short pause keeps the phrase. When words are in the prompt, the button becomes send. Choose the microphone and speaker in the dashboard, or turn voice prompting off there.</p>
       <h2>Screen</h2>
@@ -62,40 +52,20 @@
       <p>Turn on Arrow keys in the dashboard, then Ctrl plus an arrow moves the pill. Until then those shortcuts stay with your other apps. Ctrl+\ hides Hooxie and shows it again. The tray icon and Ctrl+Alt+H also bring it back.</p>
       <h2>Billing</h2>
       <p>Hooxie is $5.99 once for this computer. Buy it from the License chapter in setup, or from the dashboard. A promotional code goes in the field on that page. Refunds are described on the refund page.</p>
-    </article>
   </main>
-  <footer class="site-footer">
-    <a class="to-top" href="#content"><span aria-hidden="true"></span>Scroll up</a>
-    <div class="wrap footer-grid">
-      <div>
-        <p class="footer-label">Product</p>
-        <a href="/home#features">Features</a>
-        <a href="/home#demo">Demo</a>
-        <a href="/home#pricing">Pricing</a>
-        <a href="/ides">IDEs</a>
-        <a href="/home#download">Download</a>
-      </div>
-      <div>
-        <p class="footer-label">Account</p>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/help#onboarding">Onboarding</a>
-        <a href="/help">Help</a>
-        <a href="/contact">Contact</a>
-        <a href="/releases">Release notes</a>
-      </div>
-      <div>
-        <p class="footer-label">Legal</p>
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/refund">Refunds</a>
-        <a href="/license">License</a>
-      </div>
-    </div>
-    <div class="wrap">
-      <p class="footer-note"><strong>hooxie.</strong> A Delexo product. <a href="https://hooxie.com">hooxie.com</a>. Credit @delexo if you show or remix it. © 2026 Delexo.</p>
-    </div>
+  <footer>
+    <p>
+      <a href="/help">Help</a>
+      <a href="/contact">Contact</a>
+      <a href="/releases">Releases</a>
+      <a href="/ides">IDEs</a>
+      <a href="/terms">Terms</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/refund">Refunds</a>
+      <a href="/license">License</a>
+    </p>
+    <p>A Delexo product. Credit @delexo if you show or remix it.</p>
   </footer>
-  <script src="/ascii.js"></script>
-  <script src="/site.js"></script>
+  <script src="/menu.js"></script>
 </body>
 </html>

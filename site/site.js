@@ -37,6 +37,131 @@ const COPY = {
 };
 
 bootChrome();
+
+function bootKineticMenu() {
+  const navWrap = document.querySelector(".nav-overlay-wrapper");
+  const menuButton = document.querySelector(".nav-close-btn");
+  const bar = document.querySelector(".topbar");
+  if (!navWrap || !menuButton) return;
+
+  const menu = navWrap.querySelector(".menu-content");
+  const overlay = navWrap.querySelector(".overlay");
+  const bgPanels = navWrap.querySelectorAll(".backdrop-layer");
+  const menuLinks = navWrap.querySelectorAll(".nav-link");
+  const menuButtonTexts = menuButton.querySelectorAll("p");
+  const menuButtonIcon = menuButton.querySelector(".menu-button-icon");
+  const shapesContainer = navWrap.querySelector(".ambient-background-shapes");
+  const live = menuButton.querySelector(".sr");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let open = false;
+  let tl = null;
+
+  const paint = (next) => {
+    open = next;
+    navWrap.setAttribute("data-nav", next ? "open" : "closed");
+    bar?.classList.toggle("is-open", next);
+    document.documentElement.classList.toggle("menu-open", next);
+    menuButton.setAttribute("aria-expanded", String(next));
+    if (live) live.textContent = next ? "Close" : "Menu";
+    navWrap.style.display = next ? "block" : "none";
+  };
+
+  const openNav = () => {
+    if (!window.gsap || reduce) {
+      paint(true);
+      return;
+    }
+    open = true;
+    navWrap.setAttribute("data-nav", "open");
+    bar?.classList.add("is-open");
+    document.documentElement.classList.add("menu-open");
+    menuButton.setAttribute("aria-expanded", "true");
+    if (live) live.textContent = "Close";
+    tl.clear();
+    tl.set(navWrap, { display: "block" })
+      .set(menu, { xPercent: 0 }, "<")
+      .fromTo(menuButtonTexts, { yPercent: 0 }, { yPercent: -100, stagger: 0.2 })
+      .fromTo(menuButtonIcon, { rotate: 0 }, { rotate: 315 }, "<")
+      .fromTo(overlay, { autoAlpha: 0 }, { autoAlpha: 1 }, "<")
+      .fromTo(bgPanels, { xPercent: 101 }, { xPercent: 0, stagger: 0.12, duration: 0.575 }, "<")
+      .fromTo(menuLinks, { yPercent: 140, rotate: 10 }, { yPercent: 0, rotate: 0, stagger: 0.05 }, "<+=0.35");
+  };
+
+  const closeNav = () => {
+    if (!open) return;
+    if (!window.gsap || reduce) {
+      paint(false);
+      return;
+    }
+    open = false;
+    navWrap.setAttribute("data-nav", "closed");
+    menuButton.setAttribute("aria-expanded", "false");
+    if (live) live.textContent = "Menu";
+    tl.clear();
+    tl.to(overlay, { autoAlpha: 0 })
+      .to(menu, { xPercent: 120 }, "<")
+      .to(menuButtonTexts, { yPercent: 0 }, "<")
+      .to(menuButtonIcon, { rotate: 0 }, "<")
+      .set(navWrap, { display: "none" })
+      .add(() => {
+        if (open) return;
+        bar?.classList.remove("is-open");
+        document.documentElement.classList.remove("menu-open");
+      });
+  };
+
+  const toggleMenu = () => (open ? closeNav() : openNav());
+
+  if (window.gsap && !reduce) {
+    const gsap = window.gsap;
+    if (window.CustomEase) {
+      gsap.registerPlugin(window.CustomEase);
+      try {
+        window.CustomEase.create("main", "0.65, 0.01, 0.05, 0.99");
+        gsap.defaults({ ease: "main", duration: 0.7 });
+      } catch (error) {
+        gsap.defaults({ ease: "power2.out", duration: 0.7 });
+      }
+    } else {
+      gsap.defaults({ ease: "power2.out", duration: 0.7 });
+    }
+    gsap.set(navWrap, { display: "none" });
+    tl = gsap.timeline();
+    navWrap.querySelectorAll(".menu-list-item[data-shape]").forEach((item) => {
+      const shape = shapesContainer?.querySelector(`.bg-shape-${item.getAttribute("data-shape")}`);
+      if (!shape) return;
+      const shapeEls = shape.querySelectorAll(".shape-element");
+      item.addEventListener("mouseenter", () => {
+        shapesContainer.querySelectorAll(".bg-shape").forEach((node) => node.classList.remove("active"));
+        shape.classList.add("active");
+        gsap.fromTo(shapeEls, { scale: 0.5, opacity: 0, rotation: -10 }, {
+          scale: 1, opacity: 1, rotation: 0, duration: 0.6, stagger: 0.08, ease: "back.out(1.7)", overwrite: "auto",
+        });
+      });
+      item.addEventListener("mouseleave", () => {
+        gsap.to(shapeEls, {
+          scale: 0.8, opacity: 0, duration: 0.3, ease: "power2.in", overwrite: "auto",
+          onComplete: () => shape.classList.remove("active"),
+        });
+      });
+    });
+  }
+
+  menuButton.addEventListener("click", toggleMenu);
+  overlay?.addEventListener("click", closeNav);
+  navWrap.querySelectorAll("[data-menu-toggle]").forEach((node) => {
+    if (node === menuButton || node === overlay) return;
+    node.addEventListener("click", toggleMenu);
+  });
+  menuLinks.forEach((anchor) => anchor.addEventListener("click", () => {
+    document.documentElement.classList.remove("menu-open");
+    closeNav();
+  }));
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeNav();
+  });
+}
+
 const page = document.querySelector("[data-page]");
 if (page?.dataset.page === "dashboard") bootDashboard();
 if (page?.dataset.page === "contact") bootContact();
@@ -44,51 +169,6 @@ if (page?.dataset.page === "home") bootHome();
 
 function bootChrome() {
   if (document.querySelector("[data-page]")?.dataset.page === "dashboard") return;
-  let pageGarden = document.querySelector("#page-garden");
-  if (!pageGarden) {
-    pageGarden = document.createElement("canvas");
-    pageGarden.id = "page-garden";
-    pageGarden.setAttribute("aria-hidden", "true");
-    document.body.prepend(pageGarden);
-  }
-  if (window.mountInkGarden) {
-    window.mountInkGarden(pageGarden, "/ascii-editor/demos/generated/ref-029.webp", window.INK_GARDEN, { viewport: true });
-  }
-
-  const line = document.querySelector(".scroll-line");
-  const bar = document.querySelector(".topbar");
-  const toggle = document.querySelector(".menu-toggle");
-  const nav = document.querySelector("#site-menu");
-  const setMenu = (open) => {
-    bar?.classList.toggle("is-open", open);
-    document.documentElement.classList.toggle("menu-open", open);
-    toggle?.setAttribute("aria-expanded", String(open));
-    toggle?.querySelector(".sr")?.replaceChildren(document.createTextNode(open ? "Close" : "Menu"));
-  };
-
-  toggle?.addEventListener("click", () => setMenu(!bar.classList.contains("is-open")));
-  nav?.querySelectorAll("a").forEach((anchor) => anchor.addEventListener("click", () => setMenu(false)));
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && bar?.classList.contains("is-open")) setMenu(false);
-  });
-
-  const onScroll = () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = max > 0 ? window.scrollY / max : 0;
-    if (line) line.style.transform = `scaleX(${progress})`;
-    if (line) line.classList.remove("is-dark");
-  };
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-
-  for (const item of document.querySelectorAll(".faq-item")) {
-    const question = item.querySelector(".faq-q");
-    question?.addEventListener("click", () => {
-      const open = !item.classList.contains("is-open");
-      item.classList.toggle("is-open", open);
-      question.setAttribute("aria-expanded", String(open));
-    });
-  }
 }
 
 function bootDownloadButtons() {
@@ -133,7 +213,7 @@ function bootHome() {
       status.textContent = "Voice would start on the real widget. Type a prompt to preview send.";
       return;
     }
-    status.textContent = `Queued for C:\\work\\app — “${text.slice(0, 72)}”. Install Hooxie to send it through Cursor.`;
+    status.textContent = `Queued for C:\\work\\app — “${text.slice(0, 72)}”. Install Hooxie to send it.`;
     prompt.value = "";
     paintSend();
   });
@@ -255,7 +335,6 @@ function bootDashboard() {
     outputDevice: "",
     session: false,
     language: "en",
-    blur: false,
     trace: true,
     ide: "cursor",
     installationId: "",
@@ -270,7 +349,7 @@ function bootDashboard() {
     chime: "blushing",
     chimeCustom: false,
     arrows: false,
-    dashboardMode: "dark",
+    dashboardMode: "light",
     widgetMode: "dark",
   };
   let catalog = { ides: [], installations: [], sessions: [] };
@@ -323,9 +402,7 @@ function bootDashboard() {
       swatch.setAttribute("aria-checked", String(swatch.dataset.color === settings.button));
     }
     document.documentElement.style.setProperty("--button", COLORS.includes(settings.button) ? settings.button : "#ffffff");
-    const blur = document.querySelector("#blur");
     const trace = document.querySelector("#trace");
-    if (blur) blur.checked = settings.blur === true;
     if (trace) trace.checked = settings.trace !== false;
     const arrows = document.querySelector("#arrows");
     if (arrows) arrows.checked = settings.arrows === true;
@@ -339,7 +416,7 @@ function bootDashboard() {
   }
 
   function paintModes() {
-    const dashboardMode = settings.dashboardMode === "light" ? "light" : "dark";
+    const dashboardMode = settings.dashboardMode === "dark" ? "dark" : "light";
     const widgetMode = settings.widgetMode === "light" ? "light" : "dark";
     document.documentElement.dataset.appearance = dashboardMode;
     for (const button of document.querySelectorAll("[data-dashboard-mode]")) {
@@ -396,7 +473,6 @@ function bootDashboard() {
   inputDevice?.addEventListener("change", () => save({ inputDevice: inputDevice.value }));
   outputDevice?.addEventListener("change", () => save({ outputDevice: outputDevice.value }));
   document.querySelector("#voice-activation").addEventListener("change", (event) => save({ voiceActivation: event.target.checked }));
-  document.querySelector("#blur").addEventListener("change", (event) => save({ blur: event.target.checked, lookReady: true }));
   document.querySelector("#trace").addEventListener("change", (event) => save({ trace: event.target.checked, lookReady: true }));
   document.querySelector("#arrows").addEventListener("change", (event) => save({ arrows: event.target.checked }));
   opacity.addEventListener("input", () => {
