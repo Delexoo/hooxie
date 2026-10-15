@@ -60,6 +60,8 @@ const SITE_FILES: Record<string, string> = {
   "/menu.js": "menu.js",
   "/demo.js": "demo.js",
   "/wallpaper.jpg": "wallpaper.jpg",
+  "/favicon.ico": "favicon.ico",
+  "/icon.png": "icon.png",
   "/download/hooxie-windows.ps1": "download/hooxie-windows.ps1",
 };
 
@@ -1348,6 +1350,7 @@ async function serveSite(res: http.ServerResponse, pathname: string, pageToken: 
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".png": "image/png",
+    ".ico": "image/x-icon",
     ".webp": "image/webp",
     ".ps1": "text/plain; charset=utf-8",
   };

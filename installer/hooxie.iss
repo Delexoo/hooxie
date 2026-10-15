@@ -18,6 +18,8 @@ DefaultDirName={autopf}\Delexo\Hooxie
 DefaultGroupName=Hooxie
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
+SetupIconFile=..\src\widget-shell\hooxie.ico
+UninstallDisplayIcon={app}\shell\HooxieShell.exe
 PrivilegesRequired=admin
 UsedUserAreasWarning=no
 OutputDir=..\dist-setup
@@ -45,10 +47,10 @@ Name: "startonlogon"; Description: "Start Hooxie when I sign in to Windows"; Gro
 Source: "..\dist-setup\stage\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Comment: "Hooxie overlay by Delexo"
+Name: "{group}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Comment: "Hooxie overlay by Delexo"
 Name: "{group}\Hooxie website"; Filename: "{#MyAppURL}"
 Name: "{group}\Uninstall Hooxie"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Tasks: desktopicon
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hooxie"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startonlogon

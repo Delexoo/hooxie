@@ -51,6 +51,7 @@ internal sealed class ShellForm : Form
     {
         pageUrl = url;
         Text = "Hooxie";
+        Icon = (Icon)AppIcon().Clone();
         FormBorderStyle = FormBorderStyle.None;
         TopMost = true;
         ShowInTaskbar = false;
@@ -238,12 +239,29 @@ internal sealed class ShellForm : Form
         return IsHandleCreated && IsWindowVisible(Handle);
     }
 
+    private static Icon? appIcon;
+
+    private static Icon AppIcon()
+    {
+        if (appIcon != null) return appIcon;
+        try
+        {
+            appIcon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+        }
+        catch
+        {
+            appIcon = null;
+        }
+        appIcon ??= SystemIcons.Application;
+        return appIcon;
+    }
+
     private void EnsureTray()
     {
         if (tray != null) return;
         tray = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = (Icon)AppIcon().Clone(),
             Text = "Show Hooxie",
             Visible = false,
         };
@@ -383,6 +401,7 @@ internal sealed class ShellForm : Form
         var window = new Form
         {
             Text = "Hooxie",
+            Icon = (Icon)AppIcon().Clone(),
             StartPosition = FormStartPosition.CenterScreen,
             ClientSize = new Size(1120, 760),
             BackColor = Color.FromArgb(236, 236, 238),
