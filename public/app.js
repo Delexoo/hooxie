@@ -27,6 +27,7 @@ const chatToggle = document.querySelector("#chat-toggle");
 const threadEl = document.querySelector("#thread");
 const projectPathEl = document.querySelector("#project-path");
 const viewScreenEl = document.querySelector("#view-screen");
+const contextBarEl = document.querySelector("#context-bar");
 const clearTarget = document.querySelector("#clear-target");
 const promptEl = document.querySelector("#prompt");
 const filesEl = document.querySelector("#files");
@@ -1710,6 +1711,7 @@ function showOnly(which) {
   }
   panel = which === "chat" || which === "presets" || which === "usage" ? which : "none";
   chatEl.hidden = panel !== "chat";
+  contextBarEl.hidden = panel !== "chat";
   presetsEl.hidden = panel !== "presets";
   document.querySelector("#usage").hidden = panel !== "usage";
   chatToggle.setAttribute("aria-expanded", String(panel === "chat"));

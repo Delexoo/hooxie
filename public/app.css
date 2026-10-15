@@ -358,6 +358,7 @@ textarea::-webkit-scrollbar-thumb:hover {
   padding: 0;
 }
 
+#context-bar[hidden] { display: none; }
 #context-bar {
   display: flex;
   align-items: center;
