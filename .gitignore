@@ -7,5 +7,6 @@ node_modules/
 src/widget-shell/bin/
 src/widget-shell/obj/
 dist/
+dist-setup/
 site/.vercel/
 tmp-*

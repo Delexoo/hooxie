@@ -1,10 +1,10 @@
 # Hooxie
 
-**A Delexo product** · [@delexo](https://delexo.store) · [delexo.store](https://delexo.store)
+**Hooxie** by **Delexo** · [hooxie.com](https://hooxie.com)
 
 Hooxie is an always-on-top Windows overlay that sends a prompt, files, and optionally the screen to a Cursor agent. It stays on your display. With Detectable off, a normal screen share does not see it.
 
-Credit Delexo if you use, remix, or show this software. Tag **@delexo** or link [delexo.store](https://delexo.store) in the video, description, README, or listing. Source: [github.com/Delexoo/hooxie](https://github.com/Delexoo/hooxie). See [LICENSE](LICENSE).
+Credit Delexo if you use, remix, or show this software. Tag **@delexo** or link [hooxie.com](https://hooxie.com) in the video, description, README, or listing. Source: [github.com/Delexoo/hooxie](https://github.com/Delexoo/hooxie). See [LICENSE](LICENSE).
 
 ## Requirements
 
@@ -23,7 +23,7 @@ npm install
 powershell -File scripts/package-windows.ps1
 ```
 
-The installer is written to `dist/Hooxie-Setup-0.2.0.exe`. It installs under `Program Files\Delexo\Hooxie`, shows the license, and can add Start Menu and desktop shortcuts.
+The installer is written to `dist/Hooxie-Setup-0.2.0.exe`. It installs Hooxie under `Program Files\Delexo\Hooxie`, shows the license, and can add a Start Menu shortcut, a desktop shortcut, and a sign-in startup entry. The current download is on the [0.2.0 release](https://github.com/Delexoo/hooxie/releases/download/v0.2.0/Hooxie-Setup-0.2.0.exe). Node.js 22.13 or newer is required. The desktop shell is included, so a separate .NET install is not.
 
 ### From source
 
@@ -56,5 +56,6 @@ Notes for each version are in [brain/log.json](brain/log.json). `npm run notes` 
 ## Company
 
 Delexo  
-https://delexo.store  
+Product: Hooxie  
+https://hooxie.com  
 support@delexo.store

@@ -16,6 +16,7 @@
             "When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward.",
             "The widget opens a little lower on the screen. The scrollbar is only on the conversation.",
             "More options can open the connected IDE on the current project.",
+            "Hooxie Setup 0.2.0 installs the app for Windows. The product site is hooxie.com.",
             "While Cursor usage is loading, the ring eases around the circle, then fills to the percentage."
           ]
         },

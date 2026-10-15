@@ -1,7 +1,7 @@
 #define MyAppName "Hooxie"
 #define MyAppVersion "0.2.0"
 #define MyAppPublisher "Delexo"
-#define MyAppURL "https://delexo.store"
+#define MyAppURL "https://hooxie.com"
 #define MyAppExeName "Hooxie.cmd"
 
 [Setup]
@@ -15,12 +15,12 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 AppCopyright=Copyright (C) 2026 Delexo
 DefaultDirName={autopf}\Delexo\Hooxie
-DefaultGroupName=Delexo
+DefaultGroupName=Hooxie
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
 PrivilegesRequired=admin
 UsedUserAreasWarning=no
-OutputDir=..\dist
+OutputDir=..\dist-setup
 OutputBaseFilename=Hooxie-Setup-{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
@@ -42,11 +42,11 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 Name: "startonlogon"; Description: "Start Hooxie when I sign in to Windows"; GroupDescription: "Shortcuts:"; Flags: unchecked
 
 [Files]
-Source: "..\dist\payload\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist-setup\payload\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Comment: "Hooxie overlay by Delexo"
-Name: "{group}\Delexo website"; Filename: "{#MyAppURL}"
+Name: "{group}\Hooxie website"; Filename: "{#MyAppURL}"
 Name: "{group}\Uninstall Hooxie"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
@@ -54,7 +54,7 @@ Name: "{autodesktop}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{a
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hooxie"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startonlogon
 
 [Run]
-Filename: "{cmd}"; Parameters: "/c npm install"; WorkingDir: "{app}"; StatusMsg: "Installing Hooxie packages..."; Flags: runhidden waituntilterminated skipifsilent
+Filename: "{cmd}"; Parameters: "/c set ""PATH={autopf}\nodejs;{localappdata}\Programs\nodejs;%PATH%"" && npm install"; WorkingDir: "{app}"; StatusMsg: "Installing Hooxie packages..."; Flags: runhidden waituntilterminated skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch Hooxie"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
@@ -66,6 +66,8 @@ var
   ResultCode: Integer;
 begin
   Result := Exec('where.exe', 'node', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+  if not Result then
+    Result := FileExists(ExpandConstant('{autopf}\nodejs\node.exe')) or FileExists(ExpandConstant('{localappdata}\Programs\nodejs\node.exe'));
 end;
 
 function InitializeSetup(): Boolean;
@@ -75,7 +77,7 @@ begin
   Result := True;
   if not NodeOnPath then
   begin
-    MsgBox('Hooxie needs Node.js 22.13 or newer.'#13#10#13#10'Install Node LTS from https://nodejs.org, then run this installer again.', mbError, MB_OK);
+    MsgBox('Hooxie needs Node.js 22.13 or newer.'#13#10#13#10'Install Node LTS from https://nodejs.org, then run this installer again.'#13#10'Hooxie: https://hooxie.com', mbError, MB_OK);
     ShellExec('open', 'https://nodejs.org', '', '', SW_SHOWNORMAL, ewNoWait, Dummy);
     Result := False;
   end;
