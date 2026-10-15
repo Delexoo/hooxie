@@ -47,7 +47,7 @@ The overlay opens at the top of the screen. The local page is `http://127.0.0.1:
 
 ## Release notes
 
-Notes for each version are in [brain/log.json](brain/log.json). `npm run notes` refreshes the website from that file. Pushing it to `main` publishes any version that is not already a [GitHub release](https://github.com/Delexoo/hooxie/releases).
+Notes for each version are in [brain/log.json](brain/log.json). `npm run notes` refreshes the website from that file. `node scripts/post-release-notes.mjs` publishes any version that is not already a [GitHub release](https://github.com/Delexoo/hooxie/releases).
 
 ## License
 
