@@ -33,15 +33,55 @@
   <main class="wrap page-main" id="content">
     <article class="doc">
       <h1>Release notes</h1>
-      <h2>0.1.0 · 12 October 2026</h2>
-      <ul>
-        <li>The widget sits at the top of the screen and sends a prompt to a Cursor agent for the folder you choose.</li>
-        <li>One button is the microphone when the prompt is empty, send when there is text, and a square stop while the agent is working.</li>
-        <li>You can attach files, a folder, or a screenshot of the current screen.</li>
-        <li>Detectable can be turned off so a normal screen share or recording does not show Hooxie.</li>
-        <li>Keybinds hide or show the widget, ask about the screen, clear the chat, start a session, and move the pill.</li>
-        <li>Hooxie Pro is $4.99 a month.</li>
-      </ul>
+      <p>These notes are the same list Hooxie posts to <a href="https://github.com/Delexoo/hooxie/releases">GitHub releases</a>.</p>
+      <!-- brain:notes -->
+      <section id="v0.2.0">
+        <h2>0.2.0 · 15 October 2026</h2>
+        <p><a href="https://github.com/Delexoo/hooxie/releases/tag/v0.2.0">GitHub release v0.2.0</a></p>
+        <h3>Widget</h3>
+        <ul>
+          <li>The prompt stays on the bar, with upload on the left and send or voice on the right. Presets, more, usage, dashboard, and drag sit beside it.</li>
+          <li>View the screen, the project path, attachments, and the conversation open when you type, attach a file, already have a conversation, are listening, or the agent is working. Clearing the prompt folds them away.</li>
+          <li>When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward.</li>
+          <li>The widget opens a little lower on the screen. The scrollbar is only on the conversation.</li>
+          <li>More options can open the connected IDE on the current project.</li>
+          <li>While Cursor usage is loading, the ring eases around the circle, then fills to the percentage.</li>
+        </ul>
+        <h3>Setup</h3>
+        <ul>
+          <li>Setup is two steps: choose an IDE, then the license. Back and Next move between them, and a progress bar shows how far along you are.</li>
+          <li>Each IDE has a plain Download link and a switch. On means the widget uses that IDE. Only one IDE can be on. An IDE that is not installed stays off.</li>
+          <li>Setup can be dragged, minimized, and closed. Help opens the onboarding section of the website.</li>
+          <li>Hooxie is $5.99 once for this computer. Sharing the app or the license file does not unlock another computer.</li>
+          <li>If this computer is already paid for, Hooxie finds that payment and continues.</li>
+        </ul>
+        <h3>Voice</h3>
+        <ul>
+          <li>Saying “Hooxie” starts one voice session.</li>
+          <li>The open sound plays when the typing outline appears. The close sound plays when that outline turns off, including when you click out of the prompt or stop voice.</li>
+          <li>Holding Escape for three quarters of a second clears the prompt and lets the widget go. While you hold it, the outline color closes around the border. When the hold finishes, the outline stays closed.</li>
+          <li>The blue-to-peach outline travels around the widget.</li>
+          <li>Placeholder questions type on one letter at a time.</li>
+        </ul>
+        <h3>Chat</h3>
+        <ul>
+          <li>Conversation text is smaller and more compact.</li>
+          <li>Queued messages are numbered cards. The first one sends next, and each card can be removed.</li>
+        </ul>
+      </section>
+      <section id="v0.1.0">
+        <h2>0.1.0 · 12 October 2026</h2>
+        <p><a href="https://github.com/Delexoo/hooxie/releases/tag/v0.1.0">GitHub release v0.1.0</a></p>
+        <h3>First build</h3>
+        <ul>
+          <li>The widget sits at the top of the screen and sends a prompt to a Cursor agent for the folder you choose.</li>
+          <li>One button is the microphone when the prompt is empty, send when there is text, and a square stop while the agent is working.</li>
+          <li>You can attach files, a folder, or a screenshot of the current screen.</li>
+          <li>Detectable can be turned off so a normal screen share or recording does not show Hooxie.</li>
+          <li>Keybinds hide or show the widget, ask about the screen, clear the chat, start a session, and move the pill.</li>
+        </ul>
+      </section>
+      <!-- /brain:notes -->
     </article>
   </main>
   <footer class="site-footer">

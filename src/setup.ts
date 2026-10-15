@@ -1,7 +1,7 @@
 import { IDE_CATALOG, IDE_DOWNLOADS, MORE_IDES } from "./catalog.ts";
 import type { IdeId, Installation } from "./types.ts";
 
-export type SetupPhase = "download" | "connect" | "ready";
+export type SetupPhase = "download" | "connect" | "license" | "ready";
 export type OnboardingStep = "" | "download" | "connect";
 
 export function onboardingStep(value: unknown): OnboardingStep {
@@ -21,6 +21,7 @@ export interface SetupDownload {
 
 export interface SetupReport {
   phase: SetupPhase;
+  licensed: boolean;
   connectedIde: string;
   ides: SetupIde[];
   more: SetupDownload[];
@@ -30,6 +31,7 @@ export function describeSetup(input: {
   installations: Pick<Installation, "ide">[];
   connectedIde: string;
   cursorConnected: boolean;
+  licensed: boolean;
   onboardingStep?: OnboardingStep;
 }): SetupReport {
   const installed = new Set(input.installations.map((item) => item.ide));
@@ -40,9 +42,10 @@ export function describeSetup(input: {
   let phase: SetupPhase = "connect";
   if (installed.size === 0) phase = "download";
   else if (replay === "download" || replay === "connect") phase = "connect";
-  else if (chosenReady || cursorReady) phase = "ready";
+  else if (chosenReady || cursorReady) phase = input.licensed ? "ready" : "license";
   return {
     phase,
+    licensed: input.licensed === true,
     connectedIde: phase === "ready" ? (chosen || (cursorReady ? "cursor" : "")) : chosen,
     ides: IDE_CATALOG.map((entry) => ({
       ide: entry.ide,

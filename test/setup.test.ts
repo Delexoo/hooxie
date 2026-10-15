@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { saveLicense } from "../src/license.ts";
 import { describeSetup } from "../src/setup.ts";
-import { api, boot } from "./helper.ts";
+import { api, boot, deliveryBody, TEST_DEVICE, TEST_LICENSE_SECRET } from "./helper.ts";
 
 test("no detected IDE stays on the download step", () => {
-  const report = describeSetup({ installations: [], connectedIde: "", cursorConnected: false });
+  const report = describeSetup({ installations: [], connectedIde: "", cursorConnected: false, licensed: false });
   assert.equal(report.phase, "download");
   assert.equal(report.ides.length, 6);
   assert.deepEqual(report.more.map((ide) => ide.label), ["Sublime Text", "Android Studio", "Neovim"]);
@@ -16,6 +17,7 @@ test("a detected IDE waits until the user connects it", () => {
     installations: [{ ide: "vscode" }, { ide: "windsurf" }],
     connectedIde: "",
     cursorConnected: false,
+    licensed: false,
   });
   assert.equal(report.phase, "connect");
   assert.equal(report.ides.find((ide) => ide.ide === "vscode")?.installed, true);
@@ -27,6 +29,7 @@ test("connecting a detected IDE unlocks the widget", () => {
     installations: [{ ide: "vscode" }],
     connectedIde: "vscode",
     cursorConnected: false,
+    licensed: true,
   });
   assert.equal(report.phase, "ready");
   assert.equal(report.connectedIde, "vscode");
@@ -37,6 +40,7 @@ test("a found IDE switches onboarding to connect", () => {
     installations: [{ ide: "cursor" }],
     connectedIde: "",
     cursorConnected: true,
+    licensed: true,
     onboardingStep: "download",
   });
   assert.equal(waiting.phase, "connect");
@@ -44,6 +48,7 @@ test("a found IDE switches onboarding to connect", () => {
     installations: [],
     connectedIde: "",
     cursorConnected: false,
+    licensed: false,
     onboardingStep: "download",
   });
   assert.equal(empty.phase, "download");
@@ -54,12 +59,14 @@ test("Cursor still needs an account connection after the app is found", () => {
     installations: [{ ide: "cursor" }],
     connectedIde: "cursor",
     cursorConnected: false,
+    licensed: true,
   });
   assert.equal(waiting.phase, "connect");
   const ready = describeSetup({
     installations: [{ ide: "cursor" }],
     connectedIde: "",
     cursorConnected: true,
+    licensed: true,
   });
   assert.equal(ready.phase, "ready");
   assert.equal(ready.connectedIde, "cursor");
@@ -86,6 +93,13 @@ test("the setup API follows install and connect", async () => {
     });
     assert.equal(connected.status, 200);
     assert.equal(connected.body.phase, "ready");
+    const disconnected = await api(ctx.bridge, "/api/ide/disconnect", ctx.bridge.pageToken, {
+      method: "POST",
+      body: JSON.stringify({ ide: "vscode" }),
+    });
+    assert.equal(disconnected.status, 200);
+    assert.equal(disconnected.body.phase, "connect");
+    assert.equal(disconnected.body.connectedIde, "");
     const page = await fetch(`${ctx.bridge.baseUrl}/ides`);
     assert.equal(page.status, 200);
     const html = await page.text();
@@ -133,6 +147,36 @@ test("settings can restart onboarding at step 1", async () => {
       body: JSON.stringify({ ide: "cursor" }),
     });
     assert.equal(connected.body.phase, "ready");
+  } finally {
+    await ctx.bridge.close();
+  }
+});
+
+test("a connected IDE stays locked until this device has a license", async () => {
+  const ctx = await boot({
+    licensed: false,
+    installations: [{ id: "vscode-1", ide: "vscode", label: "Visual Studio Code", executable: "C:\\VS Code\\Code.exe" }],
+  });
+  try {
+    const connected = await api(ctx.bridge, "/api/ide/connect", ctx.bridge.pageToken, {
+      method: "POST",
+      body: JSON.stringify({ ide: "vscode" }),
+    });
+    assert.equal(connected.status, 200);
+    assert.equal(connected.body.phase, "license");
+    assert.equal(connected.body.licensed, false);
+    const blocked = await api(ctx.bridge, "/api/deliveries", ctx.bridge.pageToken, {
+      method: "POST",
+      body: JSON.stringify(deliveryBody(ctx.project)),
+    });
+    assert.equal(blocked.status, 402);
+    await saveLicense(ctx.configDir, TEST_LICENSE_SECRET, "other-device", "cs_test_other", "owner@example.com");
+    const copied = await api(ctx.bridge, "/api/setup");
+    assert.equal(copied.body.phase, "license");
+    await saveLicense(ctx.configDir, TEST_LICENSE_SECRET, TEST_DEVICE, "cs_test_device", "owner@example.com");
+    const unlocked = await api(ctx.bridge, "/api/setup");
+    assert.equal(unlocked.body.phase, "ready");
+    assert.equal(unlocked.body.licensed, true);
   } finally {
     await ctx.bridge.close();
   }

@@ -126,6 +126,8 @@ internal sealed class ShellForm : Form
             tray.Dispose();
         }
         shellClosing = true;
+        StopVoice();
+        audioIo.Dispose();
         if (dashboard != null && !dashboard.IsDisposed) dashboard.Close();
         base.OnFormClosed(e);
     }
@@ -141,6 +143,13 @@ internal sealed class ShellForm : Form
     {
         base.OnActivated(e);
         BeginInvoke(() => NotifyPage(true));
+    }
+
+    private void YieldFocus()
+    {
+        var shell = GetShellWindow();
+        if (shell == IntPtr.Zero || shell == Handle) return;
+        SetForegroundWindow(shell);
     }
 
     private void NotifyPage(bool active)
@@ -505,22 +514,67 @@ internal sealed class ShellForm : Form
                         Invoke(() => captured = CaptureScreen());
                         Emit(new { ok = true, image = captured, mimeType = "image/jpeg" });
                         break;
+                    case "devices":
+                        try
+                        {
+                            var listed = audioIo.List();
+                            Emit(new
+                            {
+                                ok = true,
+                                inputs = listed.Inputs.Select(item => new { id = item.Id, name = item.Name }).ToArray(),
+                                outputs = listed.Outputs.Select(item => new { id = item.Id, name = item.Name }).ToArray(),
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Emit(new { ok = false, error = ex.Message, inputs = Array.Empty<object>(), outputs = Array.Empty<object>() });
+                        }
+                        break;
+                    case "audio":
+                        var inputId = root.TryGetProperty("input", out var inputEl) ? inputEl.GetString() ?? "" : "";
+                        var outputId = root.TryGetProperty("output", out var outputEl) ? outputEl.GetString() ?? "" : "";
+                        var inputChanged = audioIo.SetDevices(inputId, outputId);
+                        if (inputChanged && voiceEngine != null)
+                        {
+                            var restartWake = voicePhase == "wake";
+                            if (restartWake) StartWake();
+                            else StartVoice();
+                        }
+                        Emit(new { ok = true });
+                        break;
+                    case "play":
+                        var soundPath = root.TryGetProperty("path", out var soundEl) ? soundEl.GetString() ?? "" : "";
+                        try
+                        {
+                            audioIo.Play(soundPath);
+                            Emit(new { ok = true });
+                        }
+                        catch (Exception ex)
+                        {
+                            Emit(new { ok = false, error = ex.Message });
+                        }
+                        break;
                     case "voice":
                         var action = root.TryGetProperty("action", out var actionEl) ? actionEl.GetString() ?? "" : "";
                         try
                         {
                             if (action == "start") StartVoice();
+                            else if (action == "wake") StartWake();
                             else if (action == "stop") StopVoice();
                             else if (action != "poll") throw new InvalidOperationException("Unknown voice action.");
                             var state = VoiceState();
-                            Emit(new { ok = true, listening = state.Listening, text = state.Text, error = state.Error });
+                            Emit(new { ok = true, listening = state.Listening, text = state.Text, error = state.Error, phase = state.Phase, silenceMs = state.SilenceMs, awake = state.Awake });
                         }
                         catch (Exception ex)
                         {
-                            Emit(new { ok = false, listening = false, text = "", error = ex.Message });
+                            Emit(new { ok = false, listening = false, text = "", error = ex.Message, phase = "off", silenceMs = 0, awake = false });
                         }
                         break;
                     case "focus":
+                        Emit(new { ok = true, active = GetForegroundWindow() == Handle });
+                        break;
+                    case "yield":
+                        Invoke(YieldFocus);
                         Emit(new { ok = true, active = GetForegroundWindow() == Handle });
                         break;
                     case "visible":
@@ -644,9 +698,10 @@ internal sealed class ShellForm : Form
         lastCssHeight = Math.Clamp(cssHeight, 48, 4000);
         var area = CurrentWorkArea();
         var margin = ScaleDelta(12);
+        var topInset = ScaleDelta(32);
         var width = Math.Min(ScaleCss(lastCssWidth), Math.Max(ScaleDelta(200), area.Width - margin * 2));
         var height = Math.Min(ScaleCss(lastCssHeight), Math.Max(ScaleDelta(48), area.Height - margin * 2));
-        var top = userMoved ? Top : area.Top + margin;
+        var top = userMoved ? Top : area.Top + topInset;
         var center = Left + Width / 2.0;
         var left = userMoved
             ? (int)Math.Round(center - width / 2.0)
@@ -1036,23 +1091,39 @@ internal sealed class ShellForm : Form
     }
 
     private SpeechRecognitionEngine? voiceEngine;
+    private SpeechAudioSource? voiceSource;
+    private readonly AudioIO audioIo = new();
     private readonly object voiceGate = new();
     private string voiceCommitted = "";
     private string voiceLive = "";
     private string voiceError = "";
+    private string voicePhase = "off";
+    private int voiceGeneration;
+    private long voiceActivityTick;
+    private long voiceWakeTick;
+    private bool voiceAwakeEdge;
 
-    private void StartVoice()
+    private void StartVoice() => StartEngine(false);
+
+    private void StartWake() => StartEngine(true);
+
+    private void StartEngine(bool wake)
     {
-        StopVoice();
+        var generation = ++voiceGeneration;
+        DisposeVoiceEngine();
         lock (voiceGate)
         {
             voiceCommitted = "";
             voiceLive = "";
             voiceError = "";
+            voicePhase = wake ? "wake" : "prompt";
+            voiceAwakeEdge = false;
+            voiceActivityTick = Environment.TickCount64;
         }
         var installed = SpeechRecognitionEngine.InstalledRecognizers();
         if (installed.Count == 0)
         {
+            lock (voiceGate) voicePhase = "off";
             throw new InvalidOperationException("Windows speech recognition is not installed. Add a speech language in Windows settings.");
         }
         var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
@@ -1060,52 +1131,197 @@ internal sealed class ShellForm : Form
         var engine = new SpeechRecognitionEngine(chosen);
         try
         {
-            engine.LoadGrammar(new DictationGrammar());
-            engine.SetInputToDefaultAudioDevice();
+            if (wake)
+            {
+                var choices = new Choices(
+                    "say hooxie",
+                    "say hooksy",
+                    "say huxie",
+                    "say who see",
+                    "say huck see",
+                    "hey hooxie");
+                engine.LoadGrammar(new Grammar(new GrammarBuilder(choices)) { Name = "hooxie-wake" });
+            }
+            else
+            {
+                engine.LoadGrammar(new DictationGrammar());
+            }
+            SpeechAudioSource? source = null;
+            try
+            {
+                source = audioIo.OpenCapture();
+                engine.SetInputToAudioStream(source, source.Format);
+            }
+            catch
+            {
+                source?.Dispose();
+                source = null;
+                engine.SetInputToDefaultAudioDevice();
+            }
+            voiceSource = source;
+            engine.BabbleTimeout = TimeSpan.Zero;
+            engine.InitialSilenceTimeout = TimeSpan.FromSeconds(30);
+            engine.EndSilenceTimeout = TimeSpan.FromMilliseconds(500);
+            engine.EndSilenceTimeoutAmbiguous = TimeSpan.FromMilliseconds(900);
+            try { engine.UpdateRecognizerSetting("CFGConfidenceRejectionThreshold", 30); } catch { /* This recognizer has no rejection setting. */ }
+            engine.SpeechDetected += (_, _) =>
+            {
+                if (generation != voiceGeneration) return;
+                lock (voiceGate) voiceActivityTick = Environment.TickCount64;
+            };
             engine.SpeechHypothesized += (_, args) =>
             {
-                lock (voiceGate) voiceLive = args.Result?.Text ?? "";
+                if (generation != voiceGeneration || wake) return;
+                lock (voiceGate)
+                {
+                    voiceLive = args.Result?.Text ?? "";
+                    voiceActivityTick = Environment.TickCount64;
+                }
             };
             engine.SpeechRecognized += (_, args) =>
             {
+                if (generation != voiceGeneration) return;
                 var said = (args.Result?.Text ?? "").Trim();
+                var confidence = args.Result?.Confidence ?? 0;
+                if (said.Length == 0) return;
+                if (!wake && confidence < 0.3f)
+                {
+                    lock (voiceGate) voiceLive = "";
+                    return;
+                }
+                if (wake)
+                {
+                    var accept = false;
+                    lock (voiceGate)
+                    {
+                        var now = Environment.TickCount64;
+                        if (voicePhase == "wake" && now - voiceWakeTick >= 4000)
+                        {
+                            voiceWakeTick = now;
+                            voicePhase = "prompt";
+                            voiceAwakeEdge = true;
+                            voiceCommitted = "";
+                            voiceLive = "";
+                            accept = true;
+                        }
+                    }
+                    if (!accept) return;
+                    BeginInvoke(() =>
+                    {
+                        try { HoldForCue(); }
+                        catch (Exception ex)
+                        {
+                            lock (voiceGate) voiceError = ex.Message;
+                        }
+                    });
+                    return;
+                }
+                said = WithoutWake(said);
                 if (said.Length == 0) return;
                 lock (voiceGate)
                 {
                     voiceCommitted = string.IsNullOrEmpty(voiceCommitted) ? said : voiceCommitted + " " + said;
                     voiceLive = "";
+                    voiceActivityTick = Environment.TickCount64;
                 }
             };
             engine.RecognizeCompleted += (_, args) =>
             {
-                if (args.Error == null) return;
-                lock (voiceGate) voiceError = args.Error.Message;
+                if (generation != voiceGeneration) return;
+                if (args.Cancelled) return;
+                if (args.Error != null)
+                {
+                    lock (voiceGate) voiceError = args.Error.Message;
+                    return;
+                }
+                try
+                {
+                    if (generation == voiceGeneration && voiceEngine == engine) engine.RecognizeAsync(RecognizeMode.Multiple);
+                }
+                catch (Exception ex)
+                {
+                    lock (voiceGate) voiceError = ex.Message;
+                }
             };
             engine.RecognizeAsync(RecognizeMode.Multiple);
             voiceEngine = engine;
         }
         catch
         {
-            engine.Dispose();
+            try { engine.Dispose(); } catch { /* already disposed */ }
+            voiceSource?.Dispose();
+            voiceSource = null;
+            lock (voiceGate) voicePhase = "off";
             throw;
         }
     }
 
+    private void HoldForCue()
+    {
+        lock (voiceGate)
+        {
+            if (voicePhase != "prompt") return;
+        }
+        voiceGeneration++;
+        DisposeVoiceEngine();
+        lock (voiceGate)
+        {
+            if (voicePhase != "prompt") return;
+            voiceCommitted = "";
+            voiceLive = "";
+            voiceActivityTick = Environment.TickCount64;
+        }
+    }
+
+    private static string WithoutWake(string said)
+    {
+        var text = said.Trim();
+        var lower = text.ToLowerInvariant();
+        string[] phrases = ["say hooxie", "say hooksy", "say huxie", "say who see", "say huck see", "hey hooxie"];
+        foreach (var phrase in phrases)
+        {
+            if (lower == phrase) return "";
+            if (lower.StartsWith(phrase + " ", StringComparison.Ordinal)) return text[(phrase.Length + 1)..].Trim();
+        }
+        return text;
+    }
+
     private void StopVoice()
+    {
+        voiceGeneration++;
+        DisposeVoiceEngine();
+        lock (voiceGate)
+        {
+            voiceCommitted = "";
+            voiceLive = "";
+            voicePhase = "off";
+            voiceAwakeEdge = false;
+        }
+    }
+
+    private void DisposeVoiceEngine()
     {
         var engine = voiceEngine;
         voiceEngine = null;
         if (engine == null) return;
         try { engine.RecognizeAsyncCancel(); } catch { /* already stopped */ }
+        try { engine.SetInputToNull(); } catch { /* already released */ }
         try { engine.Dispose(); } catch { /* already disposed */ }
+        voiceSource?.Dispose();
+        voiceSource = null;
     }
 
-    private (bool Listening, string Text, string Error) VoiceState()
+    private (bool Listening, string Text, string Error, string Phase, long SilenceMs, bool Awake) VoiceState()
     {
         lock (voiceGate)
         {
-            var text = string.Join(" ", new[] { voiceCommitted, voiceLive }.Where(part => !string.IsNullOrWhiteSpace(part))).Trim();
-            return (voiceEngine != null, text, voiceError);
+            var text = voicePhase == "wake"
+                ? ""
+                : string.Join(" ", new[] { voiceCommitted, voiceLive }.Where(part => !string.IsNullOrWhiteSpace(part))).Trim();
+            var silence = voiceEngine == null ? 0 : Math.Max(0, Environment.TickCount64 - voiceActivityTick);
+            var awake = voiceAwakeEdge;
+            voiceAwakeEdge = false;
+            return (voiceEngine != null, text, voiceError, voicePhase, silence, awake);
         }
     }
 
@@ -1220,6 +1436,12 @@ internal sealed class ShellForm : Form
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr GetShellWindow();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool GetWindowRect(IntPtr hWnd, out WindowRect rect);

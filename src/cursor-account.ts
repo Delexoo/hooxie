@@ -44,6 +44,11 @@ export function openLoopbackIdes(url: string): void {
   openBrowser(assertLoopbackIdes(url));
 }
 
+export function openOnboardingHelp(port: number): void {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("browser");
+  openBrowser(`http://127.0.0.1:${port}/help#onboarding`);
+}
+
 const DOWNLOAD_HOSTS = new Set([
   "cursor.com",
   "code.visualstudio.com",
@@ -55,6 +60,18 @@ const DOWNLOAD_HOSTS = new Set([
   "developer.android.com",
   "neovim.io",
 ]);
+
+export function openStripeCheckout(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("browser");
+  }
+  if (parsed.protocol !== "https:" || parsed.hostname !== "checkout.stripe.com") throw new Error("browser");
+  if (parsed.username || parsed.password) throw new Error("browser");
+  openBrowser(parsed.toString());
+}
 
 export function openIdeDownload(url: string): void {
   let parsed: URL;

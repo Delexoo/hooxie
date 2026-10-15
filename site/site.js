@@ -233,6 +233,10 @@ function bootDashboard() {
   const status = document.querySelector("#status");
   const detectable = document.querySelector("#detectable");
   const audio = document.querySelector("#audio");
+  const inputDevice = document.querySelector("#input-device");
+  const outputDevice = document.querySelector("#output-device");
+  let audioInputs = [];
+  let audioOutputs = [];
   const opacity = document.querySelector("#opacity");
   const opacityValue = document.querySelector("#opacity-value");
   const swatches = document.querySelector("#swatches");
@@ -246,6 +250,9 @@ function bootDashboard() {
     button: "#ffffff",
     opacity: 50,
     audio: true,
+    voiceActivation: false,
+    inputDevice: "",
+    outputDevice: "",
     session: false,
     language: "en",
     blur: false,
@@ -289,13 +296,23 @@ function bootDashboard() {
     }
     history.replaceState(null, "", `#${name}`);
   }
-  for (const button of buttons) button.addEventListener("click", () => show(button.dataset.open));
+    for (const button of buttons) button.addEventListener("click", () => {
+      show(button.dataset.open);
+      if (button.dataset.open === "general") {
+        loadAudioDevices().then(() => {
+          fillDeviceSelect(inputDevice, audioInputs, settings.inputDevice || "");
+          fillDeviceSelect(outputDevice, audioOutputs, settings.outputDevice || "");
+        }).catch(() => undefined);
+      }
+    });
   show((location.hash || "#general").slice(1) || "general");
   wireSidebar(buttons, status);
 
   function paint() {
     detectable.checked = settings.detectable !== false;
     audio.checked = settings.audio !== false;
+    const voiceActivation = document.querySelector("#voice-activation");
+    if (voiceActivation) voiceActivation.checked = settings.voiceActivation === true;
     opacity.value = String(settings.opacity ?? 50);
     opacityValue.textContent = `${opacity.value}%`;
     setLanguage(settings.language || "en");
@@ -312,6 +329,8 @@ function bootDashboard() {
     if (trace) trace.checked = settings.trace !== false;
     const arrows = document.querySelector("#arrows");
     if (arrows) arrows.checked = settings.arrows === true;
+    fillDeviceSelect(inputDevice, audioInputs, settings.inputDevice || "");
+    fillDeviceSelect(outputDevice, audioOutputs, settings.outputDevice || "");
     paintChimes();
     paintWidget();
     paintAccount();
@@ -334,8 +353,8 @@ function bootDashboard() {
   function paintOnboarding() {
     const note = document.querySelector("#onboarding-note");
     if (!note) return;
-    if (settings.onboardingStep === "download" || settings.onboardingStep === "connect") note.textContent = "The widget is showing Download and Connect again.";
-    else note.textContent = "Start over to see Download and Connect again.";
+    if (settings.onboardingStep === "download" || settings.onboardingStep === "connect") note.textContent = "The widget is showing IDE setup again.";
+    else note.textContent = "Start over to see IDE setup again.";
   }
 
   function setLanguage(code) {
@@ -374,6 +393,9 @@ function bootDashboard() {
 
   detectable.addEventListener("change", () => save({ detectable: detectable.checked }));
   audio.addEventListener("change", () => save({ audio: audio.checked }));
+  inputDevice?.addEventListener("change", () => save({ inputDevice: inputDevice.value }));
+  outputDevice?.addEventListener("change", () => save({ outputDevice: outputDevice.value }));
+  document.querySelector("#voice-activation").addEventListener("change", (event) => save({ voiceActivation: event.target.checked }));
   document.querySelector("#blur").addEventListener("change", (event) => save({ blur: event.target.checked, lookReady: true }));
   document.querySelector("#trace").addEventListener("change", (event) => save({ trace: event.target.checked, lookReady: true }));
   document.querySelector("#arrows").addEventListener("change", (event) => save({ arrows: event.target.checked }));
@@ -446,11 +468,11 @@ function bootDashboard() {
 
   const params = new URLSearchParams(location.search);
   if (params.get("billing") === "success") {
-    status.textContent = "You're on Pro. Stripe emailed the receipt.";
+    status.textContent = "Checking the license for this computer.";
     const sessionId = params.get("session_id");
     if (LOCAL && sessionId) {
       request("/api/billing/confirm", { sessionId }).then((result) => {
-        status.textContent = result.active ? `Pro is active${result.email ? ` for ${result.email}` : ""}.` : "Checkout is not complete yet.";
+        status.textContent = result.active ? "This computer is licensed." : "Checkout is not complete yet.";
       }).catch((error) => { status.textContent = error.message; });
     }
   } else if (params.get("billing") === "cancel") {
@@ -458,6 +480,7 @@ function bootDashboard() {
   }
   wireChimes();
   wireWidget();
+  paintReleaseNotes();
 
   const CHIME_CHOICES = [
     ["blushing", "Blushing"],
@@ -465,6 +488,12 @@ function bootDashboard() {
     ["undertaker", "Undertaker"],
     ["ekh", "Ekh"],
     ["cat-choke", "Cat choke"],
+    ["alert", "Alert"],
+    ["pluck-off", "Pluck off"],
+    ["notification", "Notification"],
+    ["new-notification", "New notification"],
+    ["menu-open", "Menu open"],
+    ["holographic-open", "Holographic open"],
     ["off", "Off"],
   ];
   const CHIME_FILES = {
@@ -473,10 +502,17 @@ function bootDashboard() {
     undertaker: "undertaker-cloche.mp3",
     ekh: "ekh.mp3",
     "cat-choke": "cat-choke.mp3",
+    alert: "notification-alert.mp3",
+    "pluck-off": "notification-pluck-off.mp3",
+    notification: "notification-2.mp3",
+    "new-notification": "new-notification.mp3",
+    "menu-open": "menu-open.mp3",
+    "holographic-open": "menu-open-holographic.mp3",
   };
   let previewAudio = null;
   let previewUrl = "";
   refresh().catch((error) => { status.textContent = error.message; });
+  loadAudioDevices().then(() => paint()).catch(() => undefined);
   if (LOCAL && TOKEN) window.setInterval(() => { refresh().catch(() => {}); }, 1500);
 
   function paintChimes() {
@@ -506,8 +542,45 @@ function bootDashboard() {
     }));
   }
 
+  function fillDeviceSelect(select, devices, selected) {
+    if (!select) return;
+    const options = [{ id: "", name: "Windows default" }, ...devices];
+    const known = options.some((item) => item.id === selected);
+    select.replaceChildren(...options.map((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.name;
+      return option;
+    }));
+    select.value = known ? selected : "";
+  }
+
+  async function loadAudioDevices() {
+    const note = document.querySelector("#audio-device-note");
+    if (!LOCAL || !TOKEN) {
+      if (note) note.textContent = "";
+      return;
+    }
+    try {
+      const listed = await request("/api/audio/devices");
+      audioInputs = Array.isArray(listed.inputs) ? listed.inputs.filter((item) => item && item.id && item.name) : [];
+      audioOutputs = Array.isArray(listed.outputs) ? listed.outputs.filter((item) => item && item.id && item.name) : [];
+      if (note) note.textContent = audioInputs.length || audioOutputs.length ? "" : "No audio devices were found.";
+    } catch (error) {
+      if (note) note.textContent = error.message;
+    }
+  }
+
   async function previewChime(id) {
     if (previewAudio) previewAudio.pause();
+    if (id !== "off") {
+      try {
+        await request("/api/widget/play", id === "custom" ? { custom: true } : { file: CHIME_FILES[id] });
+        return;
+      } catch {
+        /* The browser player is the fallback when the widget is closed. */
+      }
+    }
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
       previewUrl = "";
@@ -752,6 +825,47 @@ function bootDashboard() {
       }
     });
   }
+}
+
+function paintReleaseNotes() {
+  const root = document.querySelector("#release-notes");
+  if (!root) return;
+  fetch("/releases.json")
+    .then((response) => response.json())
+    .then((log) => {
+      root.replaceChildren();
+      for (const update of log.updates || []) {
+        const article = document.createElement("article");
+        const heading = document.createElement("h2");
+        const [year, month, day] = String(update.date).split("-").map(Number);
+        const when = new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-GB", {
+          day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+        });
+        heading.textContent = `${update.version} · ${when}`;
+        article.append(heading);
+        for (const section of update.sections || []) {
+          const title = document.createElement("h3");
+          title.textContent = section.heading;
+          const list = document.createElement("ul");
+          for (const note of section.notes || []) {
+            const item = document.createElement("li");
+            item.textContent = note;
+            list.append(item);
+          }
+          article.append(title, list);
+        }
+        const link = document.createElement("p");
+        const anchor = document.createElement("a");
+        anchor.href = update.url;
+        anchor.textContent = `GitHub release ${update.tag}`;
+        link.append(anchor);
+        article.append(link);
+        root.append(article);
+      }
+    })
+    .catch(() => {
+      root.textContent = "Release notes could not be loaded.";
+    });
 }
 
 async function request(path, body) {

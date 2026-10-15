@@ -9,81 +9,98 @@
 </head>
 <body>
   <div id="frame">
-    <div id="trace" aria-hidden="true"></div>
+    <svg id="trace" aria-hidden="true">
+      <defs>
+        <linearGradient id="trace-grad" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#3a78ff"/>
+          <stop offset="42%" stop-color="#9eb6ff"/>
+          <stop offset="72%" stop-color="#f6d0c6"/>
+          <stop offset="100%" stop-color="#f0aa98"/>
+        </linearGradient>
+      </defs>
+      <rect pathLength="100" fill="none"/>
+      <rect class="lag-5" pathLength="100" fill="none"/>
+      <rect class="lag-10" pathLength="100" fill="none"/>
+      <rect class="lag-16" pathLength="100" fill="none"/>
+    </svg>
+    <svg id="stealth" aria-hidden="true">
+      <rect fill="none"/>
+    </svg>
     <div id="shell">
     <div id="blur-plate" aria-hidden="true"></div>
     <div id="pill" hidden>
-      <div id="toolbar-band">
       <div id="account-bar" hidden>
         <p id="account-note">Connect Cursor to send from this account.</p>
         <button id="account-connect" type="button">Connect Cursor</button>
       </div>
       <div id="toolbar">
-      <label id="add" title="Add any file, or drop a folder. Right-click to choose a folder.">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
-        <input id="images" type="file" multiple aria-label="Add files">
-      </label>
-      <input id="folder" type="file" webkitdirectory hidden>
-      <button id="chat-toggle" class="circle" type="button" aria-label="Chat" aria-expanded="false" title="Chat">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7.5 18.2 5.4 20.6c-.45.5-1.25.18-1.25-.48V7.4A2.4 2.4 0 0 1 6.55 5h10.9A2.4 2.4 0 0 1 19.85 7.4v7.7a2.4 2.4 0 0 1-2.4 2.4H9.1z"/>
-          <circle cx="8.4" cy="11.2" r=".9" fill="currentColor" stroke="none"/>
-          <circle cx="12" cy="11.2" r=".9" fill="currentColor" stroke="none"/>
-          <circle cx="15.6" cy="11.2" r=".9" fill="currentColor" stroke="none"/>
-        </svg>
-      </button>
-      <button id="usage-toggle" type="button" aria-label="Cursor usage" aria-expanded="false" title="Cursor usage">
-        <svg viewBox="0 0 36 36" aria-hidden="true">
-          <circle class="usage-track" cx="18" cy="18" r="14"></circle>
-          <circle id="usage-ring" cx="18" cy="18" r="14"></circle>
-        </svg>
-        <span id="usage-percent">–</span>
-      </button>
-      <button id="preset-toggle" class="circle" type="button" aria-label="Preset prompts" aria-expanded="false" title="Preset prompts">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14l-6.5-3.2L5.5 20V6A1.5 1.5 0 0 1 7 4.5z"/>
-          <path d="M9 9h6"/>
-        </svg>
-      </button>
-      <button id="dashboard-toggle" class="circle" type="button" aria-label="Dashboard" aria-expanded="false" title="Dashboard">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="4" y="4" width="7" height="7" rx="1.5"/>
-          <rect x="13" y="4" width="7" height="7" rx="1.5"/>
-          <rect x="4" y="13" width="7" height="7" rx="1.5"/>
-          <rect x="13" y="13" width="7" height="7" rx="1.5"/>
-        </svg>
-      </button>
-      <button id="more" class="circle" type="button" aria-label="More options" aria-expanded="false" title="More options">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="6" cy="12" r="1.6" fill="currentColor" stroke="none"/>
-          <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>
-          <circle cx="18" cy="12" r="1.6" fill="currentColor" stroke="none"/>
-        </svg>
-      </button>
-      <button id="send" class="circle" type="button" aria-pressed="false" aria-label="Prompt by voice" title="Prompt by voice">
-        <svg class="icon send-mic" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="9" y="3.2" width="6" height="11" rx="3" fill="currentColor" stroke="none"/>
-          <path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"/>
-          <path d="M12 17v3.2"/>
-          <path d="M8.8 20.2h6.4"/>
-        </svg>
-        <svg class="icon send-play" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M8.2 6.2 17.6 12 8.2 17.8z"/>
-        </svg>
-        <svg class="icon send-stop" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="5" y="5" width="14" height="14" rx="1.5" fill="currentColor" stroke="none"/>
-        </svg>
-      </button>
-      <div id="drag" title="Drag to move" aria-label="Drag to move">
-        <svg viewBox="0 0 10 16" aria-hidden="true">
-          <circle cx="2.2" cy="2.2" r="1.55"/>
-          <circle cx="7.8" cy="2.2" r="1.55"/>
-          <circle cx="2.2" cy="8" r="1.55"/>
-          <circle cx="7.8" cy="8" r="1.55"/>
-          <circle cx="2.2" cy="13.8" r="1.55"/>
-          <circle cx="7.8" cy="13.8" r="1.55"/>
-        </svg>
-      </div>
+        <div id="field">
+          <label id="add" title="Add any file, or drop a folder. Right-click to choose a folder.">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
+            <input id="images" type="file" multiple aria-label="Add files">
+          </label>
+          <input id="folder" type="file" webkitdirectory hidden>
+          <div id="composer">
+            <textarea id="prompt" rows="1" placeholder="Prompt Cursor anything." autocomplete="off"></textarea>
+            <div id="prompt-ghost" hidden aria-hidden="true"></div>
+          </div>
+          <div id="prompt-measure" aria-hidden="true"></div>
+          <button id="send" class="circle" type="button" aria-pressed="false" aria-label="Prompt by voice" title="Prompt by voice">
+            <svg class="icon send-mic" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="3.2" width="6" height="11" rx="3" fill="currentColor" stroke="none"/>
+              <path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"/>
+              <path d="M12 17v3.2"/>
+              <path d="M8.8 20.2h6.4"/>
+            </svg>
+            <svg class="icon send-play" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 19V6"/>
+              <path d="M6.8 11.2 12 6l5.2 5.2"/>
+            </svg>
+            <svg class="icon send-stop" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="5" width="14" height="14" rx="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+        </div>
+        <div id="toolbar-tools">
+        <button id="preset-toggle" class="circle" type="button" aria-label="Preset prompts" aria-expanded="false" title="Preset prompts">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14l-6.5-3.2L5.5 20V6A1.5 1.5 0 0 1 7 4.5z"/>
+            <path d="M9 9h6"/>
+          </svg>
+        </button>
+        <button id="more" class="circle" type="button" aria-label="More options" aria-expanded="false" title="More options">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="6" cy="12" r="1.6" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>
+            <circle cx="18" cy="12" r="1.6" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+        <button id="usage-toggle" class="is-loading" type="button" aria-label="Cursor usage" aria-expanded="false" title="Cursor usage">
+          <svg viewBox="0 0 36 36" aria-hidden="true">
+            <circle class="usage-track" cx="18" cy="18" r="14"></circle>
+            <circle id="usage-ring" cx="18" cy="18" r="14"></circle>
+          </svg>
+          <span id="usage-percent">–</span>
+        </button>
+        <button id="dashboard-toggle" class="circle" type="button" aria-label="Dashboard" aria-expanded="false" title="Dashboard">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="4" width="7" height="7" rx="1.5"/>
+            <rect x="13" y="4" width="7" height="7" rx="1.5"/>
+            <rect x="4" y="13" width="7" height="7" rx="1.5"/>
+            <rect x="13" y="13" width="7" height="7" rx="1.5"/>
+          </svg>
+        </button>
+        <div id="drag" title="Drag to move" aria-label="Drag to move">
+          <svg viewBox="0 0 10 16" aria-hidden="true">
+            <circle cx="2.2" cy="2.2" r="1.55"/>
+            <circle cx="7.8" cy="2.2" r="1.55"/>
+            <circle cx="2.2" cy="8" r="1.55"/>
+            <circle cx="7.8" cy="8" r="1.55"/>
+            <circle cx="2.2" cy="13.8" r="1.55"/>
+            <circle cx="7.8" cy="13.8" r="1.55"/>
+          </svg>
+        </div>
+        </div>
       </div>
       <div id="activity" hidden>
         <button id="terminals-toggle" type="button" aria-expanded="false" hidden>Terminals</button>
@@ -91,27 +108,34 @@
         <button id="files-toggle" type="button" aria-expanded="false" hidden>Files</button>
       </div>
       <div id="activity-panel" hidden></div>
-      </div>
-      <div id="context-bar" hidden>
-        <label class="switch">
-          <span class="switch-track" aria-hidden="true"></span>
-          <span class="switch-label">View the screen</span>
-          <input id="view-screen" type="checkbox" role="switch" aria-label="View the screen">
-        </label>
-        <button id="project-path" type="button">Project Path: none</button>
-      </div>
-      <div id="chat-band">
-      <section id="chat" hidden>
-        <div id="thread"></div>
-      </section>
-      <div id="attachments" aria-label="Attached files"></div>
-      <div id="composer">
-        <textarea id="prompt" rows="2" placeholder="Prompt Cursor anything." autocomplete="off"></textarea>
-      </div>
+      <div id="chat-band" hidden>
+        <div id="context-bar">
+          <label class="switch">
+            <span class="switch-track" aria-hidden="true"></span>
+            <span class="switch-label">View the screen</span>
+            <input id="view-screen" type="checkbox" role="switch" aria-label="View the screen">
+          </label>
+          <button id="project-path" type="button">Project Path: none</button>
+        </div>
+        <div id="attachments" aria-label="Attached files"></div>
+        <section id="chat">
+          <div id="thread"></div>
+        </section>
       </div>
     </div>
 
     <section id="more-menu" hidden>
+      <button id="more-open-ide" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3.5" y="4" width="17" height="16" rx="2"/>
+          <path d="M3.5 8.5h17"/>
+          <path d="M8 13.2 10.4 15.4 8 17.6"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Open IDE</strong>
+          <span id="more-open-ide-note">Open the project in the connected IDE</span>
+        </span>
+      </button>
       <button id="more-hide" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/>
@@ -174,24 +198,74 @@
     </div>
 
     <section id="setup" aria-live="polite">
-      <div id="setup-switch" class="setup-switch" role="tablist" aria-label="IDE setup">
-        <span class="setup-switch-thumb" aria-hidden="true"></span>
-        <button id="setup-download-tab" type="button" role="tab" aria-selected="true" aria-controls="setup-download">Download</button>
-        <button id="setup-connect-tab" type="button" role="tab" aria-selected="false" aria-controls="setup-connect" disabled>Connect</button>
+      <div id="setup-bar">
+        <span id="setup-title">Hooxie</span>
+        <button id="setup-min" type="button" aria-pressed="false" title="Minimize" aria-label="Minimize">
+          <svg class="min-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+          <svg class="restore-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/></svg>
+        </button>
+        <button id="setup-close" type="button" title="Close. Ctrl+\ shows Hooxie again." aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div id="setup-drag" title="Drag to move" aria-label="Drag to move">
+          <svg viewBox="0 0 10 16" aria-hidden="true">
+            <circle cx="2.2" cy="2.2" r="1.55"/>
+            <circle cx="7.8" cy="2.2" r="1.55"/>
+            <circle cx="2.2" cy="8" r="1.55"/>
+            <circle cx="7.8" cy="8" r="1.55"/>
+            <circle cx="2.2" cy="13.8" r="1.55"/>
+            <circle cx="7.8" cy="13.8" r="1.55"/>
+          </svg>
+        </div>
       </div>
-      <div id="setup-download" role="tabpanel">
-        <p class="note" id="setup-download-note">Pick an IDE and install it. Connect turns on when Hooxie finds one it can use.</p>
-        <div id="setup-downloads"></div>
+      <div id="setup-guide">
+        <div id="setup-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Onboarding progress">
+          <span id="setup-meter-fill"></span>
+        </div>
       </div>
-      <div id="setup-connect" role="tabpanel" hidden>
-        <p class="note" id="setup-connect-note">Connect an IDE Hooxie found on this computer.</p>
+      <div id="setup-connect">
+        <p class="note" id="setup-note">Choose the IDE this widget should use.</p>
         <div id="setup-ides"></div>
+      </div>
+      <div id="setup-license" hidden>
+        <strong>Hooxie for this computer</strong>
+        <p>$5.99 once. Sharing the app or its files does not unlock another device.</p>
+        <button id="setup-buy" type="button">Purchase · $5.99</button>
+        <p id="setup-license-note" class="note"></p>
+      </div>
+      <div id="setup-nav">
+        <button id="setup-back" type="button">Back</button>
+        <button id="setup-help" type="button">Help</button>
+        <button id="setup-next" type="button">Next</button>
       </div>
     </section>
 
     <section id="usage" hidden>
       <h2>Cursor usage</h2>
+      <p id="usage-plan" class="usage-plan" hidden></p>
       <p id="usage-note" class="note">Checking included usage.</p>
+      <dl id="usage-details" hidden>
+        <div id="usage-included" hidden>
+          <dt>Included</dt>
+          <dd id="usage-included-value"></dd>
+        </div>
+        <div id="usage-auto" hidden>
+          <dt>Auto</dt>
+          <dd id="usage-auto-value"></dd>
+        </div>
+        <div id="usage-api" hidden>
+          <dt>API</dt>
+          <dd id="usage-api-value"></dd>
+        </div>
+        <div id="usage-bonus" hidden>
+          <dt>Bonus</dt>
+          <dd id="usage-bonus-value"></dd>
+        </div>
+        <div id="usage-resets" hidden>
+          <dt>Resets</dt>
+          <dd id="usage-resets-value"></dd>
+        </div>
+      </dl>
       <div id="usage-credits" hidden>
         <h3>Credits</h3>
         <p id="usage-credits-balance" class="usage-credits-balance"></p>
@@ -224,7 +298,7 @@
       <label class="switch trace-row">
         <span class="switch-label">Typing outline</span>
         <span class="switch-track" aria-hidden="true"></span>
-        <input id="trace" type="checkbox" role="switch" aria-label="Typing outline" checked>
+        <input id="trace-toggle" type="checkbox" role="switch" aria-label="Typing outline" checked>
       </label>
       <div class="swatches" role="radiogroup" aria-label="Color">
         <button type="button" class="swatch" role="radio" data-color="#ffffff" aria-label="White" aria-checked="true"></button>

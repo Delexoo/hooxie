@@ -10,7 +10,8 @@ import { IDE_CATALOG, ideDownloadUrl } from "./catalog.ts";
 import { CompanionHub } from "./companion.ts";
 import { DeliveryService } from "./delivery.ts";
 import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
-import { accountConnected, openIdeDownload, openLoginUrl, openLoopbackIdes, publicConnectError } from "./cursor-account.ts";
+import { accountConnected, openIdeDownload, openLoginUrl, openLoopbackIdes, openOnboardingHelp, openStripeCheckout, publicConnectError } from "./cursor-account.ts";
+import { readDeviceId, readStoredLicense, saveLicense } from "./license.ts";
 import { describeSetup, onboardingStep } from "./setup.ts";
 import { readCursorUsage } from "./cursor-usage.ts";
 import { readCursorReady } from "./cursor-ready.ts";
@@ -19,20 +20,26 @@ import type { DetectDeps } from "./detect.ts";
 import { validateHello, validateResult } from "../extensions/z-agent-bridge/protocol.js";
 import type { IdeId, Installation, SubmitInput } from "./types.ts";
 import { DeliveryError, IDE_IDS } from "./types.ts";
-import { checkoutIsComplete, createCheckoutSession, readDotEnv, validEmail, type BillingConfig } from "./billing.ts";
+import { checkoutIsComplete, createCheckoutSession, findPaidDeviceCheckout, readDotEnv, validEmail, type BillingConfig } from "./billing.ts";
 import type { WidgetControl } from "./widget.ts";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = path.join(rootDir, "public");
 const siteDir = path.join(rootDir, "site");
 const BUTTON_COLORS = ["#ffffff", "#4d9fff", "#3ddc97", "#ff8a3d", "#ff5d8f", "#b07bff", "#ffe14a", "#ff4d4d", "#3ee0d2"];
-const CHIMES = new Set(["blushing", "xtreme-bass", "undertaker", "ekh", "cat-choke", "off", "custom"]);
+const CHIMES = new Set(["blushing", "xtreme-bass", "undertaker", "ekh", "cat-choke", "alert", "pluck-off", "notification", "new-notification", "menu-open", "holographic-open", "off", "custom"]);
 const SOUND_FILES = new Set([
   "blushing-sound.mp3",
   "xtreme-bass-effect.mp3",
   "undertaker-cloche.mp3",
   "ekh.mp3",
   "cat-choke.mp3",
+  "notification-alert.mp3",
+  "notification-pluck-off.mp3",
+  "notification-2.mp3",
+  "new-notification.mp3",
+  "menu-open.mp3",
+  "menu-open-holographic.mp3",
 ]);
 const LANGUAGES = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
 const SITE_FILES: Record<string, string> = {
@@ -42,6 +49,7 @@ const SITE_FILES: Record<string, string> = {
   "/privacy": "privacy.html",
   "/refund": "refund.html",
   "/releases": "releases.html",
+  "/releases.json": "releases.json",
   "/help": "help.html",
   "/contact": "contact.html",
   "/license": "license.html",
@@ -70,6 +78,8 @@ export interface BridgeOptions {
   apiKey?: string;
   widget?: WidgetControl;
   openUrl?: (url: string) => void;
+  deviceId?: string;
+  licenseSecret?: string;
 }
 
 export interface BridgeHandle {
@@ -77,6 +87,8 @@ export interface BridgeHandle {
   port: number;
   pageToken: string;
   bridgeToken: string;
+  inputDevice: string;
+  outputDevice: string;
   registry: AdapterRegistry;
   service: DeliveryService;
   close(): Promise<void>;
@@ -134,6 +146,15 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     promoCode: mergedEnv.HOOXIE_PROMO_CODE || "",
     promoId: mergedEnv.STRIPE_PROMO_ID || "",
   };
+  const licenseSecret = options.licenseSecret || billing.secretKey;
+  let deviceId = options.deviceId || "";
+  if (!deviceId) {
+    try {
+      deviceId = await readDeviceId();
+    } catch {
+      deviceId = "";
+    }
+  }
   let settings = await loadSettings(configDir);
 
   const service = new DeliveryService(registry, (input) => {
@@ -160,11 +181,34 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     return { ...settings, cursorConnected: accountConnected(apiKey, sdkAccount) };
   }
 
-  function setupPayload() {
+  async function applyAudioDevices(): Promise<void> {
+    if (!options.widget) return;
+    try {
+      await options.widget.setAudioDevices(settings.inputDevice, settings.outputDevice);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Audio devices could not be changed.";
+      console.log(message);
+    }
+  }
+
+  let licenseLookupAt = 0;
+  async function licensedForDevice(): Promise<boolean> {
+    if (!deviceId || !licenseSecret) return false;
+    if (await readStoredLicense(configDir, licenseSecret, deviceId)) return true;
+    if (!billing.secretKey || Date.now() - licenseLookupAt < 8000) return false;
+    licenseLookupAt = Date.now();
+    const found = await findPaidDeviceCheckout(billing.secretKey, deviceId);
+    if (!found) return false;
+    await saveLicense(configDir, licenseSecret, deviceId, found.sessionId, found.email);
+    return true;
+  }
+
+  async function setupPayload() {
     return describeSetup({
       installations,
       connectedIde: settings.connectedIde,
       cursorConnected: accountConnected(apiKey, sdkAccount),
+      licensed: await licensedForDevice(),
       onboardingStep: settings.onboardingStep,
     });
   }
@@ -270,7 +314,33 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
         return;
       }
       const body = await fs.readFile(path.join(publicDir, "sounds", name));
-      res.writeHead(200, { "content-type": "audio/mpeg", "cache-control": "no-store" });
+      const total = body.length;
+      const common = {
+        "content-type": "audio/mpeg",
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=86400",
+      };
+      const range = typeof req.headers.range === "string" ? req.headers.range : "";
+      const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+      if (match) {
+        const start = match[1] ? Number(match[1]) : 0;
+        const end = match[2] ? Number(match[2]) : total - 1;
+        if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || start >= total || end < start) {
+          res.writeHead(416, { "content-range": `bytes */${total}` });
+          res.end();
+          return;
+        }
+        const last = Math.min(end, total - 1);
+        const slice = body.subarray(start, last + 1);
+        res.writeHead(206, {
+          ...common,
+          "content-range": `bytes ${start}-${last}/${total}`,
+          "content-length": slice.length,
+        });
+        res.end(slice);
+        return;
+      }
+      res.writeHead(200, { ...common, "content-length": total });
       res.end(body);
       return;
     }
@@ -290,7 +360,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     }
     if (req.method === "GET" && url.pathname === "/api/setup") {
       await reloadInstallations();
-      sendJson(res, 200, setupPayload());
+      sendJson(res, 200, await setupPayload());
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/ide/connect") {
@@ -313,7 +383,23 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
         revision: settings.revision + 1,
       });
       await saveSettings(configDir, settings);
-      sendJson(res, 200, setupPayload());
+      sendJson(res, 200, await setupPayload());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/ide/disconnect") {
+      const body = asRecord(await readJson(req, 4000));
+      const ide = stringField(body, "ide");
+      if (!isIde(ide)) throw new DeliveryError(400, "Unknown IDE.");
+      if (settings.connectedIde === ide) {
+        settings = normalizeSettings({
+          ...settings,
+          connectedIde: "",
+          onboardingStep: "connect",
+          revision: settings.revision + 1,
+        });
+        await saveSettings(configDir, settings);
+      }
+      sendJson(res, 200, await setupPayload());
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/onboarding/restart") {
@@ -324,7 +410,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
         revision: settings.revision + 1,
       });
       await saveSettings(configDir, settings);
-      sendJson(res, 200, setupPayload());
+      sendJson(res, 200, await setupPayload());
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/onboarding/advance") {
@@ -337,7 +423,12 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
         });
         await saveSettings(configDir, settings);
       }
-      sendJson(res, 200, setupPayload());
+      sendJson(res, 200, await setupPayload());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/setup/help") {
+      openOnboardingHelp(port);
+      sendJson(res, 200, { ok: true });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/ides/open") {
@@ -363,6 +454,16 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
               expiresAtMs: usage.credits.expiresAtMs,
             }
           : null,
+        details: {
+          planName: usage.details.planName,
+          price: usage.details.price,
+          includedCents: usage.details.includedCents,
+          limitCents: usage.details.limitCents,
+          bonusCents: usage.details.bonusCents,
+          autoPercent: usage.details.autoPercent,
+          apiPercent: usage.details.apiPercent,
+          resetsAtMs: usage.details.resetsAtMs,
+        },
       });
       return;
     }
@@ -420,6 +521,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/deliveries") {
+      if (!(await licensedForDevice())) throw new DeliveryError(402, "Buy Hooxie for this computer before sending.");
       const input = parseSubmit(await readJson(req, 8_000_000));
       sendJson(res, 200, await service.submit(input));
       return;
@@ -459,11 +561,16 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       sendJson(res, 200, { active: options.widget ? await options.widget.focused() : true });
       return;
     }
+    if (req.method === "POST" && url.pathname === "/api/widget/yield") {
+      await options.widget?.yieldFocus();
+      sendJson(res, 200, { ok: true });
+      return;
+    }
     if (req.method === "POST" && url.pathname === "/api/widget/voice") {
       if (!options.widget) throw new DeliveryError(400, "Voice prompting is available in the desktop widget.");
       const body = asRecord(await readJson(req, 4000));
       const action = stringField(body, "action");
-      if (action !== "start" && action !== "stop" && action !== "poll") {
+      if (action !== "start" && action !== "stop" && action !== "poll" && action !== "wake") {
         throw new DeliveryError(400, "Unknown voice action.");
       }
       sendJson(res, 200, await options.widget.voice(action));
@@ -526,7 +633,30 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       settings = next;
       if (options.widget && arrowsChanged) await options.widget.setMoveKeys(next.arrows);
       await saveSettings(configDir, settings);
+      await applyAudioDevices();
       sendJson(res, 200, settingsBody());
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/audio/devices") {
+      if (!options.widget) {
+        sendJson(res, 200, { inputs: [], outputs: [] });
+        return;
+      }
+      sendJson(res, 200, await options.widget.audioDevices());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/widget/play") {
+      if (!options.widget) throw new DeliveryError(400, "Sound plays through the desktop widget.");
+      const body = asRecord(await readJson(req, 4000));
+      const file = body.custom === true ? await customChimePath(configDir) : soundFilePath(stringField(body, "file"));
+      if (!file) throw new DeliveryError(404, "That sound is not available.");
+      try {
+        await fs.access(file);
+      } catch {
+        throw new DeliveryError(404, "That sound is not available.");
+      }
+      await options.widget.play(file);
+      sendJson(res, 200, { ok: true });
       return;
     }
     if (req.method === "GET" && url.pathname === "/api/chime") {
@@ -561,24 +691,35 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       const email = validEmail(stringField(body, "email"));
       const promo = stringField(body, "promo");
       const origin = `http://127.0.0.1:${port}`;
+      if (!deviceId) throw new DeliveryError(400, "This computer could not be identified.");
       const url = await createCheckoutSession(billing, {
         email,
         promo,
+        deviceId,
         successUrl: `${origin}/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${origin}/dashboard?billing=cancel`,
       });
+      if (stringField(body, "present") === "widget") {
+        try {
+          if (options.openUrl) options.openUrl(url);
+          else openStripeCheckout(url);
+        } catch {
+          throw new DeliveryError(502, "Checkout could not be opened.");
+        }
+      }
       sendJson(res, 200, { url });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/billing/confirm") {
       const body = asRecord(await readJson(req, 4000));
       const sessionId = stringField(body, "sessionId");
-      if (!sessionId || !billing.secretKey) throw new DeliveryError(400, "Checkout could not be confirmed.");
+      if (!sessionId || !billing.secretKey || !licenseSecret || !deviceId) throw new DeliveryError(400, "Checkout could not be confirmed.");
       const result = await checkoutIsComplete(billing.secretKey, sessionId);
-      if (result.active) {
-        await fs.writeFile(path.join(configDir, "license.json"), JSON.stringify({ active: true, email: result.email, sessionId }, null, 2), { mode: 0o600 });
+      if (result.active && result.device !== deviceId) {
+        throw new DeliveryError(403, "This payment belongs to a different computer.");
       }
-      sendJson(res, 200, result);
+      if (result.active) await saveLicense(configDir, licenseSecret, deviceId, sessionId, result.email);
+      sendJson(res, 200, { active: result.active, email: result.email });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/browse") {
@@ -645,6 +786,8 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     port,
     pageToken,
     bridgeToken,
+    inputDevice: settings.inputDevice,
+    outputDevice: settings.outputDevice,
     registry,
     service,
     close: () => new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve()))),
@@ -934,6 +1077,9 @@ interface HooxieSettings {
   button: string;
   opacity: number;
   audio: boolean;
+  voiceActivation: boolean;
+  inputDevice: string;
+  outputDevice: string;
   session: boolean;
   language: string;
   lookReady: boolean;
@@ -974,6 +1120,9 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
     button: "#ffffff",
     opacity: 50,
     audio: true,
+    voiceActivation: false,
+    inputDevice: "",
+    outputDevice: "",
     session: false,
     language: "en",
     lookReady: false,
@@ -1016,6 +1165,9 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
     button: BUTTON_COLORS.includes(input.button) ? input.button : "#ffffff",
     opacity: Number.isFinite(opacity) ? Math.min(100, Math.max(10, Math.round(opacity))) : 50,
     audio: input.audio !== false,
+    voiceActivation: input.voiceActivation === true,
+    inputDevice: deviceId(input.inputDevice),
+    outputDevice: deviceId(input.outputDevice),
     session: input.session === true,
     language: LANGUAGES.has(input.language) ? input.language : "en",
     lookReady: input.lookReady === true,
@@ -1046,6 +1198,31 @@ function clipText(value: unknown, max: number): string {
   return typeof value === "string" ? value.slice(0, max) : "";
 }
 
+function deviceId(value: unknown): string {
+  return clipText(value, 400).replace(/[\u0000-\u001f]/g, "");
+}
+
+function soundFilePath(name: string): string | undefined {
+  if (!/^[a-z0-9][a-z0-9.-]{0,80}$/i.test(name)) return undefined;
+  const root = path.resolve(publicDir, "sounds");
+  const file = path.resolve(root, name);
+  if (file !== root && !file.startsWith(root + path.sep)) return undefined;
+  return file;
+}
+
+async function customChimePath(configDir: string): Promise<string | undefined> {
+  const raw = await readOptional(path.join(configDir, "chime-custom.json"));
+  if (!raw) return undefined;
+  try {
+    const meta = JSON.parse(raw) as { ext?: string };
+    const ext = typeof meta.ext === "string" && /^\.[a-z0-9]+$/.test(meta.ext) ? meta.ext : "";
+    if (!ext) return undefined;
+    return path.join(configDir, `chime-custom${ext}`);
+  } catch {
+    return undefined;
+  }
+}
+
 async function saveSettings(configDir: string, settings: HooxieSettings): Promise<void> {
   await fs.writeFile(path.join(configDir, "hooxie-settings.json"), JSON.stringify(settings), { mode: 0o600 });
 }
@@ -1066,6 +1243,7 @@ async function serveSite(res: http.ServerResponse, pathname: string, pageToken: 
   const types: Record<string, string> = {
     ".css": "text/css; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
     ".html": "text/html; charset=utf-8",
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
@@ -1099,6 +1277,10 @@ if (launchedDirectly) {
   console.log(`Hooxie listening on ${bridge.baseUrl}`);
   try {
     await widget.open(bridge.baseUrl);
+    await widget.setAudioDevices(bridge.inputDevice, bridge.outputDevice).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : "Audio devices could not be changed.";
+      console.log(message);
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The desktop widget did not open.";
     console.log(`${message} Open ${bridge.baseUrl}`);

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { ClipboardPort, CursorSdkClient, SdkRun } from "../src/adapters.ts";
+import { saveLicense } from "../src/license.ts";
 import { startBridge, type BridgeHandle } from "../src/server.ts";
 import type { Installation } from "../src/types.ts";
 
@@ -69,14 +70,23 @@ export function memoryClipboard(): ClipboardPort & { value: string } {
   return box;
 }
 
+export const TEST_DEVICE = "test-device";
+export const TEST_LICENSE_SECRET = "test-license-secret";
+
 export async function boot(options?: {
   installations?: Installation[];
   opener?: (executable: string, projectPath: string) => void;
   openUrl?: (url: string) => void;
   companionTimeoutMs?: number;
   sdk?: FakeSdk;
+  licensed?: boolean;
 }) {
   const configDir = await fs.mkdtemp(path.join(os.tmpdir(), "z-bridge-"));
+  const deviceId = TEST_DEVICE;
+  const licenseSecret = TEST_LICENSE_SECRET;
+  if (options?.licensed !== false) {
+    await saveLicense(configDir, licenseSecret, deviceId, "cs_test_device", "owner@example.com");
+  }
   const project = await fs.mkdtemp(path.join(os.tmpdir(), "z-project-"));
   const sdk = options?.sdk ?? createFakeSdk();
   const clipboard = memoryClipboard();
@@ -88,6 +98,8 @@ export async function boot(options?: {
     sdkReady: true,
     apiKey: "test-key-value",
     installations: options?.installations ?? [],
+    deviceId,
+    licenseSecret,
     opener: options?.opener,
     openUrl: options?.openUrl,
     companionTimeoutMs: options?.companionTimeoutMs ?? 400,

@@ -15,8 +15,12 @@ export interface WidgetControl {
   move(dx: number, dy: number): Promise<void>;
   browse(initialPath?: string): Promise<string>;
   capture(): Promise<{ data: string; mimeType: string }>;
-  voice(action: "start" | "stop" | "poll"): Promise<{ listening: boolean; text: string; error: string }>;
+  voice(action: "start" | "stop" | "poll" | "wake"): Promise<{ listening: boolean; text: string; error: string; phase: string; silenceMs: number; awake: boolean }>;
+  audioDevices(): Promise<{ inputs: { id: string; name: string }[]; outputs: { id: string; name: string }[] }>;
+  setAudioDevices(input: string, output: string): Promise<void>;
+  play(filePath: string): Promise<void>;
   focused(): Promise<boolean>;
+  yieldFocus(): Promise<void>;
   setShown(shown: boolean): Promise<boolean>;
   follow(): Promise<void>;
   setUndetectable(enabled: boolean): Promise<boolean>;
@@ -35,6 +39,11 @@ interface HostResponse {
   mimeType?: string;
   listening?: boolean;
   text?: string;
+  inputs?: { id?: string; name?: string }[];
+  outputs?: { id?: string; name?: string }[];
+  phase?: string;
+  silenceMs?: number;
+  awake?: boolean;
   active?: boolean;
   shown?: boolean;
   enabled?: boolean;
@@ -63,6 +72,22 @@ export function createWidgetController(): WidgetControl {
       }
       return { data: response.image, mimeType: response.mimeType || "image/jpeg" };
     },
+    async audioDevices() {
+      if (!host) return { inputs: [], outputs: [] };
+      const response = await host.call({ cmd: "devices" }, 8000);
+      if (!response.ok) throw new Error(response.error || "Audio devices could not be listed.");
+      return { inputs: audioEndpoints(response.inputs), outputs: audioEndpoints(response.outputs) };
+    },
+    async setAudioDevices(input, output) {
+      if (!host) return;
+      const response = await host.call({ cmd: "audio", input, output }, 8000);
+      if (!response.ok) throw new Error(response.error || "Audio devices could not be changed.");
+    },
+    async play(filePath) {
+      if (!host) throw new Error("Sound plays through the desktop widget.");
+      const response = await host.call({ cmd: "play", path: filePath }, 8000);
+      if (!response.ok) throw new Error(response.error || "The sound could not play.");
+    },
     async voice(action) {
       if (!host) throw new Error("Voice prompting is available in the desktop widget.");
       const response = await host.call({ cmd: "voice", action }, 20000);
@@ -71,12 +96,20 @@ export function createWidgetController(): WidgetControl {
         listening: response.listening === true,
         text: typeof response.text === "string" ? response.text : "",
         error: typeof response.error === "string" ? response.error : "",
+        phase: response.phase === "wake" || response.phase === "prompt" ? response.phase : "off",
+        silenceMs: Number.isFinite(response.silenceMs) ? Math.max(0, response.silenceMs) : 0,
+        awake: response.awake === true,
       };
     },
     async focused() {
       if (!host) return true;
       const response = await host.call({ cmd: "focus" }, 4000);
       return response.active === true;
+    },
+    async yieldFocus() {
+      if (!host) return;
+      const response = await host.call({ cmd: "yield" }, 4000);
+      if (!response.ok) throw new Error(response.error || "Hooxie could not release focus.");
     },
     async setShown(shown) {
       if (!host) return true;
@@ -126,6 +159,15 @@ export function createWidgetController(): WidgetControl {
       else console.log(`Hooxie launched. If you do not see it, open ${pageUrl}`);
     },
   };
+}
+
+function audioEndpoints(value: { id?: string; name?: string }[] | undefined): { id: string; name: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    const id = typeof item?.id === "string" ? item.id : "";
+    const name = typeof item?.name === "string" ? item.name.trim() : "";
+    return id && name ? [{ id, name }] : [];
+  });
 }
 
 function widgetShellPath(): string {

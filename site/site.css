@@ -654,9 +654,11 @@ body.marketing .topbar { position: fixed; left: 0; right: 0; }
 /* Docs / dashboard */
 .doc { margin: 1.5rem 0 3rem; }
 .doc h1 { margin: 0 0 8px; font-size: clamp(2.4rem, 5vw, 3.2rem); }
-.doc h2 { margin-top: 22px; font-size: 1.35rem; }
+.doc h2 { margin-top: 22px; font-size: 1.35rem; scroll-margin-top: 5.5rem; }
+.doc h3 { margin: 18px 0 6px; font-size: 1.05rem; }
 .doc p, .doc li { color: #3a3a3c; line-height: 1.7; }
 .doc ul { margin: 8px 0 0; padding-left: 18px; }
+.doc li + li { margin-top: 4px; }
 .doc a { text-decoration: underline; text-underline-offset: 2px; }
 .ide-list { display: grid; gap: 12px; margin-top: 8px; }
 .ide-card {

@@ -200,6 +200,15 @@ html[data-appearance="light"] #side-filter { background: #ececec; color: #111; }
   padding: 12px 0;
   border-top: 1px solid var(--line);
 }
+.device-select {
+  flex: none;
+  width: min(280px, 100%);
+  background: var(--field);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
 .row strong { display: block; font-size: 14px; font-weight: 650; }
 .row span, .row p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 
@@ -320,6 +329,9 @@ textarea { width: min(520px, 100%); min-height: 88px; display: block; }
 .help-list article { border-top: 1px solid var(--line); padding-top: 12px; }
 .help-list h2 { margin: 0 0 4px; font-size: 15px; }
 .help-list p { margin: 0; color: var(--muted); }
+.help-list h3 { margin: 10px 0 4px; font-size: 13px; }
+.help-list ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.help-list li + li { margin-top: 4px; }
 
 @media (max-width: 720px) {
   .dash, .dash.is-collapsed { grid-template-columns: 1fr; }

@@ -23,7 +23,7 @@ npm install
 powershell -File scripts/package-windows.ps1
 ```
 
-The installer is written to `dist/Hooxie-Setup-0.1.0.exe`. It installs under `Program Files\Delexo\Hooxie`, shows the license, and can add Start Menu and desktop shortcuts.
+The installer is written to `dist/Hooxie-Setup-0.2.0.exe`. It installs under `Program Files\Delexo\Hooxie`, shows the license, and can add Start Menu and desktop shortcuts.
 
 ### From source
 
@@ -36,12 +36,18 @@ The overlay opens at the top of the screen. The local page is `http://127.0.0.1:
 
 ## What it does
 
-- Starts a **new Cursor agent session** on the folder shown on the pill
-- Voice when the prompt is empty, send when there is text, stop while the agent works
-- Attach files, a folder, or a screenshot
+- Keeps the prompt on the bar. Upload sits on the left. Send or voice sits on the right.
+- Opens the screen switch, project path, attachments, and conversation when you are typing, listening, or the agent is working
+- Grows the prompt and moves the other controls under it when a line runs out of room
+- Says “Hooxie” once to start voice. The outline opens and closes with its own sounds
+- Hold Escape for 0.75 seconds to clear the prompt. The outline color closes around the border
+- More options can open the connected IDE on the current project
 - Hide from standard capture with Detectable off (`Ctrl+Shift+\`)
-- Show terminals, queued prompts, and modified files only when they exist
-- Hooxie Pro is $4.99/month and does not replace a Cursor plan
+- Hooxie is $5.99 once for this computer. It does not replace a Cursor plan. A license from another computer does not unlock this one
+
+## Release notes
+
+Notes for each version are in [brain/log.json](brain/log.json). `npm run notes` refreshes the website from that file. Pushing it to `main` publishes any version that is not already a [GitHub release](https://github.com/Delexoo/hooxie/releases).
 
 ## License
 

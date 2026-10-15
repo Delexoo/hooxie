@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hooxie widget prototypes</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #101214;
+      --page-ink: #f2f2f2;
+      --page-muted: #b7b7b7;
+      --page-line: rgba(255, 255, 255, 0.12);
+      --page-fill: rgba(255, 255, 255, 0.06);
+      --ide: #1c1e21;
+      --side: #16181b;
+      --glass-rgb: 0, 0, 0;
+      --alpha: 0.5;
+      --accent: #ffffff;
+      --muted: color-mix(in srgb, var(--accent) 78%, transparent);
+      --fill: color-mix(in srgb, var(--accent) 14%, transparent);
+      --fill-hover: color-mix(in srgb, var(--accent) 24%, transparent);
+      --line: color-mix(in srgb, var(--accent) 18%, transparent);
+      --button: #ffffff;
+      --button-ink: #2a2a2a;
+      --focus: #9ec1ff;
+      --shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+      font: 16px/1.5 "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    }
+    html[data-theme="light"] {
+      --glass-rgb: 255, 255, 255;
+      --alpha: 0.92;
+      --accent: #111111;
+      --button-ink: #2a2a2a;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; min-height: 100%; background: var(--page); color: var(--page-ink); }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+    .skip {
+      position: absolute;
+      left: 12px;
+      top: -40px;
+      z-index: 5;
+      background: #fff;
+      color: #111;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    .skip:focus { top: 12px; }
+
+    .study {
+      display: grid;
+      gap: 14px;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--page-line);
+    }
+    .study-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 22px; line-height: 1.2; font-weight: 650; letter-spacing: -0.02em; }
+    .lede { margin: 6px 0 0; max-width: 68ch; color: var(--page-muted); }
+    .tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .meta {
+      min-width: 148px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: var(--page-fill);
+      font-variant-numeric: tabular-nums;
+    }
+    .meta strong { display: block; font-size: 14px; font-weight: 650; }
+    .meta span { color: var(--page-muted); font-size: 13px; }
+    .theme {
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      padding: 0 14px;
+      background: var(--page-fill);
+      color: var(--page-ink);
+    }
+    .theme:hover { background: rgba(255, 255, 255, 0.12); }
+    #designs { display: flex; flex-wrap: wrap; gap: 8px; }
+    #designs button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--page-line);
+      border-radius: 999px;
+      padding: 0 14px;
+      background: transparent;
+      color: var(--page-ink);
+    }
+    #designs button:hover { background: var(--page-fill); }
+    #designs button[aria-pressed="true"] { background: #fff; color: #161616; border-color: #fff; }
+    .yours {
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.08);
+    }
+    #designs button[aria-pressed="true"] .yours { background: rgba(0, 0, 0, 0.08); }
+
+    .stage {
+      position: relative;
+      min-height: 680px;
+      height: calc(100dvh - 250px);
+      overflow: hidden;
+      background:
+        radial-gradient(900px 420px at 20% -10%, rgba(90, 120, 180, 0.16), transparent 60%),
+        var(--ide);
+    }
+    .ide { height: 100%; display: grid; grid-template-rows: 42px 1fr 28px; color: #c8c8c8; user-select: none; }
+    .ide-top, .ide-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px;
+      background: #141618;
+      color: #9a9a9a;
+      font-size: 13px;
+    }
+    .dots { display: flex; gap: 6px; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3a; display: block; }
+    .ide-body { display: grid; grid-template-columns: 210px 1fr; min-height: 0; }
+    .side { background: var(--side); padding: 14px 12px; display: grid; align-content: start; gap: 4px; }
+    .side p { margin: 8px 8px 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8d8d8d; }
+    .side span { display: block; padding: 4px 8px; border-radius: 6px; font-size: 13px; color: #bdbdbd; }
+    .side span.on { background: rgba(255, 255, 255, 0.06); color: #fff; }
+    .editor { min-width: 0; display: flex; flex-direction: column; }
+    .tabs { display: flex; gap: 2px; background: #181a1d; padding: 8px 12px 0; }
+    .tabs span { padding: 8px 12px; border-radius: 8px 8px 0 0; color: #8d8d8d; font-size: 13px; }
+    .tabs .on { background: var(--ide); color: #eee; }
+    pre {
+      margin: 0;
+      padding: 18px 22px 28px;
+      overflow: hidden;
+      font: 13.5px/1.7 Consolas, "Cascadia Mono", monospace;
+      color: #d0d0d0;
+    }
+    .k { color: #9eb6ff; }
+    .s { color: #d7c4a3; }
+    .c { color: #7f7f7f; }
+
+    #float {
+      position: absolute;
+      z-index: 2;
+      top: 24px;
+      left: 24px;
+      max-width: calc(100% - 24px);
+      filter: drop-shadow(var(--shadow));
+    }
+    #float.is-moving .w { outline: 2px dashed var(--accent); outline-offset: 4px; }
+    #ghost-note {
+      margin: 0 0 8px;
+      max-width: 280px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(var(--glass-rgb), var(--alpha));
+      color: var(--accent);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .w {
+      position: relative;
+      color: var(--accent);
+      color-scheme: dark;
+      background: rgba(var(--glass-rgb), var(--alpha));
+      border-radius: 25px;
+      font: 15px/1.35 "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    }
+    html[data-theme="light"] .w { color-scheme: light; }
+    .w.is-dropping { box-shadow: inset 0 0 0 2px var(--accent); }
+    .w :focus-visible { outline-color: var(--accent); }
+    #float[data-phase="working"] .w::after,
+    #float[data-phase="working"] .orb::after,
+    #float[data-phase="working"] .orb-card::after,
+    #float[data-phase="working"] .rail-col::after,
+    #float[data-phase="working"] .rail-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      border-radius: inherit;
+      padding: 2.5px;
+      pointer-events: none;
+      background: linear-gradient(90deg, #3a78ff 0%, #9eb6ff 42%, #f6d0c6 72%, #f0aa98 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+    }
+
+    .row { display: flex; align-items: center; gap: 6px; padding: 8px 10px; }
+    .ib, .usage, .grip, .orb {
+      flex: none;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--accent);
+    }
+    .ib, .usage {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      transition: transform 180ms var(--ease), background 180ms ease, box-shadow 180ms ease;
+    }
+    .ib:hover, .usage:hover { transform: scale(1.1); }
+    .ib:hover, .path:hover, .chip:hover, .tool-row:hover, .menu-btn:hover { background: var(--fill-hover); }
+    .usage:hover { background: transparent; }
+    .ib:active, .usage:active { transform: scale(0.94); }
+    .ib.solid {
+      background: var(--button);
+      color: var(--button-ink);
+    }
+    .ib.solid:hover, .ib.solid:active { background: var(--button); }
+    html[data-theme="light"] .ib.solid,
+    html[data-theme="light"] .seg [aria-selected="true"],
+    html[data-theme="light"] .chip[aria-pressed="true"],
+    html[data-theme="light"] .peek-screen[aria-pressed="true"] {
+      box-shadow: inset 0 0 0 1px #111;
+    }
+    .usage[aria-expanded="true"],
+    .ib[data-act="dash"][aria-expanded="true"],
+    .ib[data-act="more"][aria-expanded="true"],
+    .tool-row[aria-expanded="true"] {
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    html[data-theme="light"] .switch:has(input:checked) .switch-track { background: #111; }
+    html[data-theme="light"] .switch:has(input:checked) .switch-track::after { background: #fff; }
+    .icon { width: 18px; height: 18px; display: block; }
+    .icon.stroke { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    .ico-play { stroke-width: 2.25; }
+    .icon.fill { fill: currentColor; }
+    .icon.stroke circle, .ico-mic rect, .ico-stop rect { fill: currentColor; stroke: none; }
+    .send .ico { display: none; }
+    #float[data-phase="idle"] .ico-mic,
+    #float[data-phase="listening"] .ico-mic,
+    #float[data-phase="ready"] .ico-play,
+    #float[data-phase="working"] .ico-stop { display: block; }
+    #float[data-phase="listening"] .send {
+      background: #e23d3d;
+      color: #fff;
+      animation: listen-pulse 1.15s ease-in-out infinite;
+    }
+    #float[data-phase="listening"] .send:hover,
+    #float[data-phase="listening"] .send:active { transform: none; background: #e23d3d; }
+    html[data-theme="light"] #float[data-phase="listening"] .send { box-shadow: none; }
+    @keyframes listen-pulse {
+      0%, 100% { background: #e23d3d; box-shadow: 0 0 0 0 rgba(226, 61, 61, 0.75); transform: scale(1); }
+      50% { background: #ff5d5d; box-shadow: 0 0 0 6px rgba(226, 61, 61, 0); transform: scale(1.08); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #float[data-phase="listening"] .send { animation: none; }
+    }
+
+    .usage { position: relative; cursor: pointer; }
+    .usage svg, .orb svg, .status-ring svg { display: block; }
+    .usage svg { width: 30px; height: 30px; }
+    .track, .ring { fill: none; stroke-width: 3; }
+    .track { stroke: color-mix(in srgb, var(--accent) 22%, transparent); }
+    .ring { stroke: var(--button); stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; }
+    html[data-theme="light"] .ring { stroke: var(--accent); }
+    .pct {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      pointer-events: none;
+    }
+    .grip {
+      width: 20px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      margin-left: 4px;
+      cursor: grab;
+      touch-action: none;
+    }
+    .grip:active, #float.is-dragging .grip { cursor: grabbing; }
+    .grip svg { width: 12px; height: 18px; fill: currentColor; display: block; }
+    .chev { transition: transform 180ms var(--ease); }
+    [aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+    .drawer { display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px; }
+    .ctx {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-width: 0;
+      padding: 6px 12px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .switch {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+    }
+    .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .switch-track {
+      width: 32px;
+      height: 18px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 28%, transparent);
+      position: relative;
+      flex: none;
+      transition: background 160ms ease;
+    }
+    .switch-track::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: transform 160ms ease;
+    }
+    .switch:has(input:checked) .switch-track { background: var(--button); }
+    .switch:has(input:checked) .switch-track::after { transform: translateX(14px); background: var(--button-ink); }
+    .switch:has(input:focus-visible) .switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .switch-label { font-size: 12px; white-space: nowrap; }
+    .path, .peek-path, .peek-screen, .chip, .menu-btn, .tool-row, .text-btn {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      border-radius: 999px;
+    }
+    .path, .peek-path {
+      min-height: 0;
+      max-width: 100%;
+      padding: 2px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      text-align: right;
+    }
+    .chip, .peek-screen, .text-btn { background: var(--fill); }
+    .path { min-width: min(100%, 120px); flex: 1 1 120px; border-radius: 8px; }
+    .path:hover { background: var(--fill); }
+    .peek-path { min-width: 0; flex: 1 1 auto; text-align: left; }
+    .composer { padding: 0 12px; }
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      max-height: 88px;
+      resize: none;
+      border: 0;
+      border-radius: 0;
+      padding: 2px 2px 0;
+      background: transparent;
+      color: var(--accent);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    textarea::placeholder { color: color-mix(in srgb, var(--accent) 80%, transparent); }
+    textarea:focus { outline: none; }
+    .files { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px; }
+    .files:empty { display: none; }
+    .filechip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 190px;
+      height: 28px;
+      padding: 0 22px 0 4px;
+      border-radius: 999px;
+      background: var(--fill);
+      font-size: 12px;
+      font-weight: 500;
+      position: relative;
+    }
+    .filechip img, .filechip .glyph {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex: none;
+    }
+    .filechip .glyph { display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 18%, transparent); }
+    .filechip .glyph svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+    .filechip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .filechip button {
+      position: absolute;
+      top: 50%;
+      right: 3px;
+      width: 16px;
+      height: 16px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      transform: translateY(-50%);
+    }
+    .thread { display: grid; gap: 8px; max-height: 148px; overflow: auto; padding: 8px 12px; }
+    .thread:empty, .thread:has(.empty:only-child) { display: none; }
+    .drawer .thread:has(.empty:only-child), .mode .thread:has(.empty:only-child), .rail-panel .thread:has(.empty:only-child) { display: grid; }
+    .msg, .empty, .pending { margin: 0; font-size: 14px; line-height: 1.4; }
+    .msg.user {
+      align-self: end;
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: 16px 16px 0 16px;
+      background: #f3f3f3;
+      color: #3a3a3a;
+    }
+    html[data-theme="light"] .msg.user { background: var(--fill); color: var(--accent); }
+    .msg.agent { background: transparent; padding: 0; font-size: 15.5px; line-height: 1.38; }
+    .empty, .pending { color: var(--muted); }
+    .sheet { display: grid; gap: 6px; margin: 0; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: transparent; }
+    .sheet h2 { margin: 0; font-size: 14px; font-weight: 650; }
+    .sheet h3 { margin: 4px 0 0; font-size: 13px; font-weight: 650; }
+    .sheet .note, .sheet label { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .sheet label { display: grid; gap: 6px; color: var(--accent); }
+    .balance { margin: 0; font-size: 18px; font-weight: 700; }
+    .meter { height: 8px; border-radius: 99px; background: var(--fill); overflow: hidden; }
+    .meter span { display: block; height: 100%; background: var(--accent); }
+    .choice, .preset-hit, .menu-btn, .text-btn {
+      width: 100%;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-align: left;
+      padding: 8px 12px;
+      border-radius: 12px;
+    }
+    .preset-list, .choices { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .preset-list li { display: flex; align-items: center; gap: 4px; }
+    .preset-hit { flex: 1; }
+    .pname { font-weight: 650; }
+    .ptext { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+    .sheet input[type="text"], .sheet input[type="range"] { width: 100%; }
+    .sheet input[type="text"] {
+      min-height: 44px;
+      border: 0;
+      border-radius: 12px;
+      padding: 0 12px;
+      background: var(--fill);
+      color: var(--accent);
+    }
+    .menu-btn { background: transparent; border-radius: 12px; align-items: flex-start; flex-direction: column; }
+    .menu-btn small, .menu-btn span { color: var(--muted); font-size: 13px; }
+    .remove {
+      width: 36px;
+      height: 36px;
+      flex: none;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .w-bar, .w-fold { width: max-content; }
+    .w-typefold { width: min(420px, calc(100vw - 32px)); }
+    .w-typefold .field {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-height: 34px;
+      padding: 2px;
+      border-radius: 17px;
+      background: var(--fill);
+    }
+    .w-typefold .field:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .w-typefold .field textarea {
+      width: auto;
+      flex: 1;
+      min-width: 0;
+      height: 30px;
+      min-height: 30px;
+      margin: 0;
+      padding: 4px 2px;
+      border-radius: 0;
+      line-height: 22px;
+      background: transparent;
+      overflow: hidden;
+      scrollbar-width: none;
+    }
+    .w-typefold .field textarea:focus { outline: none; }
+    .w-bar.is-open, .w-fold.is-open { width: min(420px, calc(100vw - 32px)); }
+    .w-split { width: max-content; max-width: calc(100vw - 32px); }
+    .w-split.is-open { width: min(460px, calc(100vw - 32px)); }
+    .clusters { display: flex; gap: 0; padding: 8px 10px; }
+    .cluster { display: flex; flex-direction: column; gap: 4px; padding: 0 8px; }
+    .cluster:first-child { padding-left: 0; }
+    .cluster + .cluster { border-left: 1px solid var(--line); }
+    .cluster .row { padding: 0; }
+    .cap { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+    .w-dock, .w-cmd, .w-modes { width: min(420px, calc(100vw - 32px)); }
+    .dock-line { display: flex; align-items: flex-end; gap: 8px; padding: 8px 10px 0; }
+    .dock-line .composer { flex: 1; padding: 0; }
+    .dock-line .ib, .dock-line .grip { margin-bottom: 8px; }
+    .w-dock .row.tools { padding-top: 0; }
+    .spacer { flex: 1; }
+    .w-dock .thread:not(:empty) { display: grid; padding-bottom: 4px; }
+
+    .w-orb { width: max-content; background: transparent; box-shadow: none; backdrop-filter: none; }
+    .orb {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      position: relative;
+      cursor: grab;
+      background: rgba(var(--glass-rgb), var(--alpha));
+      touch-action: none;
+    }
+    .orb svg { width: 64px; height: 64px; }
+    .orb .pct { font-size: 13px; }
+    .orb-card {
+      width: min(400px, calc(100vw - 32px));
+      color: var(--accent);
+      color-scheme: dark;
+      position: relative;
+      background: rgba(var(--glass-rgb), var(--alpha));
+      border-radius: 25px;
+      font: 15px/1.35 "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    }
+    html[data-theme="light"] .orb-card { color-scheme: light; }
+    .orb-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px 0; }
+    .orb-head strong { flex: 1; font-size: 14px; }
+    .w-rail {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      width: max-content;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+    .w-rail.is-flip { flex-direction: row-reverse; }
+    .rail-col, .rail-panel {
+      position: relative;
+      background: rgba(var(--glass-rgb), var(--alpha));
+      border-radius: 25px;
+      font: 15px/1.35 "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    }
+    .rail-col { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; }
+    .rail-panel { width: min(340px, 70vw); padding-top: 8px; }
+    .seg {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin: 8px 8px 0;
+      padding: 4px;
+      border-radius: 999px;
+      background: var(--fill);
+    }
+    .seg [role="tab"] {
+      flex: 1;
+      min-height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: inherit;
+    }
+    .seg [aria-selected="true"] { background: var(--button); color: var(--button-ink); }
+    .mode { padding-top: 8px; }
+    .tool-row { border-radius: 12px; margin: 0 8px; width: calc(100% - 16px); }
+    .status { display: grid; justify-items: center; gap: 4px; padding: 18px 16px 20px; text-align: center; }
+    .status-ring { position: relative; width: 84px; height: 84px; }
+    .status-ring svg { width: 84px; height: 84px; }
+    .status .pct { font-size: 18px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 12px; }
+    .chip { min-height: 36px; padding: 0 12px; font-size: 13px; }
+    .chip[aria-pressed="true"] { background: var(--button); color: var(--button-ink); }
+    .peek-bar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; min-height: 46px; }
+    .peek-path { flex: 1; background: transparent; text-align: left; padding-left: 4px; }
+    .peek-screen { min-height: 36px; padding: 0 10px; font-size: 13px; white-space: nowrap; }
+    .peek-screen[aria-pressed="true"] { background: var(--button); color: var(--button-ink); }
+    .w-peek { width: min(420px, calc(100vw - 32px)); }
+
+    .why {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 18px;
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--page-line);
+    }
+    .why h2 { margin: 0 0 4px; font-size: 16px; }
+    .why p { margin: 0; color: var(--page-muted); }
+    .why h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--page-muted); font-weight: 650; }
+    .why ul { margin: 0; padding-left: 18px; }
+    .why li { margin: 2px 0; }
+    #toast {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      margin: 0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #fff;
+      color: #161616;
+      font-size: 14px;
+      box-shadow: var(--shadow);
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+    @media (max-width: 800px) {
+      .why { grid-template-columns: 1fr; }
+      .ide-body { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .stage { height: auto; min-height: 760px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#float">Skip to widget</a>
+  <header class="study">
+    <div class="study-top">
+      <div>
+        <h1>Hooxie widget prototypes</h1>
+        <p class="lede">Ten layouts for the same overlay. Drag one over the editor, type a prompt, and open the panels. Keys 1–9 switch layout, and 0 opens Type fold. Drop a file on the widget to attach it.</p>
+      </div>
+      <div class="tools">
+        <div class="meta">
+          <strong id="size">– × –</strong>
+          <span>Space it covers now</span>
+        </div>
+        <button id="theme" class="theme" type="button" aria-pressed="false">Widget: Dark</button>
+      </div>
+    </div>
+    <nav id="designs" aria-label="Widget layouts"></nav>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="ide" aria-hidden="true">
+      <div class="ide-top"><span class="dots"><i></i><i></i><i></i></span><span>hooxie — Cursor</span></div>
+      <div class="ide-body">
+        <aside class="side">
+          <p>Project</p>
+          <span class="on">public</span>
+          <span>index.html</span>
+          <span>app.css</span>
+          <span>app.js</span>
+          <span>src</span>
+          <span>server.ts</span>
+        </aside>
+        <div class="editor">
+          <div class="tabs"><span class="on">app.css</span><span>index.html</span></div>
+          <pre><span class="c">/* overlay surface */</span>
+<span class="k">#pill</span> {
+  display: flex;
+  background: <span class="s">rgba(0, 0, 0, 0.5)</span>;
+  border-radius: <span class="s">25px</span>;
+}
+
+<span class="k">#toolbar</span> {
+  display: flex;
+  align-items: center;
+  gap: <span class="s">6px</span>;
+}</pre>
+        </div>
+      </div>
+      <div class="ide-status"><span>Hooxie</span><span>UTF-8</span></div>
+    </div>
+    <div id="float" data-phase="idle">
+      <p id="ghost-note" hidden>Undetectable is on. A normal screen share would not show this.</p>
+      <div id="widgets"></div>
+    </div>
+    <button id="restore" type="button" hidden style="position:absolute;z-index:3;top:16px;left:16px;min-height:44px;border:0;border-radius:999px;padding:0 14px;background:#fff;color:#161616;">Show Hooxie</button>
+    <p id="toast" hidden role="status"></p>
+  </main>
+
+  <section class="why" aria-live="polite">
+    <div>
+      <h2 id="why-name">Open bar</h2>
+      <p id="why-text"></p>
+    </div>
+    <div>
+      <h3>Stays visible</h3>
+      <ul id="why-visible"></ul>
+    </div>
+    <div>
+      <h3>Opens when needed</h3>
+      <ul id="why-demand"></ul>
+    </div>
+  </section>
+  <p id="status" class="sr-only" aria-live="polite"></p>
+
+  <script>
+    const DESIGNS = [
+      { id: "bar", n: "1", name: "Open bar", yours: true, summary: "Every control sits on one bar: upload, chat, usage, presets, dashboard, more, send, and drag. Chat opens the screen switch, the project path, and the prompt. This matches Hooxie today. Switching tools is immediate, and the bar stays wide while idle.", visible: ["Upload", "Chat", "Usage", "Presets", "Dashboard", "More", "Send / voice", "Drag"], demand: ["View the screen", "Project path", "Prompt", "Conversation"] },
+      { id: "fold", n: "2", name: "Fold", yours: true, summary: "The idle bar is the dropdown, usage, dashboard, and drag. The dropdown opens upload, the prompt, presets, send or voice, the screen switch, and the project path. The bar stays short until you are ready to ask.", visible: ["Dropdown", "Usage", "Dashboard", "Drag"], demand: ["Upload", "Prompt", "Presets", "Send / voice", "View the screen", "Project path", "Conversation"] },
+      { id: "dock", n: "3", name: "Prompt dock", yours: false, summary: "The prompt is always on screen, with upload and send in the same row. The screen switch and project path sit above it. Usage, presets, dashboard, more, and drag are a quieter second row. Typing is the main job.", visible: ["Prompt", "Upload", "Send / voice", "View the screen", "Project path", "Usage", "Presets", "Dashboard", "More", "Drag"], demand: ["Conversation", "Usage, presets, dashboard, and more panels"] },
+      { id: "orb", n: "4", name: "Orb", yours: false, summary: "Idle Hooxie is a round usage ring you can drag. Click it and the prompt, tools, screen switch, and path open in a card. The editor stays clear between prompts.", visible: ["Usage", "Drag"], demand: ["Prompt", "Upload", "Send / voice", "Presets", "Dashboard", "More", "View the screen", "Project path", "Conversation"] },
+      { id: "rail", n: "5", name: "Side rail", yours: false, summary: "The controls stack in a narrow column. Chat, usage, presets, dashboard, and more open one panel beside that column. It can sit on the edge of the IDE, where a wide bar would cover the line you are reading.", visible: ["Upload", "Chat", "Usage", "Presets", "Dashboard", "More", "Send / voice", "Drag"], demand: ["One side panel: prompt, or usage, or presets, or dashboard, or more"] },
+      { id: "modes", n: "6", name: "Modes", yours: false, summary: "A switch chooses Ask, Tools, or Status, and the widget shows that job only. Ask is the prompt. Tools is presets, dashboard, and more. Status is usage and credits. Drag stays in every mode.", visible: ["Ask / Tools / Status", "Drag", "The active mode"], demand: ["The other two modes"] },
+      { id: "peek", n: "7", name: "Peek", yours: false, summary: "Idle Hooxie is a status line: drag, project path, view-screen, and usage. Expand it for the prompt, upload, presets, dashboard, more, and send. It favors a glance at path and usage.", visible: ["Drag", "Project path", "View the screen", "Usage", "Expand"], demand: ["Prompt", "Upload", "Presets", "Dashboard", "More", "Send / voice", "Conversation"] },
+      { id: "split", n: "8", name: "Split", yours: false, summary: "The open bar, divided into Ask and System. Ask is upload, chat, presets, and send. System is usage, dashboard, more, and drag. Chat still opens the screen switch, path, and prompt. Send is easier to find.", visible: ["Ask: upload, chat, presets, send", "System: usage, dashboard, more, drag"], demand: ["View the screen", "Project path", "Prompt", "Conversation"] },
+      { id: "commands", n: "9", name: "Commands", yours: false, summary: "A prompt line with send and drag. The other jobs are words under the line: Upload, View screen, Project path, Presets, Usage, Dashboard, and More. Labels stay readable without an icon to memorize.", visible: ["Prompt", "Send / voice", "Drag", "Upload", "View screen", "Project path", "Presets", "Usage", "Dashboard", "More"], demand: ["Conversation and the detail panels"] },
+      { id: "typefold", n: "10", name: "Type fold", yours: false, summary: "Fold’s idle set — usage, dashboard, and drag — with one prompt field. Upload sits inside the left of the field and send or voice sits inside the right. Presets and more sit just to the right of that field. The first character opens the screen switch and the project path. Clearing the prompt folds that set again, unless a file or a conversation is still open.", visible: ["Prompt, with upload and send / voice inside", "Presets", "More", "Usage", "Dashboard", "Drag"], demand: ["View the screen", "Project path", "Conversation"] }
+    ];
+
+    const PATHS = ["D:\\MasterVault\\hooxie", "D:\\work\\delexo-site", "none"];
+    const state = {
+      design: "bar",
+      prompt: "",
+      screen: false,
+      path: PATHS[0],
+      usage: 62,
+      alpha: 0.5,
+      files: [],
+      presets: [
+        { name: "Bug check", text: "Look at the failing test and explain the cause." },
+        { name: "Review diff", text: "Review the uncommitted changes and list risks." },
+        { name: "Explain", text: "Explain this file like I am new to the project." }
+      ],
+      messages: [],
+      working: false,
+      listening: false,
+      hidden: false,
+      ghost: false,
+      moving: false,
+      confirmClear: false
+    };
+    const ui = {
+      bar: { chat: false, panel: null },
+      fold: { open: false, panel: null },
+      dock: { panel: null },
+      orb: { open: false, panel: null },
+      rail: { panel: null },
+      modes: { mode: "ask", panel: null },
+      peek: { open: false, panel: null },
+      split: { chat: false, panel: null },
+      commands: { panel: null },
+      typefold: { open: false, shut: false, panel: null }
+    };
+    const pos = {};
+    let sheetKey = "";
+    let listenTimer = 0;
+    let workTimer = 0;
+    let toastTimer = 0;
+    let clearTimer = 0;
+    let drag = null;
+    let moveListeners = null;
+
+    const floatEl = document.getElementById("float");
+    const stageEl = document.getElementById("stage");
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.multiple = true;
+    fileInput.hidden = true;
+    fileInput.setAttribute("aria-hidden", "true");
+    document.body.appendChild(fileInput);
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function svg(inner, box, cls) {
+      return `<svg class="${cls || "icon"}" viewBox="${box || "0 0 24 24"}" aria-hidden="true">${inner}</svg>`;
+    }
+    const icon = {
+      plus: svg('<path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/>', "0 0 24 24", "icon fill"),
+      chat: svg('<path d="M7.5 18.2 5.4 20.6c-.45.5-1.25.18-1.25-.48V7.4A2.4 2.4 0 0 1 6.55 5h10.9A2.4 2.4 0 0 1 19.85 7.4v7.7a2.4 2.4 0 0 1-2.4 2.4H9.1z"/><circle cx="8.4" cy="11.2" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="11.2" r=".9" fill="currentColor" stroke="none"/><circle cx="15.6" cy="11.2" r=".9" fill="currentColor" stroke="none"/>', "0 0 24 24", "icon stroke"),
+      bookmark: svg('<path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14l-6.5-3.2L5.5 20V6A1.5 1.5 0 0 1 7 4.5z"/><path d="M9 9h6"/>', "0 0 24 24", "icon stroke"),
+      grid: svg('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>', "0 0 24 24", "icon stroke"),
+      dots: svg('<circle cx="6" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.6" fill="currentColor" stroke="none"/>', "0 0 24 24", "icon stroke"),
+      mic: svg('<rect x="9" y="3.2" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"/><path d="M12 17v3.2"/><path d="M8.8 20.2h6.4"/>', "0 0 24 24", "icon stroke ico ico-mic"),
+      play: svg('<path d="M12 19V6"/><path d="M6.8 11.2 12 6l5.2 5.2"/>', "0 0 24 24", "icon stroke ico ico-play"),
+      stop: svg('<rect x="5" y="5" width="14" height="14" rx="1.5" fill="currentColor" stroke="none"/>', "0 0 24 24", "icon stroke ico ico-stop"),
+      chev: svg('<path d="m6 9 6 6 6-6"/>', "0 0 24 24", "icon stroke chev"),
+      close: svg('<path d="M6 6l12 12M18 6 6 18"/>', "0 0 24 24", "icon stroke"),
+      grip: svg('<circle cx="2.2" cy="2.2" r="1.55"/><circle cx="7.8" cy="2.2" r="1.55"/><circle cx="2.2" cy="8" r="1.55"/><circle cx="7.8" cy="8" r="1.55"/><circle cx="2.2" cy="13.8" r="1.55"/><circle cx="7.8" cy="13.8" r="1.55"/>', "0 0 10 16"),
+      file: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l5 5V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 20V5A1.5 1.5 0 0 1 7.5 3.5z"/></svg>'
+    };
+    function ring() {
+      return `<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="track" cx="18" cy="18" r="14"></circle><circle class="ring" cx="18" cy="18" r="14"></circle></svg><span class="pct" aria-hidden="true"></span>`;
+    }
+    function ghost(act, label, glyph) {
+      return `<button type="button" class="ib" data-act="${act}" aria-label="${label}" title="${label}" aria-expanded="false">${glyph}</button>`;
+    }
+    function uploadBtn() { return ghost("upload", "Add files", icon.plus); }
+    function chatBtn() { return ghost("chat", "Chat", icon.chat); }
+    function presetBtn() { return ghost("presets", "Preset prompts", icon.bookmark); }
+    function dashBtn() { return ghost("dashboard", "Dashboard", icon.grid); }
+    function moreBtn() { return ghost("more", "More options", icon.dots); }
+    function usageBtn() {
+      return `<button type="button" class="usage" data-act="usage" aria-label="Cursor usage" title="Cursor usage" aria-expanded="false">${ring()}</button>`;
+    }
+    function sendBtn() {
+      return `<button type="button" class="ib solid send" data-act="send" aria-label="Prompt by voice" title="Prompt by voice">${icon.mic}${icon.play}${icon.stop}</button>`;
+    }
+    function grip() {
+      return `<div class="grip" data-drag role="button" tabindex="0" aria-label="Drag to move. Arrow keys nudge." title="Drag to move">${icon.grip}</div>`;
+    }
+    function context() {
+      return `<div class="ctx">
+        <label class="switch"><span class="switch-label">View the screen</span><span class="switch-track" aria-hidden="true"></span><input data-screen type="checkbox" role="switch" aria-label="View the screen"></label>
+        <button type="button" class="path" data-act="path" title="Project path"><span data-path-text>Project Path: hooxie</span></button>
+      </div>`;
+    }
+    function promptBox(rows) {
+      return `<div class="composer"><textarea data-prompt rows="${rows || 2}" placeholder="Prompt Cursor anything." aria-label="Prompt" autocomplete="off"></textarea></div>`;
+    }
+    function filesBox() { return `<div class="files" data-files></div>`; }
+    function threadBox() { return `<div class="thread" data-thread></div>`; }
+    function sheetBox() { return `<div class="sheet" data-sheet hidden></div>`; }
+    function foldBtn() {
+      return `<button type="button" class="ib" data-act="fold" aria-label="Show upload, prompt, presets, and send" title="Open composer" aria-expanded="false">${icon.chev}</button>`;
+    }
+
+    function layouts() {
+      return {
+        bar: `<article class="w w-bar" data-w="bar" aria-label="Open bar">
+          <div class="row">${uploadBtn()}${chatBtn()}${usageBtn()}${presetBtn()}${dashBtn()}${moreBtn()}${sendBtn()}${grip()}</div>
+          <div class="drawer" data-drawer="chat" hidden>${context()}${filesBox()}${promptBox()}${threadBox()}</div>
+          ${sheetBox()}
+        </article>`,
+        fold: `<article class="w w-fold" data-w="fold" aria-label="Fold">
+          <div class="row">${foldBtn()}${usageBtn()}${dashBtn()}${grip()}</div>
+          <div class="drawer" data-drawer="fold" hidden>
+            <div class="row">${uploadBtn()}${presetBtn()}${sendBtn()}</div>
+            ${promptBox()}${context()}${filesBox()}${threadBox()}
+          </div>
+          ${sheetBox()}
+        </article>`,
+        dock: `<article class="w w-dock" data-w="dock" aria-label="Prompt dock">
+          ${context()}
+          <div class="dock-line">${uploadBtn()}${promptBox()}${sendBtn()}</div>
+          ${filesBox()}${threadBox()}
+          <div class="row tools">${usageBtn()}${presetBtn()}${dashBtn()}${moreBtn()}<span class="spacer"></span>${grip()}</div>
+          ${sheetBox()}
+        </article>`,
+        orb: `<article class="w w-orb" data-w="orb" aria-label="Orb">
+          <div class="orb" data-drag="orb" role="button" tabindex="0" aria-label="Open Hooxie. Drag to move." aria-expanded="false">${ring()}</div>
+          <div class="orb-card" data-drawer="orb" hidden>
+            <div class="orb-head">${grip()}<strong>Hooxie</strong><button type="button" class="ib" data-act="orb-close" aria-label="Collapse">${icon.close}</button></div>
+            <div class="dock-line">${uploadBtn()}${promptBox()}${sendBtn()}</div>
+            ${context()}
+            <div class="row">${usageBtn()}${presetBtn()}${dashBtn()}${moreBtn()}</div>
+            ${filesBox()}${threadBox()}${sheetBox()}
+          </div>
+        </article>`,
+        rail: `<article class="w w-rail" data-w="rail" aria-label="Side rail">
+          <div class="rail-panel" data-rail-panel hidden>
+            <div data-rail-chat hidden>${context()}${filesBox()}${promptBox()}${threadBox()}</div>
+            ${sheetBox()}
+          </div>
+          <div class="rail-col">${grip()}${uploadBtn()}${chatBtn()}${usageBtn()}${presetBtn()}${dashBtn()}${moreBtn()}${sendBtn()}</div>
+        </article>`,
+        modes: `<article class="w w-modes" data-w="modes" aria-label="Modes">
+          <div class="seg" role="tablist" aria-label="Widget mode">
+            <button type="button" role="tab" data-mode="ask" aria-selected="true">Ask</button>
+            <button type="button" role="tab" data-mode="tools" aria-selected="false">Tools</button>
+            <button type="button" role="tab" data-mode="status" aria-selected="false">Status</button>
+            ${grip()}
+          </div>
+          <div class="mode" data-drawer="ask">${context()}<div class="dock-line">${uploadBtn()}${promptBox()}${sendBtn()}</div>${filesBox()}${threadBox()}</div>
+          <div class="mode" data-drawer="tools" hidden>
+            <button type="button" class="tool-row" data-act="presets"><span>Preset prompts</span></button>
+            <button type="button" class="tool-row" data-act="dashboard"><span>Dashboard</span></button>
+            <button type="button" class="tool-row" data-act="more"><span>More options</span></button>
+          </div>
+          <div class="mode" data-drawer="status" hidden>
+            <div class="status">
+              <div class="status-ring">${ring()}</div>
+              <strong>Included usage</strong>
+              <p class="note" style="margin:0;color:var(--muted);font-size:13px;">Sample figure for this prototype. Credits $18.40, expire Nov 14.</p>
+            </div>
+          </div>
+          ${sheetBox()}
+        </article>`,
+        peek: `<article class="w w-peek" data-w="peek" aria-label="Peek">
+          <div class="peek-bar">
+            ${grip()}
+            <button type="button" class="peek-path" data-act="path"><span data-path-text data-short>hooxie</span></button>
+            <button type="button" class="peek-screen" data-act="screen" aria-pressed="false">View screen <span data-screen-state>Off</span></button>
+            ${usageBtn()}
+            <button type="button" class="ib" data-act="peek" aria-label="Expand Hooxie" title="Expand" aria-expanded="false">${icon.chev}</button>
+          </div>
+          <div class="drawer" data-drawer="peek" hidden>
+            <div class="dock-line">${uploadBtn()}${promptBox()}${sendBtn()}</div>
+            <div class="row">${presetBtn()}${dashBtn()}${moreBtn()}</div>
+            ${filesBox()}${threadBox()}
+          </div>
+          ${sheetBox()}
+        </article>`,
+        split: `<article class="w w-split" data-w="split" aria-label="Split">
+          <div class="clusters">
+            <div class="cluster"><span class="cap">Ask</span><div class="row">${uploadBtn()}${chatBtn()}${presetBtn()}${sendBtn()}</div></div>
+            <div class="cluster"><span class="cap">System</span><div class="row">${usageBtn()}${dashBtn()}${moreBtn()}${grip()}</div></div>
+          </div>
+          <div class="drawer" data-drawer="chat" hidden>${context()}${filesBox()}${promptBox()}${threadBox()}</div>
+          ${sheetBox()}
+        </article>`,
+        typefold: `<article class="w w-typefold" data-w="typefold" aria-label="Type fold">
+          <div class="row type-row">
+            <div class="field">
+              ${uploadBtn()}
+              <textarea data-prompt rows="1" placeholder="Prompt Cursor anything." aria-label="Prompt" autocomplete="off"></textarea>
+              ${sendBtn()}
+            </div>
+            ${presetBtn()}${moreBtn()}${usageBtn()}${dashBtn()}${grip()}
+          </div>
+          <div class="drawer" data-drawer="typefold" hidden>
+            ${context()}${filesBox()}${threadBox()}
+          </div>
+          ${sheetBox()}
+        </article>`,
+        commands: `<article class="w w-cmd" data-w="commands" aria-label="Commands">
+          <div class="dock-line">${grip()}${promptBox()}${sendBtn()}</div>
+          <div class="chips">
+            <button type="button" class="chip" data-act="upload">Upload</button>
+            <button type="button" class="chip" data-act="screen" aria-pressed="false">View screen <span data-screen-state>Off</span></button>
+            <button type="button" class="chip" data-act="path">Project path</button>
+            <button type="button" class="chip" data-act="presets">Presets</button>
+            <button type="button" class="chip" data-act="usage">Usage</button>
+            <button type="button" class="chip" data-act="dashboard">Dashboard</button>
+            <button type="button" class="chip" data-act="more">More</button>
+          </div>
+          ${filesBox()}${threadBox()}${sheetBox()}
+        </article>`
+      };
+    }
+
+    function active() { return document.querySelector(`.w[data-w="${state.design}"]`); }
+    function baseName(path) { return path === "none" ? "none" : path.split("\\").pop(); }
+    function phase() {
+      if (state.working) return "working";
+      if (state.listening) return "listening";
+      if (state.prompt.trim()) return "ready";
+      return "idle";
+    }
+    function sendLabel() {
+      const p = phase();
+      if (p === "working") return "Stop";
+      if (p === "listening") return "Stop listening";
+      if (p === "ready") return "Send prompt";
+      return "Prompt by voice";
+    }
+    function drawerOpen(id, name) {
+      if (name === "chat") return !!ui[id].chat;
+      if (name === "fold") return ui.fold.open;
+      if (name === "orb") return ui.orb.open;
+      if (name === "peek") return ui.peek.open;
+      if (name === "typefold") return typefoldShown();
+      if (name === "ask" || name === "tools" || name === "status") return ui.modes.mode === name;
+      return false;
+    }
+    function sheetKind(id) {
+      const panel = ui[id].panel;
+      if (!panel || panel === "chat") return null;
+      if (id === "modes" && ui.modes.mode === "status") return null;
+      return panel;
+    }
+    function expanded(id) {
+      if (id === "bar" || id === "split") return ui[id].chat || !!ui[id].panel;
+      if (id === "fold" || id === "peek" || id === "orb") return ui[id].open || !!ui[id].panel;
+      if (id === "typefold") return typefoldShown() || !!ui.typefold.panel;
+      if (id === "rail") return !!ui.rail.panel;
+      return true;
+    }
+
+    function typefoldShown() {
+      if (state.working || state.listening) return true;
+      if (ui.typefold.shut && !ui.typefold.open) return false;
+      return ui.typefold.open || !!state.prompt.trim() || state.messages.length > 0 || state.files.length > 0;
+    }
+    function sheetMarkup(kind) {
+      if (kind === "usage") {
+        return `<h2>Cursor usage</h2><p class="note">${state.usage}% of included usage. Sample figure.</p><div class="meter" role="meter" aria-valuenow="${state.usage}" aria-valuemin="0" aria-valuemax="100" aria-label="Included usage"><span style="width:${state.usage}%"></span></div><h3>Credits</h3><p class="balance">$18.40 left</p><p class="note">Expires Nov 14, 2026.</p>`;
+      }
+      if (kind === "presets") {
+        const items = state.presets.map((p, i) => `<li><button type="button" class="preset-hit" data-preset="${i}"><span><span class="pname">${esc(p.name)}</span><span class="ptext">${esc(p.text)}</span></span></button><button type="button" class="remove" data-remove-preset="${i}" aria-label="Remove ${esc(p.name)}">×</button></li>`).join("");
+        return `<h2>Preset prompts</h2><ul class="preset-list">${items || "<li><p class='note'>No presets yet.</p></li>"}</ul><label>Name<input data-preset-name type="text" maxlength="80" placeholder="Bug check" autocomplete="off"></label><button type="button" class="text-btn" data-act="save-preset">Save current prompt</button>`;
+      }
+      if (kind === "dashboard") {
+        return `<h2>Dashboard</h2><p class="note">Signed in to Cursor. This is a sample panel.</p><label>Background opacity <span data-op-val>${Math.round(state.alpha * 100)}%</span><input data-opacity type="range" min="40" max="100" value="${Math.round(state.alpha * 100)}" aria-label="Background opacity"></label><button type="button" class="text-btn" data-act="open-dash">Open full dashboard</button>`;
+      }
+      if (kind === "more") {
+        const clear = state.confirmClear ? "Clear chat now?" : "Clear chat";
+        return `<button type="button" class="menu-btn" data-act="hide"><strong>Hide Hooxie</strong><span>Ctrl+\\ shows it again</span></button><button type="button" class="menu-btn" data-act="clear"><strong>${clear}</strong><span>Remove the conversation</span></button><button type="button" class="menu-btn" data-act="move"><strong>Move Hooxie</strong><span>Follows the pointer until you click</span></button><button type="button" class="menu-btn" data-act="ghost" aria-pressed="${state.ghost}"><strong>Undetectable</strong><span>${state.ghost ? "On — hidden from a normal screen share" : "Off — visible in a normal screen share"}</span></button>`;
+      }
+      if (kind === "path") {
+        const choices = PATHS.map((p) => `<li><button type="button" class="choice" data-pick-path="${esc(p)}" aria-pressed="${p === state.path}"><span>${p === "none" ? "No project folder" : esc(p)}</span></button></li>`).join("");
+        return `<h2>Project path</h2><ul class="choices">${choices}</ul>`;
+      }
+      return "";
+    }
+
+    function renderSheet() {
+      const id = state.design;
+      const kind = sheetKind(id);
+      const key = `${id}:${kind}:${state.presets.length}:${state.confirmClear}:${state.ghost}:${state.path}:${state.usage}`;
+      const w = active();
+      const sheet = w && w.querySelector("[data-sheet]");
+      if (sheet) sheet.hidden = !kind;
+      if (key === sheetKey) return;
+      sheetKey = key;
+      if (sheet) sheet.innerHTML = kind ? sheetMarkup(kind) : "";
+    }
+
+    function renderFiles() {
+      const html = state.files.map((f, i) => {
+        const thumb = f.url ? `<img alt="" src="${esc(f.url)}">` : `<span class="glyph">${icon.file}</span>`;
+        return `<span class="filechip">${thumb}<span>${esc(f.name)}</span><button type="button" data-remove-file="${i}" aria-label="Remove ${esc(f.name)}">×</button></span>`;
+      }).join("");
+      document.querySelectorAll("[data-files]").forEach((el) => { el.innerHTML = html; });
+    }
+    function renderThread() {
+      const bits = state.messages.map((m) => `<p class="msg ${m.role === "user" ? "user" : "agent"}">${esc(m.text)}</p>`);
+      if (state.working) bits.push('<p class="pending">Cursor is working…</p>');
+      const html = bits.join("") || '<p class="empty">No messages yet.</p>';
+      document.querySelectorAll("[data-thread]").forEach((el) => { el.innerHTML = html; });
+    }
+    function renderStudy() {
+      const d = DESIGNS.find((x) => x.id === state.design);
+      document.getElementById("why-name").textContent = `${d.n}. ${d.name}`;
+      document.getElementById("why-text").textContent = d.summary;
+      fill("why-visible", d.visible);
+      fill("why-demand", d.demand);
+      document.querySelectorAll("#designs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.design === state.design ? "true" : "false"));
+    }
+    function fill(id, items) {
+      const ul = document.getElementById(id);
+      ul.replaceChildren();
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+    }
+
+    function sync() {
+      const id = state.design;
+      document.querySelectorAll(".w").forEach((w) => {
+        const mine = w.dataset.w;
+        w.hidden = mine !== id;
+        w.classList.toggle("is-open", expanded(mine));
+        const u = ui[mine];
+        w.querySelectorAll("[data-act='usage']").forEach((b) => b.setAttribute("aria-expanded", u.panel === "usage" ? "true" : "false"));
+        w.querySelectorAll("[data-act='presets']").forEach((b) => b.setAttribute("aria-expanded", u.panel === "presets" ? "true" : "false"));
+        w.querySelectorAll("[data-act='dashboard']").forEach((b) => b.setAttribute("aria-expanded", u.panel === "dashboard" ? "true" : "false"));
+        w.querySelectorAll("[data-act='more']").forEach((b) => b.setAttribute("aria-expanded", u.panel === "more" ? "true" : "false"));
+        w.querySelectorAll("[data-act='path']").forEach((b) => b.setAttribute("aria-expanded", u.panel === "path" ? "true" : "false"));
+        w.querySelectorAll("[data-act='chat']").forEach((b) => b.setAttribute("aria-expanded", u.chat || u.panel === "chat" ? "true" : "false"));
+        w.querySelectorAll("[data-act='fold'], [data-act='peek']").forEach((b) => b.setAttribute("aria-expanded", u.open ? "true" : "false"));
+        w.querySelectorAll("[data-act='typefold']").forEach((b) => b.setAttribute("aria-expanded", typefoldShown() ? "true" : "false"));
+      });
+      const w = active();
+      if (w) {
+        w.querySelectorAll("[data-drawer]").forEach((el) => { el.hidden = !drawerOpen(id, el.dataset.drawer); });
+        if (id === "orb") {
+          w.querySelector(".orb").hidden = ui.orb.open;
+          w.querySelector(".orb").setAttribute("aria-expanded", ui.orb.open ? "true" : "false");
+        }
+        if (id === "rail") {
+          w.querySelector("[data-rail-panel]").hidden = !ui.rail.panel;
+          w.querySelector("[data-rail-chat]").hidden = ui.rail.panel !== "chat";
+          w.classList.toggle("is-flip", (pos.rail ? pos.rail.x : stageEl.clientWidth) < stageEl.clientWidth * 0.45);
+        }
+        if (id === "modes") {
+          w.querySelectorAll("[data-mode]").forEach((tab) => tab.setAttribute("aria-selected", tab.dataset.mode === ui.modes.mode ? "true" : "false"));
+        }
+      }
+      floatEl.dataset.phase = phase();
+      floatEl.hidden = state.hidden;
+      document.getElementById("restore").hidden = !state.hidden;
+      document.getElementById("ghost-note").hidden = !state.ghost || state.hidden;
+      floatEl.style.setProperty("--alpha", String(state.alpha));
+      const label = sendLabel();
+      document.querySelectorAll("[data-act='send']").forEach((b) => {
+        b.setAttribute("aria-label", label);
+        b.title = label;
+        b.setAttribute("aria-pressed", state.listening ? "true" : "false");
+      });
+      document.querySelectorAll("[data-prompt]").forEach((el) => {
+        if (el.value !== state.prompt) el.value = state.prompt;
+        el.placeholder = state.listening ? "Listening…" : "Prompt Cursor anything.";
+      });
+      document.querySelectorAll("[data-screen]").forEach((el) => { el.checked = state.screen; });
+      document.querySelectorAll("[data-act='screen']").forEach((el) => el.setAttribute("aria-pressed", state.screen ? "true" : "false"));
+      document.querySelectorAll("[data-screen-state]").forEach((el) => { el.textContent = state.screen ? "On" : "Off"; });
+      const full = state.path === "none" ? "Project Path: none" : `Project Path: ${baseName(state.path)}`;
+      document.querySelectorAll("[data-path-text]").forEach((el) => {
+        el.textContent = el.hasAttribute("data-short") ? baseName(state.path) : full;
+      });
+      document.querySelectorAll("[data-act='path']").forEach((el) => {
+        el.title = state.path === "none" ? "Choose a project folder" : state.path;
+      });
+      const C = 2 * Math.PI * 14;
+      const filled = (state.usage / 100) * C;
+      document.querySelectorAll(".ring").forEach((el) => el.setAttribute("stroke-dasharray", `${filled} ${C}`));
+      document.querySelectorAll(".pct").forEach((el) => { el.textContent = String(state.usage); });
+      document.querySelectorAll(".usage").forEach((el) => el.setAttribute("aria-label", `Cursor usage, ${state.usage} percent`));
+      const orb = document.querySelector(".orb");
+      if (orb) orb.setAttribute("aria-label", `Hooxie, ${state.usage} percent of Cursor usage. Click to open, drag to move.`);
+      renderSheet();
+      requestAnimationFrame(measure);
+    }
+
+    function measure() {
+      if (state.hidden) {
+        document.getElementById("size").textContent = "Hidden";
+        return;
+      }
+      const w = active();
+      if (!w) return;
+      const r = w.getBoundingClientRect();
+      document.getElementById("size").textContent = `${Math.round(r.width)} × ${Math.round(r.height)}`;
+    }
+    function placeDefault() {
+      if (pos[state.design]) {
+        floatEl.style.left = pos[state.design].x + "px";
+        floatEl.style.top = pos[state.design].y + "px";
+        return;
+      }
+      const w = floatEl.offsetWidth || active().offsetWidth;
+      pos[state.design] = { x: Math.max(16, stageEl.clientWidth - w - 28), y: 24 };
+      floatEl.style.left = pos[state.design].x + "px";
+      floatEl.style.top = pos[state.design].y + "px";
+    }
+    function fit() {
+      const pad = 12;
+      let x = floatEl.offsetLeft;
+      let y = floatEl.offsetTop;
+      const overflow = y + floatEl.offsetHeight - (stageEl.clientHeight - pad);
+      if (overflow > 0) y = Math.max(pad, y - overflow);
+      const maxX = Math.max(pad, stageEl.clientWidth - Math.min(floatEl.offsetWidth, stageEl.clientWidth - pad));
+      x = Math.min(Math.max(pad, x), maxX);
+      floatEl.style.left = x + "px";
+      floatEl.style.top = y + "px";
+      pos[state.design] = { x, y };
+    }
+    function select(id) {
+      if (!DESIGNS.some((d) => d.id === id)) return;
+      state.design = id;
+      state.confirmClear = false;
+      renderStudy();
+      sync();
+      requestAnimationFrame(() => {
+        placeDefault();
+        fit();
+        measure();
+      });
+    }
+    function revealComposer() {
+      const id = state.design;
+      if (id === "bar" || id === "split") ui[id].chat = true;
+      if (id === "fold" || id === "peek" || id === "orb") ui[id].open = true;
+      if (id === "typefold") { ui.typefold.open = true; ui.typefold.shut = false; }
+      if (id === "rail") ui.rail.panel = "chat";
+      if (id === "modes") ui.modes.mode = "ask";
+    }
+    function togglePanel(name) {
+      const u = ui[state.design];
+      u.panel = u.panel === name ? null : name;
+      if ((state.design === "peek" || state.design === "fold" || state.design === "orb" || state.design === "typefold") && u.panel) {
+        u.open = true;
+        if (state.design === "typefold") u.shut = false;
+      }
+      if (state.design === "modes" && u.panel) ui.modes.mode = "tools";
+      if (state.design === "rail" && name !== "chat") {
+        /* panel replaces the side content */
+      }
+      state.confirmClear = false;
+      sheetKey = "";
+      sync();
+      requestAnimationFrame(fit);
+    }
+    function say(text) {
+      const live = document.getElementById("status");
+      live.textContent = "";
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.hidden = true; }, 3200);
+      requestAnimationFrame(() => { live.textContent = text; });
+    }
+    function addFiles(list) {
+      Array.from(list || []).forEach((file) => {
+        if (state.files.some((f) => f.name === file.name)) return;
+        const url = file.type && file.type.startsWith("image/") ? URL.createObjectURL(file) : "";
+        state.files.push({ name: file.name, url });
+      });
+      revealComposer();
+      renderFiles();
+      sync();
+      requestAnimationFrame(fit);
+      if (state.files.length) say(`${state.files.length} file${state.files.length === 1 ? "" : "s"} attached.`);
+    }
+    function startListen() {
+      state.listening = true;
+      sync();
+      say("Listening.");
+      clearTimeout(listenTimer);
+      listenTimer = setTimeout(() => {
+        state.listening = false;
+        if (!state.prompt.trim()) state.prompt = "Explain how this overlay stays above other windows.";
+        revealComposer();
+        sync();
+        say("Voice captured. Send when it looks right.");
+        const area = active().querySelector("textarea");
+        if (area) area.focus();
+      }, 1400);
+    }
+    function stopListen() {
+      clearTimeout(listenTimer);
+      state.listening = false;
+      sync();
+      say("Listening stopped.");
+    }
+    function stopWork() {
+      clearTimeout(workTimer);
+      state.working = false;
+      renderThread();
+      sync();
+      say("Stopped.");
+    }
+    function sendPrompt() {
+      const text = state.prompt.trim();
+      if (!text) return;
+      state.messages.push({ role: "user", text });
+      state.prompt = "";
+      state.working = true;
+      revealComposer();
+      renderThread();
+      sync();
+      say("Sending.");
+      clearTimeout(workTimer);
+      workTimer = setTimeout(() => {
+        if (!state.working) return;
+        state.working = false;
+        const where = state.path === "none" ? "no project folder" : baseName(state.path);
+        state.messages.push({ role: "agent", text: `Prototype reply. A real send would start a Cursor agent on ${where}.` });
+        renderThread();
+        sync();
+        say("Sent.");
+        requestAnimationFrame(fit);
+      }, 1100);
+    }
+    function onSend() {
+      if (state.working) return stopWork();
+      if (state.listening) return stopListen();
+      if (!state.prompt.trim()) return startListen();
+      sendPrompt();
+    }
+    function closeTop() {
+      const u = ui[state.design];
+      if (state.moving) return stopMove();
+      if (u.panel) {
+        u.panel = null;
+        state.confirmClear = false;
+        sheetKey = "";
+        sync();
+        return;
+      }
+      if (u.chat) { u.chat = false; sync(); return; }
+      if (state.design === "typefold" && typefoldShown()) {
+        ui.typefold.open = false;
+        ui.typefold.shut = true;
+        sync();
+        return;
+      }
+      if (u.open) { u.open = false; sync(); requestAnimationFrame(fit); }
+    }
+    function applyTheme(light) {
+      document.documentElement.dataset.theme = light ? "light" : "dark";
+      state.alpha = light ? 0.92 : 0.5;
+      const btn = document.getElementById("theme");
+      btn.setAttribute("aria-pressed", light ? "true" : "false");
+      btn.textContent = light ? "Widget: Light" : "Widget: Dark";
+      sync();
+    }
+    function stopMove() {
+      state.moving = false;
+      floatEl.classList.remove("is-moving");
+      if (moveListeners) {
+        document.removeEventListener("pointermove", moveListeners.move);
+        document.removeEventListener("pointerdown", moveListeners.down, true);
+        document.removeEventListener("keydown", moveListeners.key);
+        moveListeners = null;
+      }
+    }
+    function startMove() {
+      stopMove();
+      state.moving = true;
+      floatEl.classList.add("is-moving");
+      ui[state.design].panel = null;
+      sheetKey = "";
+      sync();
+      say("Move the pointer, then click to drop Hooxie.");
+      const move = (e) => {
+        const x = e.clientX - stageEl.getBoundingClientRect().left - floatEl.offsetWidth / 2;
+        const y = e.clientY - stageEl.getBoundingClientRect().top - 20;
+        floatEl.style.left = x + "px";
+        floatEl.style.top = y + "px";
+        pos[state.design] = { x, y };
+      };
+      const down = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        fit();
+        stopMove();
+        say("Dropped.");
+      };
+      const key = (e) => { if (e.key === "Escape") { stopMove(); say("Move cancelled."); } };
+      moveListeners = { move, down, key };
+      document.addEventListener("pointermove", move);
+      document.addEventListener("pointerdown", down, true);
+      document.addEventListener("keydown", key);
+    }
+
+    function onAct(act, target) {
+      const id = state.design;
+      if (act === "upload") { fileInput.click(); return; }
+      if (act === "chat") {
+        if (id === "rail") ui.rail.panel = ui.rail.panel === "chat" ? null : "chat";
+        else ui[id].chat = !ui[id].chat;
+        sync();
+        requestAnimationFrame(fit);
+        return;
+      }
+      if (act === "fold") { ui.fold.open = !ui.fold.open; sync(); requestAnimationFrame(fit); return; }
+      if (act === "typefold") {
+        if (typefoldShown()) { ui.typefold.open = false; ui.typefold.shut = true; }
+        else { ui.typefold.open = true; ui.typefold.shut = false; }
+        sync();
+        requestAnimationFrame(fit);
+        return;
+      }
+      if (act === "peek") { ui.peek.open = !ui.peek.open; sync(); requestAnimationFrame(fit); return; }
+      if (act === "orb-close") { ui.orb.open = false; ui.orb.panel = null; sync(); requestAnimationFrame(fit); return; }
+      if (act === "screen") { state.screen = !state.screen; sync(); return; }
+      if (act === "send") return onSend();
+      if (act === "usage" || act === "presets" || act === "dashboard" || act === "more" || act === "path") return togglePanel(act);
+      if (act === "save-preset") {
+        const nameInput = active().querySelector("[data-preset-name]");
+        const text = state.prompt.trim();
+        if (!text) { say("Type a prompt first."); return; }
+        const name = (nameInput && nameInput.value.trim()) || text.slice(0, 28);
+        state.presets.push({ name, text });
+        sheetKey = "";
+        renderSheet();
+        say("Preset saved.");
+        return;
+      }
+      if (act === "open-dash") { say("The full dashboard would open in the browser."); return; }
+      if (act === "hide") {
+        state.hidden = true;
+        ui[id].panel = null;
+        sync();
+        say("Hooxie is hidden.");
+        return;
+      }
+      if (act === "clear") {
+        if (!state.confirmClear) {
+          state.confirmClear = true;
+          sheetKey = "";
+          renderSheet();
+          say("Click clear again to remove the conversation.");
+          clearTimeout(clearTimer);
+          clearTimer = setTimeout(() => { state.confirmClear = false; sheetKey = ""; renderSheet(); }, 4000);
+          return;
+        }
+        state.messages = [];
+        state.confirmClear = false;
+        renderThread();
+        sheetKey = "";
+        sync();
+        say("Chat cleared.");
+        return;
+      }
+      if (act === "move") return startMove();
+      if (act === "ghost") {
+        state.ghost = !state.ghost;
+        sheetKey = "";
+        sync();
+        say(state.ghost ? "Undetectable is on." : "Undetectable is off.");
+      }
+    }
+
+    document.getElementById("widgets").innerHTML = Object.values(layouts()).join("");
+    document.getElementById("designs").innerHTML = DESIGNS.map((d) => `<button type="button" data-design="${d.id}" aria-pressed="false">${d.n}. ${esc(d.name)}${d.yours ? '<span class="yours">Your idea</span>' : ""}</button>`).join("");
+
+    document.getElementById("designs").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-design]");
+      if (b) select(b.dataset.design);
+    });
+    document.getElementById("theme").addEventListener("click", () => {
+      applyTheme(document.documentElement.dataset.theme !== "light");
+    });
+    document.getElementById("restore").addEventListener("click", () => {
+      state.hidden = false;
+      sync();
+      say("Hooxie is back.");
+    });
+    fileInput.addEventListener("change", () => { addFiles(fileInput.files); fileInput.value = ""; });
+
+    floatEl.addEventListener("click", (e) => {
+      const preset = e.target.closest("[data-preset]");
+      if (preset) {
+        state.prompt = state.presets[Number(preset.dataset.preset)].text;
+        revealComposer();
+        ui[state.design].panel = null;
+        sheetKey = "";
+        sync();
+        const area = active().querySelector("textarea");
+        if (area) area.focus();
+        say("Preset ready to send.");
+        return;
+      }
+      const removePreset = e.target.closest("[data-remove-preset]");
+      if (removePreset) {
+        state.presets.splice(Number(removePreset.dataset.removePreset), 1);
+        sheetKey = "";
+        renderSheet();
+        return;
+      }
+      const pick = e.target.closest("[data-pick-path]");
+      if (pick) {
+        state.path = pick.dataset.pickPath;
+        ui[state.design].panel = null;
+        sheetKey = "";
+        sync();
+        say(state.path === "none" ? "Project path cleared." : `Project path set to ${baseName(state.path)}.`);
+        return;
+      }
+      const removeFile = e.target.closest("[data-remove-file]");
+      if (removeFile) {
+        const file = state.files.splice(Number(removeFile.dataset.removeFile), 1)[0];
+        if (file && file.url) URL.revokeObjectURL(file.url);
+        renderFiles();
+        return;
+      }
+      const mode = e.target.closest("[data-mode]");
+      if (mode) {
+        ui.modes.mode = mode.dataset.mode;
+        if (ui.modes.mode === "status") ui.modes.panel = null;
+        sheetKey = "";
+        sync();
+        requestAnimationFrame(fit);
+        return;
+      }
+      const act = e.target.closest("[data-act]");
+      if (act) onAct(act.dataset.act, act);
+    });
+    floatEl.addEventListener("input", (e) => {
+      if (e.target.matches("[data-prompt]")) {
+        state.prompt = e.target.value;
+        if (state.design === "typefold" && state.prompt.trim()) ui.typefold.shut = false;
+        sync();
+        if (state.design === "typefold") requestAnimationFrame(fit);
+      }
+      if (e.target.matches("[data-opacity]")) {
+        state.alpha = Number(e.target.value) / 100;
+        floatEl.style.setProperty("--alpha", String(state.alpha));
+        const label = e.target.parentElement.querySelector("[data-op-val]");
+        if (label) label.textContent = `${e.target.value}%`;
+      }
+    });
+    floatEl.addEventListener("change", (e) => {
+      if (e.target.matches("[data-screen]")) {
+        state.screen = e.target.checked;
+        sync();
+      }
+    });
+    floatEl.addEventListener("keydown", (e) => {
+      if (e.target.matches("textarea") && e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        onSend();
+        return;
+      }
+      const gripEl = e.target.closest("[data-drag]");
+      if (!gripEl) return;
+      const step = e.shiftKey ? 28 : 12;
+      let x = floatEl.offsetLeft;
+      let y = floatEl.offsetTop;
+      if (e.key === "ArrowLeft") x -= step;
+      else if (e.key === "ArrowRight") x += step;
+      else if (e.key === "ArrowUp") y -= step;
+      else if (e.key === "ArrowDown") y += step;
+      else if ((e.key === "Enter" || e.key === " ") && gripEl.dataset.drag === "orb") {
+        e.preventDefault();
+        ui.orb.open = !ui.orb.open;
+        sync();
+        requestAnimationFrame(fit);
+        return;
+      } else return;
+      e.preventDefault();
+      floatEl.style.left = x + "px";
+      floatEl.style.top = y + "px";
+      fit();
+    });
+
+    floatEl.addEventListener("pointerdown", (e) => {
+      const handle = e.target.closest("[data-drag]");
+      if (!handle || e.button !== 0) return;
+      drag = {
+        id: e.pointerId,
+        orb: handle.dataset.drag === "orb",
+        x: e.clientX,
+        y: e.clientY,
+        left: floatEl.offsetLeft,
+        top: floatEl.offsetTop,
+        moved: false
+      };
+      handle.setPointerCapture(e.pointerId);
+      floatEl.classList.add("is-dragging");
+      e.preventDefault();
+    });
+    floatEl.addEventListener("pointermove", (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
+      if (Math.hypot(dx, dy) > 4) drag.moved = true;
+      floatEl.style.left = (drag.left + dx) + "px";
+      floatEl.style.top = (drag.top + dy) + "px";
+      pos[state.design] = { x: floatEl.offsetLeft, y: floatEl.offsetTop };
+      if (state.design === "rail") {
+        active().classList.toggle("is-flip", floatEl.offsetLeft < stageEl.clientWidth * 0.45);
+      }
+    });
+    function endDrag(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      const moved = drag.moved;
+      const orb = drag.orb;
+      drag = null;
+      floatEl.classList.remove("is-dragging");
+      fit();
+      if (orb && !moved) {
+        ui.orb.open = !ui.orb.open;
+        sync();
+        requestAnimationFrame(fit);
+      }
+    }
+    floatEl.addEventListener("pointerup", endDrag);
+    floatEl.addEventListener("pointercancel", endDrag);
+
+    floatEl.addEventListener("dragover", (e) => {
+      if (![...e.dataTransfer.types].includes("Files")) return;
+      e.preventDefault();
+      active().classList.add("is-dropping");
+    });
+    floatEl.addEventListener("dragleave", (e) => {
+      if (!floatEl.contains(e.relatedTarget)) active().classList.remove("is-dropping");
+    });
+    floatEl.addEventListener("drop", (e) => {
+      if (!e.dataTransfer.files.length) return;
+      e.preventDefault();
+      active().classList.remove("is-dropping");
+      addFiles(e.dataTransfer.files);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { closeTop(); return; }
+      if (e.ctrlKey && e.key === "\\") {
+        e.preventDefault();
+        state.hidden = !state.hidden;
+        sync();
+        say(state.hidden ? "Hooxie is hidden." : "Hooxie is back.");
+        return;
+      }
+      if (e.target.matches("textarea, input")) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "0") { select("typefold"); return; }
+      const n = Number(e.key);
+      if (n >= 1 && n <= 9) select(DESIGNS[n - 1].id);
+    });
+
+    new ResizeObserver(() => measure()).observe(floatEl);
+    window.addEventListener("resize", () => { fit(); measure(); });
+
+    renderFiles();
+    renderThread();
+    select("bar");
+  </script>
+</body>
+</html>

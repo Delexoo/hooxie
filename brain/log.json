@@ -1,0 +1,67 @@
+{
+  "repo": "Delexoo/hooxie",
+  "updates": [
+    {
+      "version": "0.2.0",
+      "date": "2026-10-15",
+      "title": "Type fold, voice outline, and a license for this computer",
+      "sections": [
+        {
+          "heading": "Widget",
+          "notes": [
+            "The prompt stays on the bar, with upload on the left and send or voice on the right. Presets, more, usage, dashboard, and drag sit beside it.",
+            "View the screen, the project path, attachments, and the conversation open when you type, attach a file, already have a conversation, are listening, or the agent is working. Clearing the prompt folds them away.",
+            "When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward.",
+            "The widget opens a little lower on the screen. The scrollbar is only on the conversation.",
+            "More options can open the connected IDE on the current project.",
+            "While Cursor usage is loading, the ring eases around the circle, then fills to the percentage."
+          ]
+        },
+        {
+          "heading": "Setup",
+          "notes": [
+            "Setup is two steps: choose an IDE, then the license. Back and Next move between them, and a progress bar shows how far along you are.",
+            "Each IDE has a plain Download link and a switch. On means the widget uses that IDE. Only one IDE can be on. An IDE that is not installed stays off.",
+            "Setup can be dragged, minimized, and closed. Help opens the onboarding section of the website.",
+            "Hooxie is $5.99 once for this computer. Sharing the app or the license file does not unlock another computer.",
+            "If this computer is already paid for, Hooxie finds that payment and continues."
+          ]
+        },
+        {
+          "heading": "Voice",
+          "notes": [
+            "Saying “Hooxie” starts one voice session.",
+            "The open sound plays when the typing outline appears. The close sound plays when that outline turns off, including when you click out of the prompt or stop voice.",
+            "Holding Escape for three quarters of a second clears the prompt and lets the widget go. While you hold it, the outline color closes around the border. When the hold finishes, the outline stays closed.",
+            "The blue-to-peach outline travels around the widget.",
+            "Placeholder questions type on one letter at a time."
+          ]
+        },
+        {
+          "heading": "Chat",
+          "notes": [
+            "Conversation text is smaller and more compact.",
+            "Queued messages are numbered cards. The first one sends next, and each card can be removed."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-10-12",
+      "title": "First public build",
+      "sections": [
+        {
+          "heading": "First build",
+          "notes": [
+            "The widget sits at the top of the screen and sends a prompt to a Cursor agent for the folder you choose.",
+            "One button is the microphone when the prompt is empty, send when there is text, and a square stop while the agent is working.",
+            "You can attach files, a folder, or a screenshot of the current screen.",
+            "Detectable can be turned off so a normal screen share or recording does not show Hooxie.",
+            "Keybinds hide or show the widget, ask about the screen, clear the chat, start a session, and move the pill."
+          ]
+        }
+      ]
+    }
+  ]
+}

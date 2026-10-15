@@ -5,6 +5,7 @@ import {
   creditBalance,
   mergeCredits,
   stripeCreditCents,
+  usageDetails,
   usagePercent,
 } from "../src/cursor-usage.ts";
 
@@ -47,6 +48,57 @@ test("stripe prepaid credit is the absolute negative customer balance", () => {
   assert.equal(stripeCreditCents({ customerBalance: -125 }), 125);
   assert.equal(stripeCreditCents({ customerBalance: 0 }), 0);
   assert.equal(stripeCreditCents({ customer_balance: "50" }), 0);
+});
+
+test("usage details include plan, included spend, auto and api, bonus, and reset", () => {
+  assert.deepEqual(
+    usageDetails(
+      {
+        billingCycleEnd: "1794529706000",
+        planUsage: {
+          includedSpend: 2000,
+          limit: 2000,
+          bonusSpend: 16730,
+          autoPercentUsed: 41.62,
+          apiPercentUsed: 0,
+          totalPercentUsed: 37.8,
+        },
+      },
+      { planInfo: { planName: "Pro", price: "$20/mo", billingCycleEnd: "1" } },
+      { membershipType: "ultra" },
+    ),
+    {
+      planName: "Pro",
+      price: "$20/mo",
+      includedCents: 2000,
+      limitCents: 2000,
+      bonusCents: 16730,
+      autoPercent: 42,
+      apiPercent: 0,
+      resetsAtMs: 1794529706000,
+    },
+  );
+});
+
+test("usage details fall back to the stripe plan and hide empty spend", () => {
+  assert.deepEqual(
+    usageDetails(
+      { planUsage: { limit: 0, bonusSpend: 0 } },
+      { planInfo: { planName: "  ", price: "free" } },
+      { individualMembershipType: "pro_plus" },
+    ),
+    {
+      planName: "Pro+",
+      price: null,
+      includedCents: null,
+      limitCents: null,
+      bonusCents: null,
+      autoPercent: null,
+      apiPercent: null,
+      resetsAtMs: null,
+    },
+  );
+  assert.equal(usageDetails({}, {}, {}).planName, null);
 });
 
 test("credits prefer grant balance then active grants and add stripe prepaid", () => {
