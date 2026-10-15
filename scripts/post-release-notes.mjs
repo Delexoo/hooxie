@@ -12,12 +12,14 @@ for (const update of log.updates) {
   const tag = `v${update.version}`;
   if (releaseExists(repo, tag)) continue;
   const notes = update.sections.flatMap((section) => [`## ${section.heading}`, ...section.notes.map((note) => `- ${note}`), ""]).join("\n");
-  execFileSync("gh", [
+  const args = [
     "release", "create", tag,
     "--repo", repo,
     "--title", `${update.version} · ${update.title}`,
     "--notes", notes.trim(),
-  ], { stdio: "inherit" });
+  ];
+  if (update.target) args.push("--target", update.target);
+  execFileSync("gh", args, { stdio: "inherit" });
   posted += 1;
   console.log(`Posted ${tag}.`);
 }

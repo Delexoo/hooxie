@@ -49,6 +49,7 @@
     {
       "version": "0.1.0",
       "date": "2026-10-12",
+      "target": "af8fde6",
       "title": "First public build",
       "sections": [
         {
