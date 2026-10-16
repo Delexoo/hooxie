@@ -1,5 +1,5 @@
 #define MyAppName "Hooxie"
-#define MyAppVersion "0.2.11"
+#define MyAppVersion "0.2.12"
 #define MyAppPublisher "Delexo"
 #define MyAppURL "https://hooxie.com"
 #define MyAppExeName "Hooxie.cmd"
@@ -17,7 +17,7 @@ AppCopyright=Copyright (C) 2026 Delexo
 DefaultDirName={autopf}\Delexo\Hooxie
 DefaultGroupName=Hooxie
 DisableProgramGroupPage=yes
-LicenseFile=..\LICENSE
+LicenseFile=license.rtf
 SetupIconFile=..\src\widget-shell\hooxie.ico
 UninstallDisplayIcon={app}\shell\HooxieShell.exe
 PrivilegesRequired=admin
@@ -30,7 +30,7 @@ WizardStyle=modern
 UninstallDisplayName=Hooxie
 VersionInfoCompany=Delexo
 VersionInfoProductName=Hooxie
-VersionInfoVersion=0.2.11.0
+VersionInfoVersion=0.2.12.0
 VersionInfoCopyright=Copyright (C) 2026 Delexo
 SetupLogging=yes
 ArchitecturesInstallIn64BitMode=x64compatible

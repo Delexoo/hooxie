@@ -2,6 +2,21 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.12",
+      "date": "2026-10-16",
+      "title": "The installer license is easier to read",
+      "tag": "v0.2.12",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.12",
+      "sections": [
+        {
+          "heading": "Setup",
+          "added": [
+            "The license in setup uses headings, spacing, and bold section numbers."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.11",
       "date": "2026-10-16",
       "title": "Dashboard uses the settings-panel layout",
