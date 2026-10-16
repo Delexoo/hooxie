@@ -479,6 +479,7 @@ function bootDashboard() {
   let setupIdes = [];
   let routes = [];
   let catalog = { ides: [], installations: [], sessions: [] };
+  const keyed = new Set();
 
   for (const color of COLORS) {
     const swatch = document.createElement("button");
@@ -487,7 +488,7 @@ function bootDashboard() {
     swatch.dataset.color = color;
     swatch.style.background = color;
     swatch.setAttribute("aria-label", color);
-    swatch.addEventListener("click", () => save({ button: color }));
+    swatch.addEventListener("click", () => save({ button: color, lookReady: true }));
     swatches.append(swatch);
   }
 
@@ -538,8 +539,10 @@ function bootDashboard() {
     audio.checked = settings.audio !== false;
     const voiceActivation = document.querySelector("#voice-activation");
     if (voiceActivation) voiceActivation.checked = settings.voiceActivation === true;
-    opacity.value = String(settings.opacity ?? 50);
-    opacityValue.textContent = `${opacity.value}%`;
+    if (document.activeElement !== opacity) {
+      opacity.value = String(settings.opacity ?? 50);
+      opacityValue.textContent = `${opacity.value}%`;
+    }
     setLanguage(settings.language || "en");
     session.textContent = settings.session ? t("session.running") : t("session.stopped");
     const version = document.querySelector("#version");
@@ -634,9 +637,11 @@ function bootDashboard() {
   document.querySelector("#voice-activation").addEventListener("change", (event) => save({ voiceActivation: event.target.checked }));
   document.querySelector("#trace").addEventListener("change", (event) => save({ trace: event.target.checked, lookReady: true }));
   document.querySelector("#arrows").addEventListener("change", (event) => save({ arrows: event.target.checked }));
+  let opacityTimer = 0;
   opacity.addEventListener("input", () => {
     opacityValue.textContent = `${opacity.value}%`;
-    save({ opacity: Number(opacity.value) });
+    window.clearTimeout(opacityTimer);
+    opacityTimer = window.setTimeout(() => save({ opacity: Number(opacity.value), lookReady: true }), 80);
   });
   for (const button of languageButtons) {
     button.addEventListener("click", () => save({ language: button.dataset.lang }));
@@ -790,6 +795,7 @@ function bootDashboard() {
   renderKeyChoices();
   renderServiceChoices();
   wireWidget();
+  loadKeys().catch(() => undefined);
   paintReleaseNotes();
 
   const SOUND_FIELDS = { open: "openSound", close: "closeSound", done: "chime" };
@@ -821,37 +827,58 @@ function bootDashboard() {
     "holographic-open": "menu-open-holographic.mp3",
   };
   const waveCache = new Map();
-  let soundSignature = "";
   let previewAudio = null;
   let previewUrl = "";
+  wireSounds();
   refresh().catch((error) => { explainFailure(status, error); });
   loadAudioDevices().then(() => paint()).catch(() => undefined);
   if (LOCAL && TOKEN) window.setInterval(() => { refresh().catch(() => {}); }, 1500);
 
-  function paintSounds() {
-    const board = document.querySelector("#sound-board");
-    if (!board) return;
+  function soundChoices() {
     const choices = SOUND_CHOICES.filter((item) => item[0] !== "off");
     if (settings.chimeCustom || settings.chime === "custom" || settings.openSound === "custom" || settings.closeSound === "custom") {
       choices.push(["custom", "Your sound"]);
     }
-    const signature = `${choices.map((item) => item[0]).join(",")}|${settings.openSound}|${settings.closeSound}|${settings.chime}`;
-    if (signature !== soundSignature) {
-      soundSignature = signature;
-      for (const section of board.querySelectorAll("[data-sound]")) {
-        const field = SOUND_FIELDS[section.dataset.sound];
-        const list = section.querySelector(".sound-list");
-        list.replaceChildren();
-        for (const [id, label] of choices) list.append(soundRow(id, label, field));
-        list.append(soundOff(field));
+    choices.push(["off", "Off"]);
+    return choices;
+  }
+
+  function paintSounds() {
+    const choices = soundChoices();
+    const signature = choices.map((item) => item[0]).join(",");
+    for (const [slot, field] of Object.entries(SOUND_FIELDS)) {
+      const select = document.querySelector(`#sound-${slot}`);
+      if (!select) continue;
+      if (select.dataset.signature !== signature) {
+        select.dataset.signature = signature;
+        select.replaceChildren(...choices.map(([id, label]) => {
+          const option = document.createElement("option");
+          option.value = id;
+          option.textContent = label;
+          return option;
+        }));
       }
-    }
-    for (const section of board.querySelectorAll("[data-sound]")) {
-      const field = SOUND_FIELDS[section.dataset.sound];
       const selected = settings[field] || (field === "chime" ? "blushing" : "off");
-      for (const button of section.querySelectorAll("[data-sound-id]")) {
-        button.setAttribute("aria-checked", String(button.dataset.soundId === selected));
-      }
+      if ([...select.options].some((item) => item.value === selected)) select.value = selected;
+      select.dispatchEvent(new Event("pick-sync"));
+      if (select.dataset.pickMenu !== "1") mountPickMenu(select);
+    }
+  }
+
+  function wireSounds() {
+    for (const [slot, field] of Object.entries(SOUND_FIELDS)) {
+      const select = document.querySelector(`#sound-${slot}`);
+      select?.addEventListener("change", () => save({ [field]: select.value }));
+    }
+    for (const button of document.querySelectorAll("[data-preview]")) {
+      button.addEventListener("click", () => {
+        const select = document.querySelector(`#sound-${button.dataset.preview}`);
+        const id = select?.value;
+        if (!id || id === "off") return;
+        button.classList.add("is-playing");
+        window.setTimeout(() => button.classList.remove("is-playing"), 700);
+        previewChime(id).catch((error) => { explainFailure(status, error); });
+      });
     }
   }
 
@@ -1476,14 +1503,19 @@ function bootDashboard() {
     return SERVICES.find((service) => service.id === id) || SERVICES[0];
   }
 
+  function serviceLinked(service) {
+    return Boolean(service && keyed.has(service.id));
+  }
+
   function syncServiceConnect() {
     const service = selectedService();
     if (!service) return;
     const links = readLinks();
-    const linked = Boolean(links[service.id]);
+    const linked = serviceLinked(service);
     const input = document.querySelector("#service-ref");
+    const key = document.querySelector("#service-key");
     const button = document.querySelector("#service-connect");
-    if (!input || !button) return;
+    if (!input || !key || !button) return;
     if (service.link) {
       input.hidden = true;
     } else {
@@ -1494,8 +1526,18 @@ function bootDashboard() {
         input.value = saved && saved !== "linked" ? saved : "";
       }
     }
+    key.hidden = linked;
+    if (linked && document.activeElement !== key) key.value = "";
     button.textContent = linked ? "Disconnect" : "Connect";
     button.className = linked ? "ghost" : "btn";
+  }
+
+  async function loadKeys() {
+    if (!LOCAL || !TOKEN) return;
+    const body = await request("/api/keys");
+    keyed.clear();
+    for (const id of body.services || []) keyed.add(id);
+    renderServices();
   }
 
   function wireWidget() {
@@ -1554,21 +1596,16 @@ function bootDashboard() {
     document.querySelector("#unlink-ides").addEventListener("click", () => {
       switchIde("").catch((error) => explainFailure(status, error));
     });
-    document.querySelector("#service-choice").addEventListener("change", () => syncServiceConnect());
+    document.querySelector("#service-choice").addEventListener("change", () => {
+      const note = document.querySelector("#service-connect-note");
+      if (note) note.textContent = "";
+      syncServiceConnect();
+    });
     document.querySelector("#service-connect").addEventListener("click", () => {
-      const service = selectedService();
-      if (!service) return;
-      const links = readLinks();
-      if (links[service.id]) {
-        writeLink(service.id, "");
-      } else if (service.link) {
-        writeLink(service.id, "linked");
-      } else {
-        const value = document.querySelector("#service-ref").value.trim();
-        if (!value) return;
-        writeLink(service.id, value);
-      }
-      renderServices();
+      connectChosenService().catch((error) => {
+        const note = document.querySelector("#service-connect-note");
+        if (note) note.textContent = error.message;
+      });
     });
     renderServices();
     document.querySelector("#save-contact")?.addEventListener("click", saveContactCard);
@@ -1636,11 +1673,57 @@ function bootDashboard() {
     localStorage.setItem("hooxie-connections", JSON.stringify(links));
   }
 
+  async function connectChosenService() {
+    const service = selectedService();
+    const note = document.querySelector("#service-connect-note");
+    const keyInput = document.querySelector("#service-key");
+    if (!service || !note || !keyInput) return;
+    if (serviceLinked(service)) {
+      writeLink(service.id, "");
+      keyed.delete(service.id);
+      if (LOCAL && TOKEN) await request("/api/key", { service: service.id, forget: true });
+      note.textContent = "";
+      renderServices();
+      return;
+    }
+    const apiKey = keyInput.value.trim();
+    if (apiKey.length < 8) {
+      keyInput.hidden = false;
+      keyInput.focus();
+      note.textContent = "Browser sign-in is not available for this service. Create a key in the browser, paste it, then Connect.";
+      if (LOCAL && TOKEN) {
+        try {
+          await request("/api/connections/open", { service: service.id });
+          note.textContent = "The browser is open. Create a key there, paste it, then Connect.";
+        } catch (error) {
+          note.textContent = error.message;
+        }
+      }
+      return;
+    }
+    const refInput = document.querySelector("#service-ref");
+    const ref = service.link ? "linked" : (refInput.value.trim() || "linked");
+    if (LOCAL && TOKEN) {
+      await request("/api/key", {
+        apiKey,
+        remember: document.querySelector("#dash-remember-key").checked,
+        service: service.id,
+      });
+    }
+    keyed.add(service.id);
+    writeLink(service.id, ref);
+    keyInput.value = "";
+    note.textContent = document.querySelector("#dash-remember-key").checked
+      ? "Connected. The key is saved in your user profile."
+      : "Connected for this session.";
+    renderServices();
+  }
+
   function renderServices() {
     const list = document.querySelector("#service-list");
     if (!list) return;
     const links = readLinks();
-    list.replaceChildren(...SERVICES.filter((service) => links[service.id]).map((service) => {
+    list.replaceChildren(...SERVICES.filter((service) => keyed.has(service.id)).map((service) => {
       const card = document.createElement("article");
       card.className = "service-card";
       const head = document.createElement("div");
@@ -1662,7 +1745,17 @@ function bootDashboard() {
       disconnect.textContent = "Disconnect";
       disconnect.addEventListener("click", () => {
         writeLink(service.id, "");
-        renderServices();
+        keyed.delete(service.id);
+        const finish = () => renderServices();
+        if (!LOCAL || !TOKEN) {
+          finish();
+          return;
+        }
+        request("/api/key", { service: service.id, forget: true }).then(finish, (error) => {
+          const note = document.querySelector("#service-connect-note");
+          if (note) note.textContent = error.message;
+          finish();
+        });
       });
       const check = document.createElement("button");
       check.type = "button";

@@ -73,6 +73,45 @@ export function openStripeCheckout(url: string): void {
   openBrowser(parsed.toString());
 }
 
+const TOKEN_HOSTS = new Set([
+  "github.com",
+  "gitlab.com",
+  "bitbucket.org",
+  "supabase.com",
+  "vercel.com",
+  "app.netlify.com",
+  "dash.cloudflare.com",
+  "railway.com",
+  "fly.io",
+  "console.neon.tech",
+  "resend.com",
+  "dashboard.stripe.com",
+  "platform.openai.com",
+  "console.anthropic.com",
+  "sentry.io",
+  "huggingface.co",
+  "www.npmjs.com",
+  "app.docker.com",
+  "replicate.com",
+  "linear.app",
+  "app.datadoghq.com",
+  "app.sendgrid.com",
+  "account.postmarkapp.com",
+]);
+
+export function openTokenPage(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("browser");
+  }
+  if (parsed.protocol !== "https:") throw new Error("browser");
+  if (!TOKEN_HOSTS.has(parsed.hostname)) throw new Error("browser");
+  if (parsed.username || parsed.password) throw new Error("browser");
+  openBrowser(parsed.toString());
+}
+
 export function openIdeDownload(url: string): void {
   let parsed: URL;
   try {

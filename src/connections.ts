@@ -147,6 +147,36 @@ async function checkStatus(service: string): Promise<{ status: ConnectionStatus;
   return { status: "online", detail: description };
 }
 
+export const TOKEN_PAGES: Record<string, string> = {
+  github: "https://github.com/settings/tokens/new",
+  gitlab: "https://gitlab.com/-/user_settings/personal_access_tokens",
+  bitbucket: "https://bitbucket.org/account/settings/app-passwords/",
+  supabase: "https://supabase.com/dashboard/account/tokens",
+  vercel: "https://vercel.com/account/tokens",
+  netlify: "https://app.netlify.com/user/applications#personal-access-tokens",
+  cloudflare: "https://dash.cloudflare.com/profile/api-tokens",
+  railway: "https://railway.com/account/tokens",
+  fly: "https://fly.io/user/personal_access_tokens",
+  neon: "https://console.neon.tech/app/settings/api-keys",
+  resend: "https://resend.com/api-keys",
+  stripe: "https://dashboard.stripe.com/apikeys",
+  openai: "https://platform.openai.com/api-keys",
+  anthropic: "https://console.anthropic.com/settings/keys",
+  sentry: "https://sentry.io/settings/account/api/auth-tokens/",
+  huggingface: "https://huggingface.co/settings/tokens",
+  npm: "https://www.npmjs.com/settings/~/tokens",
+  docker: "https://app.docker.com/settings/personal-access-tokens",
+  replicate: "https://replicate.com/account/api-tokens",
+  linear: "https://linear.app/settings/account/security",
+  datadog: "https://app.datadoghq.com/organization-settings/api-keys",
+  sendgrid: "https://app.sendgrid.com/settings/api_keys",
+  postmark: "https://account.postmarkapp.com/api_tokens",
+};
+
+export function tokenPage(service: string): string | undefined {
+  return TOKEN_PAGES[service];
+}
+
 function publicUrl(value: string): URL | null {
   let url: URL;
   try { url = new URL(value); } catch { return null; }

@@ -149,11 +149,12 @@ textarea::-webkit-scrollbar-thumb:hover {
   width: 100%;
   min-height: 0;
   max-height: 100%;
-  background: rgb(22 22 22 / 92%);
+  background: var(--glass);
   border-radius: 999px;
   overflow: hidden;
+  transition: background-color 0.28s ease;
 }
-html[data-widget="light"] #shell { background: rgb(255 255 255 / 94%); }
+html[data-widget="light"] #shell { background: var(--glass); }
 #shell.is-open,
 #shell:has(#toolbar.is-stacked),
 #shell:has(#setup:not([hidden])),

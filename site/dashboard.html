@@ -86,6 +86,7 @@
           <div class="row">
             <div><strong>Dashboard</strong><span>Light or dark for this window. White stays the primary color.</span></div>
             <div class="modes" role="radiogroup" aria-label="Dashboard appearance">
+              <span class="modes-thumb" aria-hidden="true"></span>
               <button type="button" data-dashboard-mode="light" data-i18n="mode.light" aria-checked="true">Light</button>
               <button type="button" data-dashboard-mode="dark" data-i18n="mode.dark" aria-checked="false">Dark</button>
             </div>
@@ -93,6 +94,7 @@
           <div class="row">
             <div><strong>Widget</strong><span>Light or dark for the pill. White stays the primary color.</span></div>
             <div class="modes" role="radiogroup" aria-label="Widget appearance">
+              <span class="modes-thumb" aria-hidden="true"></span>
               <button type="button" data-widget-mode="light" data-i18n="mode.light" aria-checked="false">Light</button>
               <button type="button" data-widget-mode="dark" data-i18n="mode.dark" aria-checked="true">Dark</button>
             </div>
@@ -101,8 +103,10 @@
             <div><strong>Color theme</strong><span>Button color and background opacity on the widget.</span></div>
             <div>
               <div class="swatches" id="swatches"></div>
-              <input class="slider" id="opacity" type="range" min="10" max="100" step="5" value="50" aria-label="Opacity">
-              <span id="opacity-value">50%</span>
+              <div class="opacity-line">
+                <input class="slider" id="opacity" type="range" min="10" max="100" step="5" value="50" aria-label="Opacity">
+                <span id="opacity-value">50%</span>
+              </div>
             </div>
           </div>
           <div class="row">
@@ -112,7 +116,7 @@
         </div>
         <h2 class="dash-group">Widget</h2>
         <div class="rows">
-          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.8</span></div>
+          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.9</span></div>
           <div class="row">
             <div><strong>Session</strong><span>Ctrl+Shift+\ starts or stops a session. A session hides Hooxie from capture.</span></div>
             <span id="session-state">Stopped</span>
@@ -151,40 +155,51 @@
           </div>
         </div>
         <h2 class="dash-group">Sounds</h2>
-        <div class="sound-board" id="sound-board">
-          <section data-sound="open">
-            <h2>Opening</h2>
-            <p class="note">Plays when the typing outline appears.</p>
-            <div class="sound-list"></div>
-          </section>
-          <section data-sound="close">
-            <h2>Closing</h2>
-            <p class="note">Plays when the typing outline turns off.</p>
-            <div class="sound-list"></div>
-          </section>
-          <section data-sound="done">
-            <h2>Done</h2>
-            <p class="note">Plays when the agent finishes.</p>
-            <div class="sound-list"></div>
-          </section>
-          <div class="field">
-            <input id="chime-file" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.webm" hidden>
-            <button class="btn" id="chime-upload" type="button" data-i18n="general.upload">Upload a sound</button>
+        <div class="rows" id="sound-board">
+          <div class="row">
+            <div><strong>Opening</strong><span>Plays when the typing outline appears.</span></div>
+            <div class="sound-control">
+              <select id="sound-open" class="device-select" aria-label="Opening sound"></select>
+              <button type="button" class="sound-play" data-preview="open" aria-label="Play opening sound"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.2 1.6v8.8L10.4 6z"/></svg></button>
+            </div>
           </div>
-          <p id="chime-note" class="note"></p>
+          <div class="row">
+            <div><strong>Closing</strong><span>Plays when the typing outline turns off.</span></div>
+            <div class="sound-control">
+              <select id="sound-close" class="device-select" aria-label="Closing sound"></select>
+              <button type="button" class="sound-play" data-preview="close" aria-label="Play closing sound"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.2 1.6v8.8L10.4 6z"/></svg></button>
+            </div>
+          </div>
+          <div class="row">
+            <div><strong>Done</strong><span>Plays when the agent finishes.</span></div>
+            <div class="sound-control">
+              <select id="sound-done" class="device-select" aria-label="Done sound"></select>
+              <button type="button" class="sound-play" data-preview="done" aria-label="Play done sound"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.2 1.6v8.8L10.4 6z"/></svg></button>
+            </div>
+          </div>
+          <div class="row">
+            <div><strong>Your sound</strong><span>Use one audio file for opening, closing, or done.</span></div>
+            <div class="field">
+              <input id="chime-file" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.webm" hidden>
+              <button class="btn" id="chime-upload" type="button" data-i18n="general.upload">Upload a sound</button>
+            </div>
+          </div>
         </div>
+        <p id="chime-note" class="note"></p>
       </section>
       <section data-section="ide" data-title="ide.title" hidden>
         <p class="note" data-i18n="ide.note">Connect a service, pick an IDE, and choose the project folder.</p>
         <h2 class="dash-group">Connections</h2>
-        <p class="note">Choose a service, then connect it. You can connect more than one.</p>
+        <p class="note">Choose a service, then connect it. You can connect more than one. Browser sign-in opens when that service has a key page. Otherwise paste an API key.</p>
         <div class="widget-form">
           <label for="service-choice">Service</label>
           <select id="service-choice" class="device-select" aria-label="Service"></select>
           <div class="field">
             <input id="service-ref" type="text" spellcheck="false" autocomplete="off" aria-label="Connection">
+            <input id="service-key" type="password" autocomplete="off" placeholder="API key" aria-label="API key">
             <button class="btn" id="service-connect" type="button">Connect</button>
           </div>
+          <p id="service-connect-note" class="note"></p>
           <div id="service-list" class="service-list"></div>
         </div>
         <div class="widget-form">
@@ -296,7 +311,7 @@
           </article>
           <article>
             <h2>Connections</h2>
-            <p>Unlink all IDEs clears the editor Hooxie is using. Connections is one list: choose GitHub, Supabase, Vercel, Resend, or another service, then connect or disconnect it. You can keep more than one. Advanced holds API keys, a negative prompt, and memory presets.</p>
+            <p>Unlink all IDEs clears the editor Hooxie is using. Connections is one list. Connect opens that service’s key page in the browser when one exists. When browser sign-in is not available, paste an API key. You can keep more than one. Advanced holds a negative prompt and memory presets.</p>
           </article>
         </div>
       </section>

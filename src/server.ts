@@ -10,10 +10,10 @@ import { IDE_CATALOG, ideDownloadUrl } from "./catalog.ts";
 import { CompanionHub } from "./companion.ts";
 import { DeliveryService } from "./delivery.ts";
 import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
-import { accountConnected, openIdeDownload, openLoginUrl, openOnboardingHelp, openStripeCheckout, publicConnectError } from "./cursor-account.ts";
+import { accountConnected, openIdeDownload, openLoginUrl, openOnboardingHelp, openStripeCheckout, openTokenPage, publicConnectError } from "./cursor-account.ts";
 import { readDeviceId, readStoredLicense, saveLicense } from "./license.ts";
 import { describeSetup, onboardingStep } from "./setup.ts";
-import { CONNECTION_IDS, checkConnection } from "./connections.ts";
+import { CONNECTION_IDS, checkConnection, tokenPage } from "./connections.ts";
 import { readCursorUsage } from "./cursor-usage.ts";
 import { readCursorReady } from "./cursor-ready.ts";
 import { detectInstallations } from "./detect.ts";
@@ -628,11 +628,20 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     if (req.method === "POST" && url.pathname === "/api/key") {
       const body = await readJson(req, 20_000);
       if (!body || typeof body !== "object") throw new DeliveryError(400, "Invalid key payload.");
-      const record = body as { apiKey?: unknown; remember?: unknown; service?: unknown };
+      const record = body as { apiKey?: unknown; remember?: unknown; service?: unknown; forget?: unknown };
       const key = record.apiKey;
       const remember = record.remember === true;
       const service = typeof record.service === "string" && record.service ? record.service : "cursor";
       if (!KEY_TARGETS.has(service)) throw new DeliveryError(400, "That service is not supported.");
+      if (record.forget === true) {
+        if (service !== "cursor") {
+          serviceKeys.delete(service);
+          rememberedServices.delete(service);
+          await saveServiceKeys(configDir, serviceKeys, rememberedServices);
+        }
+        sendJson(res, 200, { saved: false, remembered: false, service });
+        return;
+      }
       if (typeof key !== "string" || key.trim().length < 8 || key.length > 400 || /[\r\n]/.test(key)) {
         throw new DeliveryError(400, service === "cursor" ? "Enter a Cursor API key." : "Enter an API key.");
       }
@@ -648,6 +657,23 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       else rememberedServices.delete(service);
       await saveServiceKeys(configDir, serviceKeys, rememberedServices);
       sendJson(res, 200, { saved: true, remembered: remember, service });
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/keys") {
+      sendJson(res, 200, { services: [...serviceKeys.keys()] });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/connections/open") {
+      const body = asRecord(await readJson(req, 4_000));
+      const service = stringField(body, "service") ?? "";
+      const page = tokenPage(service);
+      if (!page) throw new DeliveryError(400, "Browser sign-in is not available. Paste an API key.");
+      try {
+        openTokenPage(page);
+      } catch {
+        throw new DeliveryError(400, "The browser could not open. Paste an API key.");
+      }
+      sendJson(res, 200, { opened: true });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/cursor/connect") {

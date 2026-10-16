@@ -2,6 +2,27 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.9",
+      "date": "2026-10-16",
+      "title": "Connect opens a key page",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "added": [
+            "The dashboard uses the site's paper background, shorter settings, and a light/dark switch that slides.",
+            "Opening, Closing, and Done are dropdowns.",
+            "Connect opens that service's key page in the browser when one exists. When browser sign-in is not available, you paste an API key."
+          ]
+        },
+        {
+          "heading": "Widget",
+          "fixes": [
+            "The pill background follows the opacity slider."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.8",
       "date": "2026-10-16",
       "title": "Connections opens from one list",
