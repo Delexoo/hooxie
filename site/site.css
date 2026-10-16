@@ -854,7 +854,7 @@ p { margin: 0.7rem 0 0; }
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 4.6rem 1.2rem 1.2rem;
+  padding: 5.6rem 1.2rem 1.2rem;
 }
 
 .voice-note {
@@ -888,16 +888,15 @@ p { margin: 0.7rem 0 0; }
 .voice-pill {
   align-items: flex-start;
   width: 11rem;
-  max-width: calc(100% - 1.2rem);
+  max-width: calc(100% - 1rem);
   padding-left: 0.9rem;
-  transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .voice-pill textarea {
   width: 100%;
   min-height: 0;
-  height: 1.45rem;
-  max-height: 4.8rem;
+  height: calc(1.35em + 0.56rem);
+  max-height: 6.5rem;
   padding: 0.28rem 0.15rem;
   border: 0;
   border-radius: 0;
@@ -906,7 +905,8 @@ p { margin: 0.7rem 0 0; }
   line-height: 1.35;
   resize: none;
   overflow: hidden;
-  transition: height 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow-wrap: anywhere;
+  transition: height 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .voice-pill textarea::placeholder { color: rgb(255 255 255 / 55%); }
@@ -1110,6 +1110,7 @@ footer > p a:hover { text-decoration: underline; }
   .faq-a, .faq-a > p, .faq-q span,
   .menu-screen, .menu-screen a, .menu-bars, .menu-bars::before, .menu-bars::after { transition: none; }
   .voice-pill .pill-send.is-live { animation: none; }
+  .voice-pill textarea { transition: none; }
 }
 
 @media (max-width: 760px) {
@@ -1132,10 +1133,10 @@ footer > p a:hover { text-decoration: underline; }
     gap: 0.08rem;
   }
   .voice-pill {
-    top: 0.55rem;
-    width: 9.5rem;
-    max-width: calc(100% - 1.2rem);
-    padding: 0.14rem 0.12rem 0.14rem 0.65rem;
+    top: 0.45rem;
+    width: 8.6rem;
+    max-width: calc(100% - 0.7rem);
+    padding: 0.16rem 0.12rem 0.16rem 0.55rem;
   }
   .pill-add { font-size: 0.95rem; }
   .pill input,
@@ -1152,8 +1153,8 @@ footer > p a:hover { text-decoration: underline; }
   #demo-send { width: 1.45rem; height: 1.45rem; }
   .pill-drag { width: 0.85rem; height: 1.28rem; }
   .pill-tools { gap: 0; padding-left: 0.05rem; }
-  .site-preview,
-  .voice-stage { padding: 2.5rem 0.5rem 0.4rem; }
+  .site-preview { padding: 2.5rem 0.5rem 0.4rem; }
+  .voice-stage { padding: 4.5rem 0.65rem 0.55rem; }
   .mini-site,
   .voice-note { padding: 0.55rem 0.6rem 0.55rem; }
   .mini-site h3 { margin: 0.15rem 0 0.15rem; font-size: 1rem; }

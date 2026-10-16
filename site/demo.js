@@ -371,37 +371,76 @@ if (voiceInput && voiceBody && voiceCount && voiceMic && voiceCaret && voiceMeas
   const voiceScreen = document.querySelector("#voice-screen");
 
   const growVoice = () => {
-    voiceMeasure.textContent = voiceInput.value;
-    const max = Math.max(160, voiceScreen.clientWidth - 16);
-    const chrome = voicePill.offsetWidth - voiceInput.clientWidth;
-    const textWidth = voiceMeasure.offsetWidth + 20;
-    const next = Math.min(max, Math.max(150, textWidth + chrome));
-    voicePill.style.width = `${next}px`;
-    const previous = voiceInput.style.height;
-    voiceInput.style.height = "auto";
-    const full = voiceInput.scrollHeight;
-    voiceInput.style.height = previous;
-    const height = Math.min(76, Math.max(23, full));
-    requestAnimationFrame(() => {
-      voiceInput.style.height = `${height}px`;
-    });
-    const fieldWidth = Math.max(1, voiceInput.clientWidth);
-    const line = 22;
-    if (voiceMeasure.offsetWidth <= fieldWidth + 2) {
-      voiceCaret.style.top = "0.28rem";
-      voiceCaret.style.transform = `translateX(${voiceMeasure.offsetWidth}px)`;
+    const text = voiceInput.value;
+    if (!text) {
+      voicePill.style.width = "";
+      voiceInput.style.height = "";
+      voiceCaret.style.top = "";
+      voiceCaret.style.bottom = "";
+      voiceCaret.style.height = "";
+      voiceCaret.style.transform = "translateX(0px)";
       return;
     }
-    const lines = Math.max(1, Math.round(full / line));
-    const used = voiceMeasure.offsetWidth - (lines - 1) * fieldWidth;
-    voiceCaret.style.top = `${0.28 + (lines - 1) * (line / 16)}rem`;
-    voiceCaret.style.transform = `translateX(${Math.max(0, used)}px)`;
+
+    const inputStyle = getComputedStyle(voiceInput);
+    const pillStyle = getComputedStyle(voicePill);
+    const lineHeight = parseFloat(inputStyle.lineHeight) || 22;
+    const padTop = parseFloat(inputStyle.paddingTop) || 0;
+    const padBottom = parseFloat(inputStyle.paddingBottom) || 0;
+    const padLeft = parseFloat(inputStyle.paddingLeft) || 0;
+    const padRight = parseFloat(inputStyle.paddingRight) || 0;
+    const oneLine = Math.ceil(lineHeight + padTop + padBottom);
+
+    voiceMeasure.style.font = inputStyle.font;
+    voiceMeasure.style.letterSpacing = inputStyle.letterSpacing;
+    voiceMeasure.style.lineHeight = `${lineHeight}px`;
+    voiceMeasure.style.padding = "0";
+    voiceMeasure.style.whiteSpace = "nowrap";
+    voiceMeasure.style.width = "auto";
+    voiceMeasure.textContent = text;
+    const textWidth = Math.ceil(voiceMeasure.getBoundingClientRect().width);
+
+    const chrome = parseFloat(pillStyle.paddingLeft) + parseFloat(pillStyle.paddingRight) + (parseFloat(pillStyle.columnGap) || 0) + voiceMic.offsetWidth;
+    const max = Math.max(96, voiceScreen.clientWidth - 14);
+    const floor = Math.min(136, max);
+    const next = Math.min(max, Math.max(floor, textWidth + chrome + padLeft + padRight + 2));
+    voicePill.style.width = `${Math.ceil(next)}px`;
+
+    const contentWidth = Math.max(8, next - chrome - padLeft - padRight);
+    let lines = 1;
+    let caretX = textWidth;
+    let height = oneLine;
+    if (textWidth > contentWidth + 1) {
+      voiceMeasure.style.whiteSpace = "pre-wrap";
+      voiceMeasure.style.width = `${contentWidth}px`;
+      const wrapped = voiceMeasure.getBoundingClientRect().height;
+      lines = Math.max(2, Math.round(wrapped / lineHeight));
+      const cap = Math.max(oneLine, Math.min(voiceScreen.clientHeight * 0.46, 112));
+      height = Math.min(cap, Math.ceil(lines * lineHeight + padTop + padBottom));
+      caretX = textWidth - (lines - 1) * contentWidth;
+      voiceMeasure.style.whiteSpace = "nowrap";
+      voiceMeasure.style.width = "auto";
+    }
+
+    voiceInput.style.height = `${height}px`;
+    if (lines <= 1) {
+      voiceCaret.style.top = "";
+      voiceCaret.style.bottom = "";
+      voiceCaret.style.height = "";
+    } else {
+      voiceCaret.style.bottom = "auto";
+      voiceCaret.style.height = `${lineHeight}px`;
+      voiceCaret.style.top = `${padTop + (lines - 1) * lineHeight}px`;
+    }
+    voiceCaret.style.transform = `translateX(${Math.max(0, caretX)}px)`;
   };
 
   const resetVoice = () => {
     voicePill.style.width = "";
     voiceInput.style.height = "";
     voiceCaret.style.top = "";
+    voiceCaret.style.bottom = "";
+    voiceCaret.style.height = "";
     voiceCaret.style.transform = "translateX(0px)";
   };
 
