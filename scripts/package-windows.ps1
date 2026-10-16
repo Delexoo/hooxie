@@ -5,11 +5,17 @@ if (-not (Test-Path $issc)) { $issc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe
 if (-not (Test-Path $issc)) { $issc = Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe" }
 if (-not (Test-Path $issc)) { throw "Inno Setup 6 was not found. Install it from https://jrsoftware.org/isinfo.php" }
 
-$stage = Join-Path $root "dist-setup\stage"
 $dist = Join-Path $root "dist-setup"
+$stageName = "stage"
+$stage = Join-Path $dist $stageName
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 if (Test-Path $stage) {
   cmd /c "rmdir /s /q `"$stage`""
+}
+if (Test-Path $stage) {
+  $stageName = "payload"
+  $stage = Join-Path $dist $stageName
+  if (Test-Path $stage) { cmd /c "rmdir /s /q `"$stage`"" }
 }
 if (Test-Path $stage) { throw "Could not clear the installer payload. Close anything using dist-setup and try again." }
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
@@ -86,6 +92,6 @@ if (-not (Test-Path (Join-Path $stage "node_modules\@cursor\sdk"))) {
   throw "The Hooxie packages did not install."
 }
 
-& $issc (Join-Path $root "installer\hooxie.iss")
+& $issc "/DPayload=$stageName" (Join-Path $root "installer\hooxie.iss")
 Write-Host "Installer written to $dist"
 Get-ChildItem $dist -Filter "Hooxie-Setup-*.exe" | Select-Object Name, Length, FullName

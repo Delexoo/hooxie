@@ -1,5 +1,5 @@
 #define MyAppName "Hooxie"
-#define MyAppVersion "0.2.6"
+#define MyAppVersion "0.2.7"
 #define MyAppPublisher "Delexo"
 #define MyAppURL "https://hooxie.com"
 #define MyAppExeName "Hooxie.cmd"
@@ -30,7 +30,7 @@ WizardStyle=modern
 UninstallDisplayName=Hooxie
 VersionInfoCompany=Delexo
 VersionInfoProductName=Hooxie
-VersionInfoVersion=0.2.6.0
+VersionInfoVersion=0.2.7.0
 VersionInfoCopyright=Copyright (C) 2026 Delexo
 SetupLogging=yes
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -43,8 +43,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked
 Name: "startonlogon"; Description: "Start Hooxie when I sign in to Windows"; GroupDescription: "Shortcuts:"; Flags: unchecked
 
+#ifndef Payload
+#define Payload "stage"
+#endif
+
 [Files]
-Source: "..\dist-setup\stage\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist-setup\{#Payload}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Hooxie"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Hooxie.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Comment: "Hooxie overlay by Delexo"

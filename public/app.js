@@ -918,15 +918,27 @@ function chooseSetupIde(ide, installed) {
   });
 }
 
-document.querySelector("#setup-ide-button")?.addEventListener("click", () => {
+document.querySelector("#setup-ide-button")?.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
   setSetupIdeOpen(!setupIdeOpen);
 });
 
-document.querySelector("#setup-ide-menu")?.addEventListener("click", (event) => {
+document.querySelector("#setup-ide-menu")?.addEventListener("pointerdown", (event) => {
   const option = event.target.closest("button");
   if (!option) return;
+  event.preventDefault();
+  event.stopPropagation();
   chooseSetupIde(option.dataset.ide || "", option.dataset.installed === "true");
 });
+
+document.addEventListener("pointerdown", (event) => {
+  if (!setupIdeOpen) return;
+  const target = event.target;
+  if (target instanceof Element && target.closest("#setup-ide")) return;
+  setSetupIdeOpen(false);
+  scheduleFit(true);
+}, true);
 
 function markConnected(ide) {
   const label = document.querySelector("#setup-ide-label");
@@ -1336,7 +1348,9 @@ function renderMoreIdes(ides, connectedIde, more) {
     detail.textContent = ide.id === connectedIde ? "In use" : ide.installed ? "Switch to this IDE" : "Download";
     copy.append(name, detail);
     button.append(copy);
-    button.addEventListener("click", () => {
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       chooseMoreIde(ide).catch((error) => showNotice(error.message));
     });
     return button;

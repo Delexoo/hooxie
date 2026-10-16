@@ -577,7 +577,7 @@ internal sealed class ShellForm : Form
         settings.IsZoomControlEnabled = false;
         settings.IsPinchZoomEnabled = false;
         view.ZoomFactor = 1;
-        if (view.CoreWebView2 != null) KeepCursorLinksOutside(view.CoreWebView2);
+        if (view.CoreWebView2 != null) KeepWidgetLinksHere(view.CoreWebView2);
         view.Source = new Uri(url);
         if (excludeCapture) ApplyCaptureAffinity();
     }
@@ -596,8 +596,9 @@ internal sealed class ShellForm : Form
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri) { UseShellExecute = true });
     }
 
-    private static void OpenExternal(string uri)
+    private void OpenExternal(string uri)
     {
+        if (IsDashboardUrl(uri)) return;
         if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed)) return;
         if (parsed.Scheme != Uri.UriSchemeHttps && parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeMailto) return;
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri) { UseShellExecute = true });
@@ -608,41 +609,82 @@ internal sealed class ShellForm : Form
         core.NewWindowRequested += (_, args) =>
         {
             args.Handled = true;
+            if (IsDashboardUrl(args.Uri)) return;
             OpenExternal(args.Uri);
         };
         core.NavigationStarting += (_, args) =>
         {
-            if (IsDashboardNavigation(args.Uri)) return;
+            if (StayInDashboard(args.Uri)) return;
             args.Cancel = true;
+            if (IsDashboardUrl(args.Uri)) return;
             OpenExternal(args.Uri);
         };
     }
 
-    private bool IsDashboardNavigation(string uri)
-    {
-        if (string.IsNullOrWhiteSpace(uri)) return true;
-        if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed)) return true;
-        if (parsed.Scheme.Equals("about", StringComparison.OrdinalIgnoreCase)) return true;
-        if (!Uri.TryCreate(pageUrl, UriKind.Absolute, out var home)) return false;
-        if (!parsed.Host.Equals(home.Host, StringComparison.OrdinalIgnoreCase) || parsed.Port != home.Port) return false;
-        var path = parsed.AbsolutePath.TrimEnd('/');
-        return path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static void KeepCursorLinksOutside(CoreWebView2 core)
+    private void KeepWidgetLinksHere(CoreWebView2 core)
     {
         core.NewWindowRequested += (_, args) =>
         {
+            if (IsDashboardUrl(args.Uri))
+            {
+                args.Handled = true;
+                BeginInvoke(ShowDashboard);
+                return;
+            }
             if (!IsCursorSite(args.Uri)) return;
             args.Handled = true;
             OpenCursorSite(args.Uri);
         };
         core.NavigationStarting += (_, args) =>
         {
+            if (IsDashboardUrl(args.Uri))
+            {
+                args.Cancel = true;
+                BeginInvoke(ShowDashboard);
+                return;
+            }
             if (!IsCursorSite(args.Uri)) return;
             args.Cancel = true;
             OpenCursorSite(args.Uri);
         };
+    }
+
+    private static bool StayInDashboard(string uri)
+    {
+        if (string.IsNullOrWhiteSpace(uri)) return true;
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed)) return true;
+        if (parsed.Scheme.Equals("about", StringComparison.OrdinalIgnoreCase)) return true;
+        return IsLoopback(parsed.Host) && DashboardPath(parsed);
+    }
+
+    private static bool IsDashboardUrl(string? uri)
+    {
+        if (string.IsNullOrWhiteSpace(uri)) return false;
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed)) return false;
+        if (!DashboardPath(parsed)) return false;
+        if (IsLoopback(parsed.Host)) return true;
+        return parsed.Host.Equals("hooxie.com", StringComparison.OrdinalIgnoreCase)
+            || parsed.Host.Equals("www.hooxie.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool DashboardPath(Uri uri)
+    {
+        var path = uri.AbsolutePath.TrimEnd('/');
+        return path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsLoopback(string host)
+    {
+        return host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase)
+            || host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+            || host.Equals("[::1]", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void MarkDesktop(CoreWebView2 core)
+    {
+        var agent = core.Settings.UserAgent ?? "";
+        if (agent.Contains("HooxieDesktop", StringComparison.Ordinal)) return;
+        core.Settings.UserAgent = string.IsNullOrWhiteSpace(agent) ? "HooxieDesktop" : agent + " HooxieDesktop";
     }
 
     private void WarmDashboard()
@@ -761,9 +803,11 @@ internal sealed class ShellForm : Form
                 settings.IsZoomControlEnabled = false;
                 settings.IsPinchZoomEnabled = false;
                 page.ZoomFactor = 1;
+                MarkDesktop(page.CoreWebView2);
                 KeepDashboardHere(page.CoreWebView2);
             }
             if (page.CoreWebView2 == null) return;
+            MarkDesktop(page.CoreWebView2);
             var target = pageUrl.TrimEnd('/') + "/dashboard";
             var source = page.CoreWebView2.Source ?? "";
             if (!source.StartsWith(target, StringComparison.OrdinalIgnoreCase))

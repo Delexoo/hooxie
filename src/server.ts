@@ -13,7 +13,7 @@ import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
 import { accountConnected, openIdeDownload, openLoginUrl, openOnboardingHelp, openStripeCheckout, publicConnectError } from "./cursor-account.ts";
 import { readDeviceId, readStoredLicense, saveLicense } from "./license.ts";
 import { describeSetup, onboardingStep } from "./setup.ts";
-import { checkConnection } from "./connections.ts";
+import { CONNECTION_IDS, checkConnection } from "./connections.ts";
 import { readCursorUsage } from "./cursor-usage.ts";
 import { readCursorReady } from "./cursor-ready.ts";
 import { detectInstallations } from "./detect.ts";
@@ -127,6 +127,9 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
   registry.register(clipboardAdapter());
 
   let apiKey = options.apiKey ?? (await readOptional(path.join(configDir, "cursor-api-key")));
+  const serviceKeys = new Map<string, string>();
+  const rememberedServices = new Set<string>();
+  await loadServiceKeys(configDir, serviceKeys, rememberedServices);
   let sdkAccount = false;
   const accountReady = apiKey ? Promise.resolve() : import("@cursor/sdk").then(async (sdk) => {
     const cursor = sdk as { Cursor: { auth: { status(): Promise<{ status?: string }> } } };
@@ -235,6 +238,29 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       hostedLicense = { at: Date.now(), active: false };
     }
     return hostedLicense.active;
+  }
+
+  async function localLicense(): Promise<boolean> {
+    if (!deviceId) return false;
+    if (licenseSecret && await readStoredLicense(configDir, licenseSecret, deviceId)) return true;
+    return hostedLicense?.active === true;
+  }
+
+  async function confirmCheckout(sessionId: string | undefined): Promise<{ active: boolean; email: string }> {
+    if (!sessionId || !deviceId) throw new DeliveryError(400, "Checkout could not be confirmed.");
+    if (!billing.secretKey) {
+      const payload = await hostedBilling("/api/license", { device: deviceId, sessionId });
+      const active = payload.active === true;
+      if (active) hostedLicense = { at: Date.now(), active: true };
+      return { active, email: typeof payload.email === "string" ? payload.email : "" };
+    }
+    if (!licenseSecret) throw new DeliveryError(400, "Checkout could not be confirmed.");
+    const result = await checkoutIsComplete(billing.secretKey, sessionId);
+    if (result.active && result.device !== deviceId) {
+      throw new DeliveryError(403, "This payment belongs to a different computer.");
+    }
+    if (result.active) await saveLicense(configDir, licenseSecret, deviceId, sessionId, result.email);
+    return { active: result.active, email: result.email };
   }
 
   async function hostedBilling(path: string, body: Record<string, string>): Promise<Record<string, unknown>> {
@@ -430,6 +456,25 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       res.end(body);
       return;
     }
+    if (req.method === "GET" && url.pathname === "/dashboard" && !desktopRequest(req)) {
+      const billingState = url.searchParams.get("billing");
+      const sessionId = url.searchParams.get("session_id") || "";
+      let message = "The dashboard opens in the Hooxie app.";
+      if (billingState === "success" && /^cs_[A-Za-z0-9_]+$/.test(sessionId)) {
+        try {
+          const confirmed = await confirmCheckout(sessionId);
+          message = confirmed.active
+            ? "Payment is recorded for this computer. You can close this window and return to Hooxie."
+            : "Checkout is not complete yet. Return to Hooxie and try again.";
+        } catch {
+          message = "Checkout could not be confirmed. Return to Hooxie and try again.";
+        }
+      } else if (billingState === "cancel") {
+        message = "Checkout was canceled. You can close this window and return to Hooxie.";
+      }
+      sendHtml(res, browserDashboardPage(message));
+      return;
+    }
     if (req.method === "GET" && SITE_FILES[url.pathname]) {
       await serveSite(res, url.pathname, pageToken);
       return;
@@ -583,12 +628,26 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     if (req.method === "POST" && url.pathname === "/api/key") {
       const body = await readJson(req, 20_000);
       if (!body || typeof body !== "object") throw new DeliveryError(400, "Invalid key payload.");
-      const key = (body as { apiKey?: unknown }).apiKey;
-      const remember = (body as { remember?: unknown }).remember === true;
-      if (typeof key !== "string" || key.trim().length < 8) throw new DeliveryError(400, "Enter a Cursor API key.");
-      apiKey = key.trim();
-      if (remember) await fs.writeFile(path.join(configDir, "cursor-api-key"), apiKey, { mode: 0o600 });
-      sendJson(res, 200, { cursorKeyConfigured: true });
+      const record = body as { apiKey?: unknown; remember?: unknown; service?: unknown };
+      const key = record.apiKey;
+      const remember = record.remember === true;
+      const service = typeof record.service === "string" && record.service ? record.service : "cursor";
+      if (!KEY_TARGETS.has(service)) throw new DeliveryError(400, "That service is not supported.");
+      if (typeof key !== "string" || key.trim().length < 8 || key.length > 400 || /[\r\n]/.test(key)) {
+        throw new DeliveryError(400, service === "cursor" ? "Enter a Cursor API key." : "Enter an API key.");
+      }
+      const trimmed = key.trim();
+      if (service === "cursor") {
+        apiKey = trimmed;
+        if (remember) await fs.writeFile(path.join(configDir, "cursor-api-key"), apiKey, { mode: 0o600 });
+        sendJson(res, 200, { cursorKeyConfigured: true, remembered: remember, service });
+        return;
+      }
+      serviceKeys.set(service, trimmed);
+      if (remember) rememberedServices.add(service);
+      else rememberedServices.delete(service);
+      await saveServiceKeys(configDir, serviceKeys, rememberedServices);
+      sendJson(res, 200, { saved: true, remembered: remember, service });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/cursor/connect") {
@@ -736,11 +795,11 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       return;
     }
     if (req.method === "GET" && url.pathname === "/api/settings") {
-      sendJson(res, 200, settingsBody());
+      sendJson(res, 200, { ...settingsBody(), licensed: await localLicense() });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/settings") {
-      const body = asRecord(await readJson(req, 40000));
+      const body = asRecord(await readJson(req, 80_000));
       const next = normalizeSettings({ ...settings, ...body, revision: settings.revision + 1, version: settings.version });
       if (options.widget && next.detectable !== settings.detectable) {
         const enabled = await options.widget.setUndetectable(!next.detectable);
@@ -828,21 +887,8 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     if (req.method === "POST" && url.pathname === "/api/billing/confirm") {
       const body = asRecord(await readJson(req, 4000));
       const sessionId = stringField(body, "sessionId");
-      if (!billing.secretKey) {
-        if (!sessionId || !deviceId) throw new DeliveryError(400, "Checkout could not be confirmed.");
-        const payload = await hostedBilling("/api/license", { device: deviceId, sessionId });
-        const active = payload.active === true;
-        if (active) hostedLicense = { at: Date.now(), active: true };
-        sendJson(res, 200, { active, email: typeof payload.email === "string" ? payload.email : "" });
-        return;
-      }
-      if (!sessionId || !licenseSecret || !deviceId) throw new DeliveryError(400, "Checkout could not be confirmed.");
-      const result = await checkoutIsComplete(billing.secretKey, sessionId);
-      if (result.active && result.device !== deviceId) {
-        throw new DeliveryError(403, "This payment belongs to a different computer.");
-      }
-      if (result.active) await saveLicense(configDir, licenseSecret, deviceId, sessionId, result.email);
-      sendJson(res, 200, { active: result.active, email: result.email });
+      const confirmed = await confirmCheckout(sessionId);
+      sendJson(res, 200, confirmed);
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/browse") {
@@ -1213,6 +1259,25 @@ function createUnavailableClipboard(): ClipboardPort {
   };
 }
 
+interface MemoryPreset {
+  id: string;
+  name: string;
+  text: string;
+}
+
+const KEY_TARGETS = new Set([
+  "cursor",
+  "vscode",
+  "windsurf",
+  "jetbrains",
+  "visualstudio",
+  "zed",
+  "sublime",
+  "androidstudio",
+  "neovim",
+  ...CONNECTION_IDS,
+]);
+
 interface HooxieSettings {
   revision: number;
   version: string;
@@ -1238,6 +1303,9 @@ interface HooxieSettings {
   project: string;
   route: string;
   instructions: string;
+  negativePrompt: string;
+  memoryId: string;
+  memory: MemoryPreset[];
   files: string;
   includePath: boolean;
   includeStack: boolean;
@@ -1282,6 +1350,9 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
     project: "",
     route: "",
     instructions: "",
+    negativePrompt: "",
+    memoryId: "",
+    memory: [],
     files: "",
     includePath: false,
     includeStack: false,
@@ -1303,6 +1374,7 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
 
 function normalizeSettings(input: HooxieSettings): HooxieSettings {
   const opacity = Number(input.opacity);
+  const memory = memoryPresets(input.memory);
   return {
     revision: Number.isFinite(input.revision) ? input.revision : 1,
     version: input.version || "0.1.0",
@@ -1328,6 +1400,9 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
     project: clipText(input.project, 500),
     route: clipText(input.route, 80),
     instructions: clipText(input.instructions, 8000),
+    negativePrompt: clipText(input.negativePrompt, 2000),
+    memory,
+    memoryId: memoryId(input.memoryId, memory),
     files: clipText(input.files, 8000),
     includePath: input.includePath === true,
     includeStack: input.includeStack === true,
@@ -1342,6 +1417,53 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
 
 function clipText(value: unknown, max: number): string {
   return typeof value === "string" ? value.slice(0, max) : "";
+}
+
+function memoryPresets(value: unknown): MemoryPreset[] {
+  if (!Array.isArray(value)) return [];
+  const presets: MemoryPreset[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const record = item as Record<string, unknown>;
+    const id = clipText(record.id, 40).replace(/[^a-zA-Z0-9_-]/g, "");
+    const name = clipText(record.name, 80).replace(/[\u0000-\u001f]/g, "").trim();
+    const text = clipText(record.text, 1200);
+    if (!id || !name) continue;
+    presets.push({ id, name, text });
+    if (presets.length >= 16) break;
+  }
+  return presets;
+}
+
+function memoryId(value: unknown, presets: MemoryPreset[]): string {
+  const id = clipText(value, 40);
+  return presets.some((item) => item.id === id) ? id : "";
+}
+
+async function loadServiceKeys(configDir: string, keys: Map<string, string>, remembered: Set<string>): Promise<void> {
+  const raw = await readOptional(path.join(configDir, "service-keys.json"));
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    for (const [id, key] of Object.entries(parsed)) {
+      if (!KEY_TARGETS.has(id) || id === "cursor" || typeof key !== "string") continue;
+      const trimmed = key.trim();
+      if (trimmed.length < 8 || trimmed.length > 400 || /[\r\n]/.test(trimmed)) continue;
+      keys.set(id, trimmed);
+      remembered.add(id);
+    }
+  } catch {
+    /* A broken key file is ignored. */
+  }
+}
+
+async function saveServiceKeys(configDir: string, keys: Map<string, string>, remembered: Set<string>): Promise<void> {
+  const body: Record<string, string> = {};
+  for (const id of remembered) {
+    const key = keys.get(id);
+    if (key) body[id] = key;
+  }
+  await fs.writeFile(path.join(configDir, "service-keys.json"), JSON.stringify(body), { mode: 0o600 });
 }
 
 function deviceId(value: unknown): string {
@@ -1413,6 +1535,21 @@ async function serveSite(res: http.ServerResponse, pathname: string, pageToken: 
   }
   res.writeHead(200, { "content-type": type, "cache-control": "no-store" });
   res.end(body);
+}
+
+function desktopRequest(req: http.IncomingMessage): boolean {
+  const agent = req.headers["user-agent"];
+  return typeof agent === "string" && agent.includes("HooxieDesktop");
+}
+
+function sendHtml(res: http.ServerResponse, html: string): void {
+  res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+  res.end(html);
+}
+
+function browserDashboardPage(message: string): string {
+  const text = message.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[char] || char);
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Hooxie</title></head><body style="margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.5 Segoe UI,sans-serif;background:#fff;color:#111"><p style="max-width:36ch;margin:24px;text-align:center">${text}</p></body></html>`;
 }
 
 function openProcess(executable: string, projectPath: string): void {

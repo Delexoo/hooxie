@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="/fonts.css">
   <link rel="stylesheet" href="/dash.css">
 </head>
-<body data-page="dashboard">
+<body data-page="dashboard" hidden>
   <a class="skip" href="#content">Skip to content</a>
   <div class="dash" id="content">
     <nav class="side" aria-label="Dashboard">
@@ -112,7 +112,7 @@
         </div>
         <h2 class="dash-group">Widget</h2>
         <div class="rows">
-          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.6</span></div>
+          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.7</span></div>
           <div class="row">
             <div><strong>Session</strong><span>Ctrl+Shift+\ starts or stops a session. A session hides Hooxie from capture.</span></div>
             <span id="session-state">Stopped</span>
@@ -175,7 +175,10 @@
         </div>
       </section>
       <section data-section="ide" data-title="ide.title" hidden>
-        <p class="note" data-i18n="ide.note">Pick an IDE. The widget uses that one. Switch it any time.</p>
+        <p class="note" data-i18n="ide.note">Connect a service, pick an IDE, and choose the project folder.</p>
+        <h2 class="dash-group">Connections</h2>
+        <p class="note">Link a service, then check whether it answers. Not connected means it is not linked. Online means it answered. Offline means it could not be reached.</p>
+        <div id="service-list" class="service-list"></div>
         <div class="widget-form">
           <label for="dash-ide">IDE</label>
           <select id="dash-ide" class="device-select" aria-label="IDE"></select>
@@ -190,37 +193,43 @@
             <button class="ghost" id="dash-clear" type="button" data-i18n="ide.clear">Clear</button>
           </div>
           <div id="dash-workspaces" class="lang-choices"></div>
-          <label id="dash-install-label">Installation</label>
-          <div id="dash-installs" class="lang-choices" role="radiogroup" aria-label="Installation"></div>
-          <label id="dash-route-label">Delivery route</label>
-          <div id="dash-routes" class="lang-choices" role="radiogroup" aria-label="Delivery route"></div>
-          <p id="dash-route-note" class="note"></p>
-          <div class="field">
-            <button class="btn" id="dash-connect" type="button" data-i18n="ide.connect">Connect Cursor</button>
-          </div>
-          <p class="note">One sign-in in the browser links the Cursor account on this computer. Hooxie keeps that connection here.</p>
-          <label for="dash-key">Or paste an API key</label>
-          <div class="field">
-            <input id="dash-key" type="password" autocomplete="off" placeholder="Official Cursor SDK" aria-label="Cursor API key">
-            <button class="btn" id="dash-save-key" type="button" data-i18n="ide.save">Save key</button>
-          </div>
-          <label class="check"><input id="dash-remember-key" type="checkbox"> Remember the key in your user profile</label>
+          <label class="check"><input id="dash-remember-key" type="checkbox"> Remember the keys in your user profile</label>
           <p id="dash-key-note" class="note"></p>
-          <label for="dash-instructions">Additional instructions</label>
-          <textarea id="dash-instructions" rows="3"></textarea>
-          <label for="dash-files">Files inside the project, one relative path per line</label>
-          <textarea id="dash-files" rows="3" spellcheck="false" placeholder="src/app.ts"></textarea>
-          <label class="check"><input id="dash-include-path" type="checkbox"> Include the project path in the prompt text</label>
-          <label class="check"><input id="dash-include-stack" type="checkbox"> Include stack markers found in the project root</label>
-          <label class="check" id="dash-sandbox-row"><input id="dash-unsandboxed" type="checkbox"> Allow this Cursor agent to run outside the sandbox</label>
-          <label class="check" id="dash-experimental-row"><input id="dash-experimental" type="checkbox"> Ask the IDE to submit (experimental, not verified)</label>
-          <div class="field" style="margin-top:14px">
-            <button class="btn" id="dash-open-ide" type="button" data-i18n="ide.open">Open IDE</button>
+          <button class="ghost advanced-toggle" id="advanced-toggle" type="button" aria-expanded="false" aria-controls="advanced-panel">Advanced</button>
+          <div id="advanced-panel" hidden>
+            <label for="key-service">Paste an API key</label>
+            <select id="key-service" class="device-select" aria-label="Service for this API key"></select>
+            <div class="field">
+              <input id="dash-key" type="password" autocomplete="off" placeholder="API key" aria-label="API key">
+              <button class="btn" id="dash-save-key" type="button" data-i18n="ide.save">Save key</button>
+            </div>
+            <div class="field">
+              <button class="btn" id="dash-connect" type="button" data-i18n="ide.connect">Connect Cursor</button>
+            </div>
+            <label for="dash-negative">Negative prompt</label>
+            <textarea id="dash-negative" rows="3" placeholder="What Hooxie should leave out"></textarea>
+            <label for="memory-name">Memory</label>
+            <p class="note">Save a preset. The one you select is sent with each prompt.</p>
+            <div id="memory-list" class="lang-choices"></div>
+            <input id="memory-name" type="text" maxlength="80" placeholder="Preset name" aria-label="Preset name">
+            <textarea id="memory-text" rows="3" placeholder="Standing instructions" aria-label="Standing instructions"></textarea>
+            <div class="field">
+              <button class="btn" id="memory-save" type="button">Save preset</button>
+            </div>
+            <label id="dash-install-label">Installation</label>
+            <div id="dash-installs" class="lang-choices" role="radiogroup" aria-label="Installation"></div>
+            <label id="dash-route-label">Delivery route</label>
+            <div id="dash-routes" class="lang-choices" role="radiogroup" aria-label="Delivery route"></div>
+            <p id="dash-route-note" class="note"></p>
+            <label class="check"><input id="dash-include-path" type="checkbox"> Include the project path in the prompt text</label>
+            <label class="check"><input id="dash-include-stack" type="checkbox"> Include stack markers found in the project root</label>
+            <label class="check" id="dash-sandbox-row"><input id="dash-unsandboxed" type="checkbox"> Allow this Cursor agent to run outside the sandbox</label>
+            <label class="check" id="dash-experimental-row"><input id="dash-experimental" type="checkbox"> Ask the IDE to submit (experimental, not verified)</label>
+            <div class="field">
+              <button class="btn" id="dash-open-ide" type="button" data-i18n="ide.open">Open IDE</button>
+            </div>
           </div>
         </div>
-        <h2 class="dash-group">Project services</h2>
-        <p class="note">Link a service for the project you are building, then check whether it answers. Not connected means it is not linked. Online means it answered. Offline means it could not be reached. Something is wrong means it answered with an error.</p>
-        <div id="service-list" class="service-list"></div>
       </section>
       <section data-section="keybinds" data-title="keybinds.title" hidden>
         <p class="note" data-i18n="keybinds.note">These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in Settings.</p>
@@ -279,7 +288,7 @@
           </article>
           <article>
             <h2>Connections</h2>
-            <p>Unlink all IDEs clears the editor Hooxie is using. Link GitHub, Supabase, Vercel, Resend, Stripe, Cloudflare, or OpenAI for the project you are building, then check whether that connection answers.</p>
+            <p>Unlink all IDEs clears the editor Hooxie is using. Connections links GitHub, Supabase, Vercel, Resend, and the other services for the project you are building, then checks whether that connection answers. Advanced holds API keys, a negative prompt, and memory presets.</p>
           </article>
         </div>
       </section>

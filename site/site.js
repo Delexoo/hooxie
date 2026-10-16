@@ -5,7 +5,7 @@ const COPY = {
   en: {
     "nav.general": "Settings", "nav.onboarding": "Connections", "nav.keybinds": "Keybinds", "nav.profile": "Profile", "nav.language": "Language", "nav.billing": "Billing", "nav.support": "Support", "nav.releases": "Release notes", "nav.help": "Help center", "nav.contact": "Contact support", "nav.toggle": "Toggle Hooxie",
     "general.title": "Settings", "general.intro": "Appearance, audio, and sounds for this computer.", "general.upload": "Upload a sound",
-    "ide.title": "Connections", "ide.note": "Pick an IDE. The widget uses that one. Switch it any time.", "ide.browse": "Browse", "ide.clear": "Clear", "ide.connect": "Connect Cursor", "ide.save": "Save key", "ide.open": "Open IDE",
+    "ide.title": "Connections", "ide.note": "Connect a service, pick an IDE, and choose the project folder.", "ide.browse": "Browse", "ide.clear": "Clear", "ide.connect": "Connect Cursor", "ide.save": "Save key", "ide.open": "Open IDE",
     "keybinds.title": "Keybinds", "keybinds.note": "These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in Settings.",
     "profile.title": "Profile", "profile.note": "Connect the email Stripe should use for this computer.", "profile.connect": "Connect account",
     "language.title": "Language", "language.note": "The dashboard language on this computer.",
@@ -19,7 +19,7 @@ const COPY = {
   es: {
     "nav.general": "Ajustes", "nav.onboarding": "Conexiones", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.support": "Soporte", "nav.releases": "Notas de versión", "nav.help": "Centro de ayuda", "nav.contact": "Contacto", "nav.toggle": "Mostrar u ocultar",
     "general.title": "Ajustes", "general.intro": "Apariencia, audio y sonidos de este equipo.", "general.upload": "Subir un sonido",
-    "ide.title": "Conexiones", "ide.note": "Elige un IDE. El widget usa ese. Puedes cambiarlo cuando quieras.", "ide.browse": "Examinar", "ide.clear": "Borrar", "ide.connect": "Conectar Cursor", "ide.save": "Guardar clave", "ide.open": "Abrir IDE",
+    "ide.title": "Conexiones", "ide.note": "Conecta un servicio, elige un IDE y la carpeta del proyecto.", "ide.browse": "Examinar", "ide.clear": "Borrar", "ide.connect": "Conectar Cursor", "ide.save": "Guardar clave", "ide.open": "Abrir IDE",
     "keybinds.title": "Atajos", "keybinds.note": "Estos atajos funcionan mientras Hooxie está abierto. Las flechas no mueven el widget hasta que actives las teclas de flecha en Ajustes.",
     "profile.title": "Perfil", "profile.note": "Conecta el correo que Stripe debe usar para este equipo.", "profile.connect": "Conectar cuenta",
     "language.title": "Idioma", "language.note": "El idioma del panel en este equipo.",
@@ -33,7 +33,7 @@ const COPY = {
   fr: {
     "nav.general": "Réglages", "nav.onboarding": "Connexions", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.support": "Assistance", "nav.releases": "Notes de version", "nav.help": "Centre d'aide", "nav.contact": "Contact", "nav.toggle": "Afficher ou masquer",
     "general.title": "Réglages", "general.intro": "Apparence, audio et sons de cet ordinateur.", "general.upload": "Importer un son",
-    "ide.title": "Connexions", "ide.note": "Choisissez un IDE. Le widget utilise celui-là. Vous pouvez en changer à tout moment.", "ide.browse": "Parcourir", "ide.clear": "Effacer", "ide.connect": "Connecter Cursor", "ide.save": "Enregistrer la clé", "ide.open": "Ouvrir l'IDE",
+    "ide.title": "Connexions", "ide.note": "Connectez un service, choisissez un IDE et le dossier du projet.", "ide.browse": "Parcourir", "ide.clear": "Effacer", "ide.connect": "Connecter Cursor", "ide.save": "Enregistrer la clé", "ide.open": "Ouvrir l'IDE",
     "keybinds.title": "Raccourcis", "keybinds.note": "Ces raccourcis marchent tant que Hooxie est ouvert. Les flèches ne déplacent le widget qu'après avoir activé les touches fléchées dans Réglages.",
     "profile.title": "Profil", "profile.note": "Indiquez l'e-mail que Stripe doit utiliser pour cet ordinateur.", "profile.connect": "Connecter le compte",
     "language.title": "Langue", "language.note": "La langue du tableau de bord sur cet ordinateur.",
@@ -47,7 +47,7 @@ const COPY = {
   de: {
     "nav.general": "Einstellungen", "nav.onboarding": "Verbindungen", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.support": "Support", "nav.releases": "Versionshinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt", "nav.toggle": "Ein- oder ausblenden",
     "general.title": "Einstellungen", "general.intro": "Darstellung, Audio und Töne auf diesem Computer.", "general.upload": "Ton hochladen",
-    "ide.title": "Verbindungen", "ide.note": "Wähle eine IDE. Das Widget nutzt genau diese. Du kannst sie jederzeit wechseln.", "ide.browse": "Durchsuchen", "ide.clear": "Leeren", "ide.connect": "Cursor verbinden", "ide.save": "Schlüssel sichern", "ide.open": "IDE öffnen",
+    "ide.title": "Verbindungen", "ide.note": "Verbinde einen Dienst, wähle eine IDE und den Projektordner.", "ide.browse": "Durchsuchen", "ide.clear": "Leeren", "ide.connect": "Cursor verbinden", "ide.save": "Schlüssel sichern", "ide.open": "IDE öffnen",
     "keybinds.title": "Tasten", "keybinds.note": "Diese Kürzel gelten, solange Hooxie läuft. Pfeiltasten bewegen das Widget erst, wenn du sie unter Einstellungen einschaltest.",
     "profile.title": "Profil", "profile.note": "Verbinde die E-Mail, die Stripe für diesen Computer nutzen soll.", "profile.connect": "Konto verbinden",
     "language.title": "Sprache", "language.note": "Die Sprache dieses Fensters auf diesem Computer.",
@@ -61,7 +61,7 @@ const COPY = {
   pt: {
     "nav.general": "Ajustes", "nav.onboarding": "Conexões", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.support": "Suporte", "nav.releases": "Notas da versão", "nav.help": "Central de ajuda", "nav.contact": "Contato", "nav.toggle": "Mostrar ou ocultar",
     "general.title": "Ajustes", "general.intro": "Aparência, áudio e sons deste computador.", "general.upload": "Enviar um som",
-    "ide.title": "Conexões", "ide.note": "Escolha um IDE. O widget usa esse. Você pode trocar quando quiser.", "ide.browse": "Procurar", "ide.clear": "Limpar", "ide.connect": "Conectar o Cursor", "ide.save": "Salvar chave", "ide.open": "Abrir o IDE",
+    "ide.title": "Conexões", "ide.note": "Conecte um serviço, escolha um IDE e a pasta do projeto.", "ide.browse": "Procurar", "ide.clear": "Limpar", "ide.connect": "Conectar o Cursor", "ide.save": "Salvar chave", "ide.open": "Abrir o IDE",
     "keybinds.title": "Atalhos", "keybinds.note": "Estes atalhos funcionam enquanto o Hooxie está aberto. As setas só movem o widget depois que você liga as teclas de seta em Ajustes.",
     "profile.title": "Perfil", "profile.note": "Conecte o e-mail que o Stripe deve usar neste computador.", "profile.connect": "Conectar conta",
     "language.title": "Idioma", "language.note": "O idioma do painel neste computador.",
@@ -75,7 +75,7 @@ const COPY = {
   ja: {
     "nav.general": "設定", "nav.onboarding": "接続", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.support": "サポート", "nav.releases": "リリースノート", "nav.help": "ヘルプ", "nav.contact": "連絡", "nav.toggle": "表示の切り替え",
     "general.title": "設定", "general.intro": "このパソコンの外観、音声、効果音。", "general.upload": "音をアップロード",
-    "ide.title": "接続", "ide.note": "IDE を選びます。ウィジェットはその IDE を使います。いつでも切り替えられます。", "ide.browse": "参照", "ide.clear": "クリア", "ide.connect": "Cursor を接続", "ide.save": "キーを保存", "ide.open": "IDE を開く",
+    "ide.title": "接続", "ide.note": "サービスを接続し、IDE とプロジェクトフォルダを選びます。", "ide.browse": "参照", "ide.clear": "クリア", "ide.connect": "Cursor を接続", "ide.save": "キーを保存", "ide.open": "IDE を開く",
     "keybinds.title": "キー", "keybinds.note": "Hooxie の実行中に使えるショートカットです。矢印キーは、設定で矢印キーをオンにするまでウィジェットを動かしません。",
     "profile.title": "プロフィール", "profile.note": "このパソコンの支払いに使うメールを接続します。", "profile.connect": "アカウントを接続",
     "language.title": "言語", "language.note": "このパソコンのダッシュボードの言語。",
@@ -89,7 +89,7 @@ const COPY = {
   zh: {
     "nav.general": "设置", "nav.onboarding": "连接", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.support": "支持", "nav.releases": "更新说明", "nav.help": "帮助中心", "nav.contact": "联系支持", "nav.toggle": "显示或隐藏",
     "general.title": "设置", "general.intro": "这台电脑的外观、音频和声音。", "general.upload": "上传声音",
-    "ide.title": "连接", "ide.note": "选择一个 IDE。小组件会使用它。随时可以更换。", "ide.browse": "浏览", "ide.clear": "清除", "ide.connect": "连接 Cursor", "ide.save": "保存密钥", "ide.open": "打开 IDE",
+    "ide.title": "连接", "ide.note": "连接服务，选择 IDE 和项目文件夹。", "ide.browse": "浏览", "ide.clear": "清除", "ide.connect": "连接 Cursor", "ide.save": "保存密钥", "ide.open": "打开 IDE",
     "keybinds.title": "快捷键", "keybinds.note": "这些快捷键在 Hooxie 运行时可用。在“设置”里打开方向键之前，方向键不会移动小组件。",
     "profile.title": "账户", "profile.note": "填写这台电脑付款时 Stripe 要使用的邮箱。", "profile.connect": "连接账户",
     "language.title": "语言", "language.note": "这台电脑上的仪表盘语言。",
@@ -406,6 +406,17 @@ function showPromoError(message) {
 }
 
 function bootDashboard() {
+  if (!LOCAL) {
+    document.title = "Hooxie";
+    document.body.replaceChildren();
+    const note = document.createElement("p");
+    note.textContent = "The dashboard opens in the Hooxie app.";
+    note.style.cssText = "margin:0;min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px";
+    document.body.hidden = false;
+    document.body.append(note);
+    return;
+  }
+  document.body.hidden = false;
   document.addEventListener("click", (event) => {
     const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
     if (!link) return;
@@ -449,6 +460,9 @@ function bootDashboard() {
     project: "",
     route: "",
     instructions: "",
+    negativePrompt: "",
+    memoryId: "",
+    memory: [],
     files: "",
     includePath: false,
     includeStack: false,
@@ -516,6 +530,7 @@ function bootDashboard() {
   mountPickMenu(inputDevice);
   mountPickMenu(outputDevice);
   mountPickMenu(document.querySelector("#dash-ide"));
+  mountPickMenu(document.querySelector("#key-service"));
 
   function paint() {
     detectable.checked = settings.detectable !== false;
@@ -681,11 +696,14 @@ function bootDashboard() {
       return;
     }
     const result = await request("/api/settings");
+    if (result.licensed === true) paid = true;
     if (result.revision !== revision) {
       revision = result.revision;
       settings = result;
       paint();
       await loadRoutes();
+    } else if (result.licensed === true) {
+      paintBilling();
     }
     if (!catalog.ides.length) {
       catalog = await request("/api/state");
@@ -714,6 +732,61 @@ function bootDashboard() {
     status.textContent = "Checkout was canceled.";
   }
   wireChimes();
+  const SERVICES = [
+    { id: "github", name: "GitHub", placeholder: "owner/repo" },
+    { id: "gitlab", name: "GitLab", placeholder: "group/project" },
+    { id: "bitbucket", name: "Bitbucket", placeholder: "owner/repo" },
+    { id: "supabase", name: "Supabase", placeholder: "https://project.supabase.co" },
+    { id: "vercel", name: "Vercel", placeholder: "https://example.com" },
+    { id: "netlify", name: "Netlify", placeholder: "https://example.netlify.app" },
+    { id: "cloudflare", name: "Cloudflare", placeholder: "example.com" },
+    { id: "railway", name: "Railway", placeholder: "https://example.up.railway.app" },
+    { id: "fly", name: "Fly.io", placeholder: "https://example.fly.dev" },
+    { id: "shopify", name: "Shopify", placeholder: "example.myshopify.com" },
+    { id: "render", name: "Render", link: true },
+    { id: "neon", name: "Neon", link: true },
+    { id: "planetscale", name: "PlanetScale", link: true },
+    { id: "mongodb", name: "MongoDB", link: true },
+    { id: "firebase", name: "Firebase", link: true },
+    { id: "clerk", name: "Clerk", link: true },
+    { id: "auth0", name: "Auth0", link: true },
+    { id: "resend", name: "Resend", link: true },
+    { id: "stripe", name: "Stripe", link: true },
+    { id: "openai", name: "OpenAI", link: true },
+    { id: "anthropic", name: "Anthropic", link: true },
+    { id: "google", name: "Google Cloud", link: true },
+    { id: "azure", name: "Azure", link: true },
+    { id: "aws", name: "AWS", link: true },
+    { id: "twilio", name: "Twilio", link: true },
+    { id: "sendgrid", name: "SendGrid", link: true },
+    { id: "postmark", name: "Postmark", link: true },
+    { id: "sentry", name: "Sentry", link: true },
+    { id: "datadog", name: "Datadog", link: true },
+    { id: "linear", name: "Linear", link: true },
+    { id: "notion", name: "Notion", link: true },
+    { id: "slack", name: "Slack", link: true },
+    { id: "discord", name: "Discord", link: true },
+    { id: "figma", name: "Figma", link: true },
+    { id: "huggingface", name: "Hugging Face", link: true },
+    { id: "replicate", name: "Replicate", link: true },
+    { id: "pinecone", name: "Pinecone", link: true },
+    { id: "upstash", name: "Upstash", link: true },
+    { id: "docker", name: "Docker Hub", link: true },
+    { id: "npm", name: "npm", link: true },
+  ];
+  const KEY_TARGETS = [
+    ["cursor", "Cursor"],
+    ["vscode", "Visual Studio Code"],
+    ["windsurf", "Windsurf"],
+    ["jetbrains", "JetBrains"],
+    ["visualstudio", "Visual Studio"],
+    ["zed", "Zed"],
+    ["sublime", "Sublime Text"],
+    ["androidstudio", "Android Studio"],
+    ["neovim", "Neovim"],
+    ...SERVICES.map((service) => [service.id, service.name]),
+  ];
+  renderKeyChoices();
   wireWidget();
   paintReleaseNotes();
 
@@ -878,6 +951,8 @@ function bootDashboard() {
   function mountPickMenu(select) {
     if (!select || select.dataset.pickMenu === "1") return;
     select.dataset.pickMenu = "1";
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
     const wrap = document.createElement("div");
     wrap.className = "pick-menu";
     const button = document.createElement("button");
@@ -893,8 +968,10 @@ function bootDashboard() {
     list.setAttribute("role", "listbox");
     button.append(label);
     select.classList.add("pick-menu-native");
+    select.addEventListener("mousedown", (event) => event.preventDefault());
     select.before(wrap);
-    wrap.append(select, button, list);
+    wrap.append(select, button);
+    document.body.append(list);
 
     function syncLabel() {
       const option = select.selectedOptions && select.selectedOptions[0];
@@ -902,29 +979,47 @@ function bootDashboard() {
     }
     function rebuild() {
       const open = !list.hidden;
+      const chosen = select.value;
       list.replaceChildren(...[...select.options].map((option) => {
         const item = document.createElement("button");
         item.type = "button";
         item.className = "pick-menu-item";
         item.setAttribute("role", "option");
+        item.dataset.value = option.value;
         item.textContent = option.textContent;
-        item.setAttribute("aria-selected", String(option.value === select.value));
-        item.addEventListener("click", (event) => {
+        item.setAttribute("aria-selected", String(option.value === chosen));
+        item.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
           event.stopPropagation();
-          select.value = option.value;
-          select.dispatchEvent(new Event("change", { bubbles: true }));
+          if (select.value !== option.value) {
+            select.value = option.value;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          syncLabel();
           close();
         });
         return item;
       }));
       list.hidden = !open;
       syncLabel();
+      if (open) place();
     }
     function place() {
-      const main = wrap.closest(".main");
       const box = button.getBoundingClientRect();
-      const limit = main ? main.getBoundingClientRect().bottom : window.innerHeight;
-      list.classList.toggle("is-up", limit - box.bottom < 200);
+      const width = Math.max(box.width, 220);
+      const left = Math.max(8, Math.min(box.left, window.innerWidth - width - 8));
+      const below = window.innerHeight - box.bottom;
+      const above = box.top;
+      list.style.width = `${width}px`;
+      list.style.left = `${left}px`;
+      list.style.right = "auto";
+      if (below < 220 && above > below) {
+        list.style.top = "auto";
+        list.style.bottom = `${window.innerHeight - box.top + 6}px`;
+      } else {
+        list.style.bottom = "auto";
+        list.style.top = `${box.bottom + 6}px`;
+      }
     }
     function close() {
       list.hidden = true;
@@ -934,20 +1029,57 @@ function bootDashboard() {
       for (const menu of document.querySelectorAll(".pick-menu-list")) menu.hidden = true;
       for (const opener of document.querySelectorAll(".pick-menu-btn")) opener.setAttribute("aria-expanded", "false");
       rebuild();
-      place();
       list.hidden = false;
       button.setAttribute("aria-expanded", "true");
+      place();
     }
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
+    function toggle() {
       if (list.hidden) open();
       else close();
+    }
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggle();
     });
-    document.addEventListener("click", (event) => {
-      if (!wrap.contains(event.target)) close();
+    const fieldLabel = select.id ? document.querySelector(`label[for="${CSS.escape(select.id)}"]`) : null;
+    fieldLabel?.addEventListener("click", (event) => {
+      event.preventDefault();
+      toggle();
     });
+    document.addEventListener("pointerdown", (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (button.contains(target) || list.contains(target)) return;
+      close();
+    }, true);
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") close();
+      if (list.hidden) return;
+      if (event.key === "Escape") {
+        close();
+        return;
+      }
+      const items = [...list.querySelectorAll(".pick-menu-item")];
+      if (!items.length) return;
+      const current = items.findIndex((item) => item.getAttribute("aria-selected") === "true");
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Enter") return;
+      event.preventDefault();
+      if (event.key === "Enter") {
+        const chosen = items[current] || items[0];
+        chosen?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+        return;
+      }
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      const next = items[(current + step + items.length) % items.length];
+      items.forEach((item) => item.setAttribute("aria-selected", String(item === next)));
+      next.focus();
+    });
+    const scroller = wrap.closest(".main");
+    scroller?.addEventListener("scroll", () => {
+      if (!list.hidden) place();
+    }, { passive: true });
+    window.addEventListener("resize", () => {
+      if (!list.hidden) place();
     });
     select.addEventListener("pick-sync", syncLabel);
     new MutationObserver(rebuild).observe(select, { childList: true });
@@ -1054,11 +1186,9 @@ function bootDashboard() {
 
   function paintWidget() {
     const project = document.querySelector("#dash-project");
-    const instructions = document.querySelector("#dash-instructions");
-    const files = document.querySelector("#dash-files");
+    const negative = document.querySelector("#dash-negative");
     if (document.activeElement !== project) project.value = settings.project || "";
-    if (document.activeElement !== instructions) instructions.value = settings.instructions || "";
-    if (document.activeElement !== files) files.value = settings.files || "";
+    if (negative && document.activeElement !== negative) negative.value = settings.negativePrompt || "";
     document.querySelector("#dash-include-path").checked = settings.includePath === true;
     document.querySelector("#dash-include-stack").checked = settings.includeStack === true;
     document.querySelector("#dash-unsandboxed").checked = settings.unsandboxed === true;
@@ -1067,6 +1197,7 @@ function bootDashboard() {
     renderInstallChoices();
     renderRouteChoices();
     renderWorkspaceChoices();
+    renderMemory();
   }
 
   function paintAccount() {
@@ -1076,8 +1207,8 @@ function bootDashboard() {
     if (button) button.hidden = connected;
     if (note && note.dataset.hold !== "1") {
       note.textContent = connected
-        ? "Cursor is connected. Hooxie can send."
-        : "Press Connect Cursor. Sign-in opens in the browser.";
+        ? "Cursor is connected. Saved keys stay in your user profile when Remember is on."
+        : "Saved keys stay in your user profile when Remember is on.";
     }
   }
 
@@ -1097,19 +1228,25 @@ function bootDashboard() {
       ? setupIdes
       : (catalog.ides || []).map((ide) => ({ id: ide.ide, label: ide.label, installed: true }));
     const current = settings.ide || settings.connectedIde || "";
-    select.replaceChildren();
-    const blank = document.createElement("option");
-    blank.value = "";
-    blank.textContent = "Choose an IDE";
-    select.append(blank);
-    for (const ide of rows) {
-      const option = document.createElement("option");
-      option.value = ide.id;
-      option.dataset.installed = ide.installed || ide.connected ? "true" : "false";
-      option.textContent = ide.installed || ide.connected ? ide.label : `${ide.label} · download`;
-      select.append(option);
+    const signature = rows.map((ide) => `${ide.id}\t${ide.label}\t${ide.installed || ide.connected ? "1" : "0"}`).join("\n");
+    if (select.dataset.signature !== signature) {
+      select.dataset.signature = signature;
+      select.replaceChildren();
+      const blank = document.createElement("option");
+      blank.value = "";
+      blank.textContent = "Choose an IDE";
+      select.append(blank);
+      for (const ide of rows) {
+        const option = document.createElement("option");
+        option.value = ide.id;
+        option.dataset.installed = ide.installed || ide.connected ? "true" : "false";
+        option.textContent = ide.installed || ide.connected ? ide.label : `${ide.label} · download`;
+        select.append(option);
+      }
     }
-    select.value = [...select.options].some((option) => option.value === current) ? current : "";
+    const next = [...select.options].some((option) => option.value === current) ? current : "";
+    if (select.value !== next) select.value = next;
+    select.dispatchEvent(new Event("pick-sync"));
     const note = document.querySelector("#ide-note");
     const chosen = rows.find((ide) => ide.id === select.value);
     if (note && note.dataset.hold !== "1") {
@@ -1153,6 +1290,7 @@ function bootDashboard() {
     const option = [...select.options].find((item) => item.value === ide);
     const installed = option?.dataset.installed === "true";
     const previous = settings.connectedIde || settings.ide || "";
+    const sync = () => select.dispatchEvent(new Event("pick-sync"));
     if (!ide) {
       if (previous && LOCAL && TOKEN) {
         try { await request("/api/ide/disconnect", { ide: previous }); } catch { /* The setting still clears below. */ }
@@ -1168,6 +1306,7 @@ function bootDashboard() {
         note.textContent = "Opening the download. The widget stays on the IDE that is already connected.";
       }
       select.value = previous;
+      sync();
       if (LOCAL && TOKEN) {
         try { await request("/api/ides/open", { ide }); } catch (error) {
           note.textContent = error.message;
@@ -1175,6 +1314,8 @@ function bootDashboard() {
       }
       return;
     }
+    select.value = ide;
+    sync();
     await save({ ide, installationId: "", route: "", deliveryReady: true });
     loadRoutes();
     if (!LOCAL || !TOKEN) return;
@@ -1188,6 +1329,7 @@ function bootDashboard() {
         note.dataset.hold = "1";
         note.textContent = error.message;
       }
+      if (previous !== ide) await save({ ide: previous, deliveryReady: true });
     }
   }
 
@@ -1258,10 +1400,64 @@ function bootDashboard() {
     }
   }
 
+  function composedInstructions(next) {
+    const presets = Array.isArray(next.memory) ? next.memory : [];
+    const chosen = presets.find((item) => item.id === next.memoryId);
+    const parts = [];
+    if (chosen?.text?.trim()) parts.push(chosen.text.trim());
+    const negative = (next.negativePrompt || "").trim();
+    if (negative) parts.push(`Do not:\n${negative}`);
+    return parts.join("\n\n");
+  }
+
+  function applyMemory(partial) {
+    const next = { ...settings, ...partial };
+    return save({ ...partial, instructions: composedInstructions(next), deliveryReady: true });
+  }
+
+  function renderMemory() {
+    const list = document.querySelector("#memory-list");
+    if (!list) return;
+    const presets = Array.isArray(settings.memory) ? settings.memory : [];
+    list.replaceChildren(...presets.map((preset) => {
+      const row = document.createElement("div");
+      row.className = "field";
+      const use = document.createElement("button");
+      use.type = "button";
+      use.className = settings.memoryId === preset.id ? "btn" : "ghost";
+      use.textContent = preset.name;
+      use.setAttribute("aria-pressed", settings.memoryId === preset.id ? "true" : "false");
+      use.addEventListener("click", () => applyMemory({ memoryId: settings.memoryId === preset.id ? "" : preset.id }));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "ghost";
+      remove.textContent = "Delete";
+      remove.addEventListener("click", () => {
+        const memory = presets.filter((item) => item.id !== preset.id);
+        applyMemory({ memory, memoryId: settings.memoryId === preset.id ? "" : settings.memoryId });
+      });
+      row.append(use, remove);
+      return row;
+    }));
+  }
+
+  function renderKeyChoices() {
+    const select = document.querySelector("#key-service");
+    if (!select) return;
+    const current = select.value;
+    select.replaceChildren(...KEY_TARGETS.map(([id, name]) => {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = name;
+      return option;
+    }));
+    if ([...select.options].some((item) => item.value === current)) select.value = current;
+    select.dispatchEvent(new Event("pick-sync"));
+  }
+
   function wireWidget() {
     const project = document.querySelector("#dash-project");
-    const instructions = document.querySelector("#dash-instructions");
-    const files = document.querySelector("#dash-files");
+    const negative = document.querySelector("#dash-negative");
     let textTimer = 0;
     const later = (partial) => {
       window.clearTimeout(textTimer);
@@ -1269,8 +1465,10 @@ function bootDashboard() {
     };
     project.addEventListener("input", () => later({ project: project.value }));
     project.addEventListener("change", () => { save({ project: project.value, deliveryReady: true }); loadRoutes(); });
-    instructions.addEventListener("input", () => later({ instructions: instructions.value }));
-    files.addEventListener("input", () => later({ files: files.value }));
+    negative.addEventListener("input", () => {
+      window.clearTimeout(textTimer);
+      textTimer = window.setTimeout(() => applyMemory({ negativePrompt: negative.value }), 250);
+    });
     document.querySelector("#dash-include-path").addEventListener("change", (event) => save({ includePath: event.target.checked, deliveryReady: true }));
     document.querySelector("#dash-include-stack").addEventListener("change", (event) => save({ includeStack: event.target.checked, deliveryReady: true }));
     document.querySelector("#dash-unsandboxed").addEventListener("change", (event) => save({ unsandboxed: event.target.checked, deliveryReady: true }));
@@ -1291,8 +1489,24 @@ function bootDashboard() {
       }
     });
     document.querySelector("#dash-clear").addEventListener("click", () => {
-      save({ project: "", files: "", deliveryReady: true });
+      save({ project: "", deliveryReady: true });
       loadRoutes();
+    });
+    document.querySelector("#advanced-toggle").addEventListener("click", () => {
+      const panel = document.querySelector("#advanced-panel");
+      const open = panel.hidden;
+      panel.hidden = !open;
+      document.querySelector("#advanced-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.querySelector("#memory-save").addEventListener("click", () => {
+      const name = document.querySelector("#memory-name").value.trim().slice(0, 80);
+      const text = document.querySelector("#memory-text").value.trim().slice(0, 1200);
+      if (!name || !text) return;
+      const id = `m${Date.now().toString(36)}`;
+      const memory = [...(Array.isArray(settings.memory) ? settings.memory : []), { id, name, text }].slice(-16);
+      document.querySelector("#memory-name").value = "";
+      document.querySelector("#memory-text").value = "";
+      applyMemory({ memory, memoryId: id });
     });
     document.querySelector("#unlink-ides").addEventListener("click", () => {
       switchIde("").catch((error) => explainFailure(status, error));
@@ -1310,12 +1524,14 @@ function bootDashboard() {
     document.querySelector("#dash-save-key").addEventListener("click", async () => {
       const note = document.querySelector("#dash-key-note");
       try {
+        const service = document.querySelector("#key-service").value || "cursor";
         await request("/api/key", {
           apiKey: document.querySelector("#dash-key").value,
           remember: document.querySelector("#dash-remember-key").checked,
+          service,
         });
         document.querySelector("#dash-key").value = "";
-        settings.cursorConnected = true;
+        if (service === "cursor") settings.cursorConnected = true;
         delete note.dataset.hold;
         paint();
         loadRoutes();
@@ -1344,16 +1560,6 @@ function bootDashboard() {
       }
     });
   }
-
-  const SERVICES = [
-    { id: "github", name: "GitHub", hint: "owner/repo", placeholder: "owner/repo" },
-    { id: "supabase", name: "Supabase", hint: "Project URL", placeholder: "https://project.supabase.co" },
-    { id: "vercel", name: "Vercel", hint: "Site URL", placeholder: "https://example.com" },
-    { id: "cloudflare", name: "Cloudflare", hint: "Hostname", placeholder: "example.com" },
-    { id: "resend", name: "Resend", hint: "Sending domain. The check uses the Resend status page.", placeholder: "mail.example.com" },
-    { id: "stripe", name: "Stripe", hint: "Connect to read the Stripe status page.", link: true },
-    { id: "openai", name: "OpenAI", hint: "Connect to read the OpenAI status page.", link: true },
-  ];
 
   function readLinks() {
     try {
@@ -1389,12 +1595,10 @@ function bootDashboard() {
       status.textContent = linked ? "Not checked" : "Not connected";
       status.dataset.state = linked ? "idle" : "not-connected";
       head.append(title, status);
-      const hint = document.createElement("p");
-      hint.className = "note";
-      hint.textContent = service.hint;
       const detail = document.createElement("p");
       detail.className = "note";
       detail.dataset.serviceDetail = service.id;
+      detail.hidden = true;
       const row = document.createElement("div");
       row.className = "field";
       if (service.link) {
@@ -1430,7 +1634,7 @@ function bootDashboard() {
       check.textContent = "Check";
       check.addEventListener("click", () => checkService(service.id, check));
       row.append(check);
-      card.append(head, hint, detail, row);
+      card.append(head, detail, row);
       return card;
     }));
   }
@@ -1445,7 +1649,10 @@ function bootDashboard() {
         status.textContent = "Not connected";
         status.dataset.state = "not-connected";
       }
-      if (detail) detail.textContent = "";
+      if (detail) {
+        detail.textContent = "";
+        detail.hidden = true;
+      }
       return;
     }
     button.disabled = true;
@@ -1458,13 +1665,19 @@ function bootDashboard() {
         status.textContent = labels[result.status] || "Something is wrong";
         status.dataset.state = result.status || "problem";
       }
-      if (detail) detail.textContent = result.detail || "";
+      if (detail) {
+        detail.hidden = !result.detail;
+        detail.textContent = result.detail || "";
+      }
     } catch (error) {
       if (status) {
         status.textContent = "Offline";
         status.dataset.state = "offline";
       }
-      if (detail) detail.textContent = error.message;
+      if (detail) {
+        detail.hidden = false;
+        detail.textContent = error.message;
+      }
     } finally {
       button.disabled = false;
     }

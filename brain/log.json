@@ -2,6 +2,25 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.7",
+      "date": "2026-10-16",
+      "title": "Connections stays short",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "added": [
+            "Connections lists GitHub, Supabase, Vercel, Resend, and more than thirty other services, and checks whether each one answers.",
+            "Advanced holds an API key for an IDE or a service, a negative prompt, and memory presets that are sent with each prompt.",
+            "The project file list is no longer on Connections."
+          ],
+          "fixes": [
+            "The dashboard opens in the Hooxie window. A browser tab no longer shows it.",
+            "Connections, the microphone, and the speaker open their lists in the window, and choosing an IDE switches to it."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.6",
       "date": "2026-10-16",
       "title": "Node.js comes with the installer",

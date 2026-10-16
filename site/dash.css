@@ -540,14 +540,16 @@ textarea { width: min(560px, 100%); min-height: 96px; display: block; }
 .pick-menu { position: relative; flex: none; width: min(260px, 46%); }
 .widget-form .pick-menu { width: 100%; }
 .pick-menu-native {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  opacity: 0;
-  pointer-events: none;
+  position: fixed !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  appearance: none !important;
 }
 .pick-menu-btn {
   position: relative;
@@ -584,11 +586,9 @@ textarea { width: min(560px, 100%); min-height: 96px; display: block; }
 }
 .pick-menu-btn[aria-expanded="true"]::after { transform: translateY(-20%) rotate(225deg); }
 .pick-menu-list {
-  position: absolute;
-  z-index: 30;
-  top: calc(100% + 6px);
-  right: 0;
-  width: max(100%, 220px);
+  position: fixed;
+  z-index: 50;
+  width: 220px;
   max-height: 240px;
   overflow: auto;
   padding: 6px;
@@ -597,7 +597,7 @@ textarea { width: min(560px, 100%); min-height: 96px; display: block; }
   background: var(--card);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
-.pick-menu-list.is-up { top: auto; bottom: calc(100% + 6px); }
+.pick-menu-list[hidden] { display: none; }
 .pick-menu-item {
   display: block;
   width: 100%;
@@ -841,14 +841,23 @@ html[data-appearance="dark"] .release-latest {
   text-transform: uppercase;
   color: var(--muted);
 }
-.service-list { display: grid; gap: 12px; }
+.service-list { display: grid; gap: 8px; margin-bottom: 18px; }
 .service-card {
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 14px 16px 16px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
 }
 .service-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.service-card .field { margin-top: 8px; }
+.service-card .field { margin-top: 0; }
+.service-card .note { margin: 0; }
+.advanced-toggle { width: 100%; text-align: left; }
+#advanced-panel { display: grid; gap: 10px; }
+#advanced-panel[hidden] { display: none; }
+#advanced-panel > label { margin-top: 10px; font-size: 13px; font-weight: 600; }
+#memory-list { display: grid; gap: 8px; }
+#memory-list .field { margin: 0; }
 .service-status {
   flex: none;
   font-size: 12px;
