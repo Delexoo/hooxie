@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { catalogFor } from "./catalog.ts";
-import { changedSince, emptyActivity, foldActivity, mergeFileChanges, readGitStatus, type RunActivity } from "./run-activity.ts";
+import { changedSince, emptyActivity, foldActivity, joinReply, mergeFileChanges, readGitStatus, replyFromMessage, type RunActivity } from "./run-activity.ts";
 import type { CompanionHub } from "./companion.ts";
 import { buildPromptText, imageFingerprint, stackMarkers } from "./prompt.ts";
 import { assertImage, assertUploads, readSelectedFile } from "./safety.ts";
@@ -55,7 +55,7 @@ export interface CursorSdkClient {
     sandbox: boolean;
     storeDir: string;
   }): Promise<{
-    send(message: string | { text: string; images: ImageAttachment[] }): Promise<SdkRun>;
+    send(message: string | { text: string; images: ImageAttachment[] }, options?: { force?: boolean }): Promise<SdkRun>;
     dispose(): Promise<void>;
   }>;
 }
@@ -102,6 +102,7 @@ export interface AgentAdapter {
   prepare(input: SubmitInput, ctx: AdapterContext): Promise<PreparedDelivery>;
   send(prepared: PreparedDelivery, ctx: AdapterContext, report: (update: DeliveryUpdate) => void): Promise<SendResult>;
   close?(): Promise<void>;
+  resetConversation?(projectPath: string): Promise<void>;
 }
 
 export class AdapterRegistry {
@@ -164,7 +165,27 @@ type HeldAgent = Awaited<ReturnType<CursorSdkClient["createAgent"]>>;
 export function cursorSdkAdapter(): AgentAdapter {
   const profile = catalogFor("cursor");
   const warming = new Map<string, Promise<HeldAgent>>();
+  const held = new Map<string, HeldAgent>();
+  const tails = new Map<string, Promise<void>>();
+  const wedged = new Set<string>();
   let closed = false;
+
+  const drop = async (key: string) => {
+    const agent = held.get(key);
+    held.delete(key);
+    wedged.delete(key);
+    if (agent) await agent.dispose().catch(() => undefined);
+  };
+
+  const waitTurn = (key: string) => {
+    const previous = tails.get(key) ?? Promise.resolve();
+    let finish: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    tails.set(key, previous.then(() => gate).then(() => undefined, () => undefined));
+    return { ready: previous, done: finish };
+  };
 
   const open = (ctx: AdapterContext, projectPath: string, sandbox: boolean) =>
     Promise.resolve().then(() => ctx.sdk!.createAgent({
@@ -178,7 +199,7 @@ export function cursorSdkAdapter(): AgentAdapter {
   const prime = (ctx: AdapterContext, projectPath: string, sandbox: boolean) => {
     if (closed || !ctx.sdk) return;
     const key = warmKey(ctx, projectPath, sandbox);
-    if (warming.has(key)) return;
+    if (held.has(key) || warming.has(key)) return;
     for (const [other, pendingAgent] of warming) {
       warming.delete(other);
       void pendingAgent.then((agent) => agent.dispose()).catch(() => undefined);
@@ -197,6 +218,11 @@ export function cursorSdkAdapter(): AgentAdapter {
 
   const claim = async (ctx: AdapterContext, projectPath: string, sandbox: boolean): Promise<HeldAgent> => {
     const key = warmKey(ctx, projectPath, sandbox);
+    const existing = held.get(key);
+    if (existing) return existing;
+    for (const other of [...held.keys()]) {
+      if (other !== key) await drop(other);
+    }
     const pending = warming.get(key);
     warming.delete(key);
     let agent: HeldAgent;
@@ -205,7 +231,7 @@ export function cursorSdkAdapter(): AgentAdapter {
     } catch {
       agent = await open(ctx, projectPath, sandbox);
     }
-    prime(ctx, projectPath, sandbox);
+    held.set(key, agent);
     return agent;
   };
 
@@ -221,7 +247,17 @@ export function cursorSdkAdapter(): AgentAdapter {
       closed = true;
       const pending = [...warming.values()];
       warming.clear();
-      await Promise.all(pending.map((item) => item.then((agent) => agent.dispose()).catch(() => undefined)));
+      const openAgents = [...held.keys()];
+      await Promise.all([
+        ...pending.map((item) => item.then((agent) => agent.dispose()).catch(() => undefined)),
+        ...openAgents.map((key) => drop(key)),
+      ]);
+    },
+    async resetConversation(projectPath) {
+      const resolved = path.resolve(projectPath);
+      for (const key of [...held.keys()]) {
+        if (key.startsWith(`${resolved}\0`)) await drop(key);
+      }
     },
     async available(ctx) {
       if (ctx.ide !== "cursor") return { ok: false, reason: "The Cursor SDK only targets Cursor." };
@@ -234,7 +270,7 @@ export function cursorSdkAdapter(): AgentAdapter {
     prepare(input, _ctx) {
       return prepareShared(
         input,
-        `Cursor agent via the official SDK at ${input.projectPath}. This starts a new agent session and can edit that folder.`,
+        `Cursor agent on ${input.projectPath}. Follow-ups stay in this chat until you clear it, and the agent can edit that folder.`,
       );
     },
     async send(prepared, ctx, report) {
@@ -244,23 +280,28 @@ export function cursorSdkAdapter(): AgentAdapter {
       if (prepared.images.length && !this.capabilities.images) {
         return failed(this, "This route cannot accept images.", false);
       }
-      let agent: HeldAgent | undefined;
       let fellBackFromSandbox = false;
+      let turn: { ready: Promise<void>; done: () => void } | undefined;
       try {
         const message = prepared.images.length
           ? { text: prepared.text, images: prepared.images }
           : prepared.text;
+        const turnKey = warmKey(ctx, prepared.projectPath, !ctx.allowUnsandboxed);
+        turn = waitTurn(turnKey);
+        await turn.ready;
         const start = async (sandbox: boolean) => {
+          const key = warmKey(ctx, prepared.projectPath, sandbox);
           const next = await claim(ctx, prepared.projectPath, sandbox);
           try {
-            const run = await next.send(message);
+            const run = await next.send(message, { force: wedged.has(key) });
+            wedged.delete(key);
             return { agent: next, run };
           } catch (error) {
-            await next.dispose().catch(() => undefined);
+            await drop(key);
             throw error;
           }
         };
-        let started: { agent: NonNullable<typeof agent>; run: SdkRun };
+        let started: { agent: HeldAgent; run: SdkRun };
         try {
           started = await start(!ctx.allowUnsandboxed);
         } catch (error) {
@@ -268,22 +309,19 @@ export function cursorSdkAdapter(): AgentAdapter {
           fellBackFromSandbox = true;
           started = await start(false);
         }
-        agent = started.agent;
         const run = started.run;
-        const handle = agent;
         const adapter = this;
-        const nextSandbox = !fellBackFromSandbox && !ctx.allowUnsandboxed;
+        const conversationKey = warmKey(ctx, prepared.projectPath, !fellBackFromSandbox && !ctx.allowUnsandboxed);
         setImmediate(() => {
-          void observeRun(run, handle, adapter, prepared.projectPath, report).finally(() => {
-            prime(ctx, prepared.projectPath, nextSandbox);
-          });
+          void observeRun(run, adapter, prepared.projectPath, report, () => {
+            wedged.add(conversationKey);
+          }).finally(() => turn?.done());
         });
         return {
           committed: true,
           run: {
             async cancel() {
               if (run.supports("cancel")) await run.cancel();
-              await handle.dispose().catch(() => undefined);
             },
           },
           update: {
@@ -298,7 +336,7 @@ export function cursorSdkAdapter(): AgentAdapter {
           },
         };
       } catch (error) {
-        if (agent) await agent.dispose().catch(() => undefined);
+        turn?.done();
         prime(ctx, prepared.projectPath, ctx.allowUnsandboxed ? false : !sandboxUnsupported(error));
         const retryable = Boolean((error as { isRetryable?: boolean }).isRetryable);
         const message = error instanceof Error ? error.message : "The Cursor SDK rejected the prompt.";
@@ -310,12 +348,13 @@ export function cursorSdkAdapter(): AgentAdapter {
 
 async function observeRun(
   run: SdkRun,
-  agent: { dispose(): Promise<void> },
   adapter: AgentAdapter,
   projectPath: string,
   report: (update: DeliveryUpdate) => void,
+  lost: () => void,
 ): Promise<void> {
   let activity = emptyActivity();
+  let reply = "";
   let closed = false;
   const baseline = await readGitStatus(projectPath);
   const publish = () => {
@@ -324,6 +363,7 @@ async function observeRun(
       status: "agent_working",
       phase: "processing",
       detail: "The agent run is in progress.",
+      responseText: reply || undefined,
       responseVerified: false,
       limitations: adapter.limitations,
       unsupported: adapter.unsupported,
@@ -333,6 +373,9 @@ async function observeRun(
   if (run.stream && run.supports("stream")) {
     void readRunStream(run, () => closed, () => activity, (next) => {
       activity = next;
+      publish();
+    }, (text) => {
+      reply = text;
       publish();
     });
   }
@@ -389,10 +432,12 @@ async function observeRun(
   } catch {
     closed = true;
     clearInterval(gitTimer);
+    lost();
     report({
       status: "status_unavailable",
       phase: "failed",
       detail: "The prompt was accepted, then Hooxie lost the run result. It was not sent again.",
+      responseText: reply || undefined,
       responseVerified: false,
       limitations: adapter.limitations,
       unsupported: adapter.unsupported,
@@ -401,7 +446,6 @@ async function observeRun(
   } finally {
     closed = true;
     clearInterval(gitTimer);
-    await agent.dispose().catch(() => undefined);
   }
 }
 
@@ -410,10 +454,20 @@ async function readRunStream(
   closed: () => boolean,
   current: () => RunActivity,
   apply: (next: RunActivity) => void,
+  speak: (text: string) => void,
 ): Promise<void> {
+  let reply = "";
   try {
     for await (const message of run.stream!()) {
       if (closed()) return;
+      const spoken = replyFromMessage(message);
+      if (spoken) {
+        const nextReply = joinReply(reply, spoken);
+        if (nextReply !== reply) {
+          reply = nextReply;
+          speak(reply);
+        }
+      }
       const next = foldActivity(current(), message);
       if (next !== current()) apply(next);
     }
@@ -634,7 +688,7 @@ export async function loadRealCursorSdk(storeDir: string): Promise<CursorSdkClie
     const sdk = (await import("@cursor/sdk")) as {
       Agent: {
         create(options: Record<string, unknown>): Promise<{
-          send(message: unknown): Promise<SdkRun>;
+          send(message: unknown, options?: { mode?: "agent"; local?: { force?: boolean } }): Promise<SdkRun>;
           [Symbol.asyncDispose](): Promise<void>;
         }>;
       };
@@ -648,17 +702,22 @@ export async function loadRealCursorSdk(storeDir: string): Promise<CursorSdkClie
         const agent = await sdk.Agent.create({
           ...(options.apiKey ? { apiKey: options.apiKey } : {}),
           model: { id: options.model },
+          mode: "agent",
           local: {
             cwd: options.cwd,
-            settingSources: ["project"],
+            settingSources: ["all"],
+            autoReview: true,
             store,
             sandboxOptions: { enabled: process.platform === "win32" ? false : options.sandbox },
           },
         });
         return {
-          async send(message) {
+          async send(message, options) {
             try {
-              return await agent.send(message);
+              return await agent.send(message, {
+                mode: "agent",
+                ...(options?.force ? { local: { force: true } } : {}),
+              });
             } catch (error) {
               if (error instanceof sdk.CursorAgentError) throw error;
               throw error;

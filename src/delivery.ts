@@ -205,11 +205,7 @@ function applyUpdate(record: DeliveryRecord, update: DeliveryUpdate): void {
   record.responseVerified = update.responseVerified;
   record.limitations = update.limitations;
   record.unsupported = update.unsupported;
-  if (update.responseVerified && typeof update.responseText === "string") {
-    record.responseText = update.responseText;
-  } else if (!update.responseVerified) {
-    record.responseText = undefined;
-  }
+  if (typeof update.responseText === "string") record.responseText = update.responseText;
   if (record.status !== "agent_working") record.canCancel = false;
 }
 
@@ -224,7 +220,7 @@ function toPublic(record: DeliveryRecord): PublicDelivery {
     routeId: record.routeId,
     projectPath: record.projectPath,
     mechanism: record.mechanism,
-    responseText: record.responseVerified ? record.responseText : undefined,
+    responseText: record.responseText,
     responseVerified: record.responseVerified,
     limitations: record.limitations,
     unsupported: record.unsupported,

@@ -58,7 +58,7 @@ export function buildPromptText(input: {
     context.push(`Project path: ${input.projectPath}`);
   }
   if (input.includeScreen) {
-    context.push("A screenshot of the user's current screen is attached. Use it as visual context for this request.");
+    context.push("A screenshot of the current screen is attached.");
   }
   if (input.markers) {
     context.push(
@@ -74,7 +74,7 @@ export function buildPromptText(input: {
     context.push(`Uploaded file ${upload.name}:\n-----\n${upload.content}\n-----`);
   }
   if (context.length) {
-    parts.push("Context the user explicitly attached from Hooxie:\n\n" + context.join("\n\n"));
+    parts.push(context.join("\n\n"));
   }
   return parts.join("\n\n");
 }

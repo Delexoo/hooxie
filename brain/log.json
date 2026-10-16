@@ -2,6 +2,73 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.2",
+      "date": "2026-10-16",
+      "title": "Faster launch and a slimmer preset list",
+      "sections": [
+        {
+          "heading": "Widget",
+          "fixes": [
+            "Setup shows the IDE list inside the window, so choosing one no longer opens a blank dropdown.",
+            "A follow-up in the widget stays in the same Cursor agent chat, and that agent uses the same project rules as the IDE.",
+            "The chat stays put while the agent is working, and file changes open after the run finishes.",
+            "The widget pill matches the landing page demo: one dark bar, the prompt in the middle, and outline icons.",
+            "Setup stays a rounded window, so the IDE chooser is no longer clipped into the prompt pill.",
+            "The IDE dropdown opens again. Startup no longer stops before that list is wired up.",
+            "Toolbar buttons show a press, and their panels open with the window.",
+            "The undetectable dotted ring stays even instead of jumping as the pill changes size.",
+            "Dashboard controls grow only a little on hover, and the sidebar no longer clips that grow.",
+            "Clicks beside the rounded pill pass through to the window underneath.",
+            "Preset prompts have View and Edit, and each row is slimmer.",
+            "Hooxie opens before the Cursor connection and the IDE scan finish.",
+            "The dashboard browser starts when you open the dashboard, so launch does not wait on it."
+          ]
+        },
+        {
+          "heading": "Site",
+          "added": [
+            "The intro progress bar is thicker.",
+            "The intro question sits a little lower.",
+            "The intro demo is a computer that plays on its own under Here's a quick Demo.",
+            "Learn more sits a little farther left in the hero control.",
+            "What is Hooxie says Hooxie is a desktop widget that stays on your screen and is invisible to screenshare.",
+            "What is Hooxie adds that it is very compact and invisible to screenshare.",
+            "The hooxie.com pages no longer show a scrollbar.",
+            "The intro demo always types a prompt, and the voice recording stays off that computer.",
+            "The intro opener fades in, with a pause before the second sentence.",
+            "The intro fits the screen on phones, short landscape screens, and desktops.",
+            "The intro opener's first line is larger, and the follow-up line is smaller.",
+            "The intro opener waits longer before the second sentence fades in.",
+            "The intro choices sit a little higher.",
+            "The last intro screen says Download it! and points Continue to hooxie.com.",
+            "Each intro step fades into the next.",
+            "The intro choices sit a little higher again.",
+            "Intro steps fade out before the next one fades in.",
+            "The intro demo uses the Hooxie pill and types the prompt on its own.",
+            "The intro pill sits above the page on the demo screen.",
+            "The intro slide titles sit at the same height as the opening sentence.",
+            "The intro choices are a little larger.",
+            "The site font starts loading with the page, and fonts, styles, and pictures stay cached for the next visit."
+          ]
+        },
+        {
+          "heading": "Audit",
+          "added": [
+            "Checklist audit at 2:43 AM PT on 16 Oct 2026 found 39 of 72 applicable checks in place, and the save is estimated at about 2:55 AM because the next message in that chat is 2:57 AM.",
+            "Checklist audit at 3:10 AM PT on 16 Oct 2026 found 54 of 73 applicable checks in place, and the save is estimated at about 3:25 AM because the next message is 3:27 AM.",
+            "Checklist audit at 3:53 AM PT on 16 Oct 2026 is the report on disk, 69 of 72 applicable checks passed, restored at 4:31 AM and last saved at 4:52 AM; GitHub has no copy of that file.",
+            "The dependency check on 16 Oct 2026 reported 0 high and 0 critical, and the hour is estimated as during the 3:53 AM checklist audit because that report is what cites it."
+          ]
+        },
+        {
+          "heading": "Setup",
+          "added": [
+            "The installer downloads Node.js 22 and the WebView2 runtime when they are missing, then installs the Hooxie packages."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.1",
       "date": "2026-10-16",
       "title": "Advanced mode and the Hello World voice demo",

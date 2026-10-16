@@ -127,34 +127,30 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
 
   let apiKey = options.apiKey ?? (await readOptional(path.join(configDir, "cursor-api-key")));
   let sdkAccount = false;
-  if (!apiKey) {
-    try {
-      const sdk = await import("@cursor/sdk") as {
-        Cursor: { auth: { status(): Promise<{ status?: string }> } };
-      };
-      const status = await sdk.Cursor.auth.status();
-      sdkAccount = status.status === "logged-in";
-    } catch {
-      sdkAccount = false;
-    }
-  }
+  const accountReady = apiKey ? Promise.resolve() : import("@cursor/sdk").then(async (sdk) => {
+    const cursor = sdk as { Cursor: { auth: { status(): Promise<{ status?: string }> } } };
+    const status = await cursor.Cursor.auth.status();
+    sdkAccount = status.status === "logged-in";
+  }).catch(() => {
+    sdkAccount = false;
+  });
   let connectTask: Promise<void> | null = null;
   const storeDir = path.join(configDir, "agent-store");
   let sdk = options.sdk;
   let sdkReady = options.sdkReady ?? Boolean(sdk);
-  if (!sdk && options.sdkReady !== false) {
-    sdk = await loadRealCursorSdk(storeDir);
-    sdkReady = Boolean(sdk);
-  }
+  const sdkReadyTask = sdk || options.sdkReady === false ? Promise.resolve() : loadRealCursorSdk(storeDir).then((loaded) => {
+    sdk = loaded;
+    sdkReady = Boolean(loaded);
+  }).catch(() => {
+    sdkReady = false;
+  });
   const clipboard = options.clipboard ?? createUnavailableClipboard();
   let installations: Installation[] = options.installations ?? [];
-  if (!options.installations) {
-    try {
-      installations = await detectInstallations(options.detect);
-    } catch {
-      installations = [];
-    }
-  }
+  const detectReady = options.installations ? Promise.resolve() : detectInstallations(options.detect).then((found) => {
+    installations = found;
+  }).catch(() => {
+    installations = [];
+  });
 
   const fileEnv = await readOptional(path.join(rootDir, ".env"));
   const userEnv = await readOptional(path.join(defaultConfigDir(), "billing.env"));
@@ -343,8 +339,6 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     if (settings.connectedIde && settings.connectedIde !== "cursor") return;
     void service.routes("cursor", project, { allowUnsandboxed: settings.unsandboxed }).catch(() => undefined);
   }
-  warmCursor();
-
   const server = http.createServer(async (req, res) => {
     try {
       await route(req, res);
@@ -356,6 +350,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
   });
 
   await new Promise<void>((resolve) => server.listen(options.port ?? 47321, host, resolve));
+  void Promise.all([accountReady, sdkReadyTask, detectReady]).then(() => warmCursor());
   const address = server.address();
   const port = typeof address === "object" && address ? address.port : 0;
   await writeBridgeFile(configDir, port, bridgeToken);
@@ -606,6 +601,17 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       } finally {
         res.removeListener("close", stop);
       }
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/conversation/reset") {
+      const body = asRecord(await readJson(req, 4000));
+      const projectPath = stringField(body, "projectPath") ?? "";
+      if (!projectPath || !path.isAbsolute(projectPath)) {
+        throw new DeliveryError(400, "Choose an absolute project path.");
+      }
+      const cursor = registry.get("cursor-sdk");
+      if (cursor?.resetConversation) await cursor.resetConversation(projectPath);
+      sendJson(res, 200, { ok: true });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/deliveries") {

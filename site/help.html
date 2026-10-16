@@ -19,6 +19,8 @@
   <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
@@ -55,7 +57,7 @@
       <h2>Open the widget</h2>
       <p>Start Hooxie on Windows. A pill appears at the top center. Set the project folder before you send. That folder is the agent's workspace.</p>
       <h2>Send a prompt</h2>
-      <p>Type and press Enter, or use the send icon. Each prompt starts a new agent session for that folder. It does not continue an already-open chat thread.</p>
+      <p>Type and press Enter, or use the send icon. The widget sends that prompt to a Cursor agent on the project folder, the same kind of agent the IDE runs. A follow-up stays in that chat until you clear it. It does not type into a Composer thread already open in the IDE.</p>
       <h2>Voice</h2>
       <p>With an empty prompt, the round button is the microphone. Click it to start, click again to stop. Words appear as you speak, and a short pause keeps the phrase. When words are in the prompt, the button becomes send. Choose the microphone and speaker in the dashboard, or turn voice prompting off there.</p>
       <h2>Screen</h2>

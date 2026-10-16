@@ -33,6 +33,7 @@ internal sealed class ShellForm : Form
     private bool excludeCapture;
     private int shapeWidth;
     private int shapeHeight;
+    private int shapeDiameter;
     private bool followArmed;
     private Point followGrab;
     private readonly System.Windows.Forms.Timer follow = new() { Interval = 16 };
@@ -83,7 +84,6 @@ internal sealed class ShellForm : Form
         Load += async (_, _) =>
         {
             await OpenPage(url);
-            WarmDashboard();
         };
         var reader = new Thread(ReadCommands) { IsBackground = true };
         reader.Start();
@@ -201,7 +201,7 @@ internal sealed class ShellForm : Form
                 var localY = screenY - window.Top;
                 var width = window.Right - window.Left;
                 var height = window.Bottom - window.Top;
-                if (!InsideRoundedRect(localX, localY, width, height, CornerRadius(height)))
+                if (!InsideRoundedRect(localX, localY, width, height, WindowRadius(width, height)))
                 {
                     m.Result = (IntPtr)HTTRANSPARENT;
                     return;
@@ -224,7 +224,6 @@ internal sealed class ShellForm : Form
         if (!IsHandleCreated || !Visible) return;
         TopMost = true;
         SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        if (excludeCapture) ApplyCaptureAffinity();
     }
 
     private void HideWidget()
@@ -1121,12 +1120,11 @@ internal sealed class ShellForm : Form
     private void ApplyWindowShape()
     {
         if (!IsHandleCreated) return;
-        var dpi = (DeviceDpi > 0 ? DeviceDpi : 96) / 96f;
-        var radius = Math.Max(8, (int)Math.Round(29 * dpi));
-        var diameter = radius * 2;
-        var width = Math.Max(diameter + 2, ClientSize.Width);
-        var height = Math.Max(diameter + 2, ClientSize.Height);
-        if (width == shapeWidth && height == shapeHeight && Region != null) return;
+        var width = Math.Max(1, ClientSize.Width);
+        var height = Math.Max(1, ClientSize.Height);
+        var diameter = Math.Max(2, WindowRadius(width, height) * 2);
+        diameter = Math.Min(diameter, Math.Min(width, height) - 1);
+        if (width == shapeWidth && height == shapeHeight && diameter == shapeDiameter && Region != null) return;
         using var path = new GraphicsPath();
         path.AddArc(0, 0, diameter, diameter, 180, 90);
         path.AddArc(width - diameter - 1, 0, diameter, diameter, 270, 90);
@@ -1137,8 +1135,17 @@ internal sealed class ShellForm : Form
         var old = Region;
         shapeWidth = width;
         shapeHeight = height;
+        shapeDiameter = diameter;
         Region = next;
         old?.Dispose();
+    }
+
+    private int WindowRadius(int width, int height)
+    {
+        var dpi = (DeviceDpi > 0 ? DeviceDpi : 96) / 96f;
+        var shortPill = height <= (int)Math.Round(64 * dpi);
+        var wanted = shortPill ? height / 2 : (int)Math.Round(26 * dpi);
+        return Math.Max(8, Math.Min(wanted, Math.Min(width, height) / 2));
     }
 
     private void Nudge(int dx, int dy)
@@ -1293,11 +1300,6 @@ internal sealed class ShellForm : Form
         using var dialog = new FolderBrowserDialog { Description = "Folder Hooxie may modify" };
         if (Directory.Exists(initialPath)) dialog.SelectedPath = initialPath;
         return dialog.ShowDialog() == DialogResult.OK ? dialog.SelectedPath : "";
-    }
-
-    private static int CornerRadius(int height)
-    {
-        return Math.Min(25, Math.Max(height / 2, 8));
     }
 
     private static bool InsideRoundedRect(int x, int y, int width, int height, int radius)

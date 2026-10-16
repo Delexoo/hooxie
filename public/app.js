@@ -77,6 +77,7 @@ let deliveryId = "";
 let pollTimer = 0;
 let statusName = "ready";
 let fitTimer = 0;
+let fitInstant = false;
 let panel = "none";
 let thread = [];
 let renderedReply = "";
@@ -828,11 +829,10 @@ async function purchaseLicense() {
   }
 }
 
-function renderSetupIdes(ides, connectedIde, more = []) {
-  const select = document.querySelector("#setup-ide");
-  const note = document.querySelector("#setup-ide-note");
-  if (!select) return;
-  const rows = [
+let setupIdeOpen = false;
+
+function setupIdeRows(ides, connectedIde, more = []) {
+  return [
     ...ides.map((ide) => ({
       id: ide.ide,
       label: ide.label,
@@ -846,31 +846,62 @@ function renderSetupIdes(ides, connectedIde, more = []) {
       connected: false,
     })),
   ];
-  select.replaceChildren();
-  const blank = document.createElement("option");
-  blank.value = "";
-  blank.textContent = "Choose an IDE";
-  select.append(blank);
-  for (const ide of rows) {
-    const option = document.createElement("option");
-    option.value = ide.id;
-    option.dataset.installed = ide.installed || ide.connected ? "true" : "false";
-    option.textContent = ide.installed || ide.connected ? ide.label : `${ide.label} · download`;
-    select.append(option);
+}
+
+function setSetupIdeOpen(open) {
+  setupIdeOpen = open;
+  const root = document.querySelector("#setup-ide");
+  const button = document.querySelector("#setup-ide-button");
+  const menu = document.querySelector("#setup-ide-menu");
+  root?.classList.toggle("is-open", open);
+  if (button) button.setAttribute("aria-expanded", String(open));
+  if (menu) menu.hidden = !open;
+  scheduleFit(true);
+}
+
+function renderSetupIdes(ides, connectedIde, more = []) {
+  const label = document.querySelector("#setup-ide-label");
+  const menu = document.querySelector("#setup-ide-menu");
+  const note = document.querySelector("#setup-ide-note");
+  if (!menu || !label) return;
+  const rows = setupIdeRows(ides, connectedIde, more);
+  const chosenId = rows.some((ide) => ide.id === connectedIde) ? connectedIde : "";
+  menu.replaceChildren();
+  if (!rows.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No IDEs found.";
+    menu.append(empty);
   }
-  select.value = rows.some((ide) => ide.id === connectedIde) ? connectedIde : "";
+  for (const ide of rows) {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.dataset.ide = ide.id;
+    option.dataset.installed = ide.installed || ide.connected ? "true" : "false";
+    option.setAttribute("role", "option");
+    option.setAttribute("aria-selected", String(ide.id === chosenId));
+    const name = document.createElement("span");
+    name.textContent = ide.label;
+    option.append(name);
+    if (option.dataset.installed !== "true") {
+      const tag = document.createElement("span");
+      tag.textContent = "Download";
+      option.append(tag);
+    }
+    menu.append(option);
+  }
+  const chosen = rows.find((ide) => ide.id === chosenId);
+  label.textContent = chosen ? chosen.label : "Choose an IDE";
+  if (document.querySelector("#setup-connect")?.hidden) setupIdeOpen = false;
+  setSetupIdeOpen(setupIdeOpen);
   if (!note) return;
-  const chosen = rows.find((ide) => ide.id === select.value);
   note.textContent = !chosen
     ? "The widget uses the IDE you pick."
     : "The widget uses this IDE.";
 }
 
-document.querySelector("#setup-ide")?.addEventListener("change", (event) => {
-  const select = event.currentTarget;
-  const ide = select.value;
-  const installed = select.selectedOptions[0]?.dataset.installed === "true";
+function chooseSetupIde(ide, installed) {
   const previous = setupReport?.connectedIde || "";
+  setSetupIdeOpen(false);
   if (!ide) {
     if (previous) disconnectIde(previous).catch((error) => showNotice(error.message));
     return;
@@ -878,28 +909,41 @@ document.querySelector("#setup-ide")?.addEventListener("change", (event) => {
   if (!installed) {
     const note = document.querySelector("#setup-ide-note");
     if (note) note.textContent = "Opening the download. The widget stays on the IDE that is already connected.";
-    select.value = previous;
     openIdeDownload(ide).catch((error) => showNotice(error.message));
     return;
   }
   connectIde(ide).catch((error) => {
     const note = document.querySelector("#setup-ide-note");
     if (note) note.textContent = error.message;
-    select.value = previous;
   });
+}
+
+document.querySelector("#setup-ide-button")?.addEventListener("click", () => {
+  setSetupIdeOpen(!setupIdeOpen);
+});
+
+document.querySelector("#setup-ide-menu")?.addEventListener("click", (event) => {
+  const option = event.target.closest("button");
+  if (!option) return;
+  chooseSetupIde(option.dataset.ide || "", option.dataset.installed === "true");
 });
 
 function markConnected(ide) {
-  const select = document.querySelector("#setup-ide");
-  if (select && [...select.options].some((option) => option.value === ide)) select.value = ide;
+  const label = document.querySelector("#setup-ide-label");
+  const menu = document.querySelector("#setup-ide-menu");
+  const match = menu?.querySelector(`button[data-ide="${CSS.escape(ide)}"]`);
+  if (label && match) label.textContent = match.querySelector("span")?.textContent || label.textContent;
+  menu?.querySelectorAll("button").forEach((option) => {
+    option.setAttribute("aria-selected", String(option.dataset.ide === ide));
+  });
   const note = document.querySelector("#setup-ide-note");
   if (note && ide) note.textContent = "The widget uses this IDE.";
 }
 
 async function disconnectIde(ide) {
   await api("/api/ide/disconnect", { method: "POST", body: JSON.stringify({ ide }) });
-  const select = document.querySelector("#setup-ide");
-  if (select && select.value === ide) select.value = "";
+  const label = document.querySelector("#setup-ide-label");
+  if (label) label.textContent = "Choose an IDE";
   await refreshSetup();
 }
 
@@ -1346,7 +1390,16 @@ let editingIndex = -1;
 let editingDraft = "";
 let editingCaret = null;
 
+let threadPaint = "";
+
 function renderThread() {
+  const paint = `${editingIndex}|${statusName}|${thread.map((message) => [message.role, message.deliveryId || "", message.text, message.previews?.length || 0].join("\u0000")).join("\u0001")}`;
+  if (paint === threadPaint && threadEl.childElementCount) {
+    syncFold();
+    syncChatActions();
+    return false;
+  }
+  threadPaint = paint;
   const scroll = threadEl.scrollTop;
   const previous = threadEl.querySelector(".bubble-edit");
   if (previous && document.activeElement === previous) editingCaret = previous.selectionStart;
@@ -1413,7 +1466,7 @@ function renderThread() {
     block.className = "reply";
     const who = document.createElement("p");
     who.className = "who";
-    who.textContent = "Hooxie";
+    who.textContent = message.ide || "Cursor";
     const body = document.createElement("p");
     body.className = "reply-text";
     body.textContent = message.text;
@@ -1445,6 +1498,7 @@ function renderThread() {
   else threadEl.scrollTop = threadEl.scrollHeight;
   syncFold();
   syncChatActions();
+  return true;
 }
 
 function messageEditor(index) {
@@ -1630,7 +1684,7 @@ function syncFold() {
   contextBarEl.hidden = !show;
   shellEl.classList.toggle("is-open", show || panel !== "none" || !document.querySelector("#more-menu").hidden);
   if (show && !was) threadEl.scrollTop = threadEl.scrollHeight;
-  if (show !== was) scheduleFit();
+  if (show !== was) scheduleFit(true);
 }
 
 function promptFocused() {
@@ -2029,7 +2083,7 @@ function show(delivery) {
       else sessionFiles.push(next);
     }
   }
-  renderActivity();
+  const activityChanged = renderActivity();
   renderAdvanced();
   if (terminal(delivery.status)) clearBusy();
   else syncAction();
@@ -2045,7 +2099,9 @@ function show(delivery) {
     const key = `${delivery.id}:${delivery.responseText}`;
     if (renderedReply !== key) {
       renderedReply = key;
-      thread.push({ role: "agent", text: delivery.responseText, ide: ideLabel() });
+      const existing = thread.findIndex((item) => item.role === "agent" && item.deliveryId === delivery.id);
+      if (existing >= 0) thread[existing].text = delivery.responseText;
+      else thread.push({ role: "agent", text: delivery.responseText, ide: ideLabel(), deliveryId: delivery.id });
     }
     showOnly("chat");
   } else if (terminal(delivery.status) && delivery.detail) {
@@ -2061,8 +2117,8 @@ function show(delivery) {
     resultEl.hidden = true;
     resultEl.textContent = "";
   }
-  renderThread();
-  scheduleFit();
+  const threadChanged = renderThread();
+  if (activityChanged || threadChanged) scheduleFit();
   if (terminal(delivery.status) && !stopped) void drainQueue();
 }
 
@@ -2246,9 +2302,27 @@ async function drainQueue() {
   }
 }
 
+let activityFiles = [];
+let activityTerminals = [];
+let activityPaint = "";
+
 function renderActivity() {
+  const inProgress = statusName === "sending" || statusName === "agent_working";
   const running = sessionTerminals.filter((item) => item.status === "running");
-  const rowsByName = { terminals: running, queue: promptQueue, files: sessionFiles };
+  if (!inProgress) {
+    activityFiles = sessionFiles.slice();
+    activityTerminals = running.slice();
+  }
+  const rowsByName = { terminals: activityTerminals, queue: promptQueue, files: activityFiles };
+  const paint = [
+    activityOpen,
+    inProgress ? "working" : "idle",
+    activityTerminals.map((item) => item.command).join("\n"),
+    promptQueue.map((item) => item.id).join("\n"),
+    activityFiles.map((item) => `${item.kind}:${item.path}`).join("\n"),
+  ].join("|");
+  if (paint === activityPaint) return false;
+  activityPaint = paint;
   const labels = { terminals: "Terminals", queue: "Queued", files: "Files" };
   const order = ["files", "terminals", "queue"];
   for (const name of order) {
@@ -2279,7 +2353,7 @@ function renderActivity() {
   const panel = document.querySelector("#activity-panel");
   panel.hidden = activityOpen === "";
   panel.replaceChildren();
-  if (!activityOpen) return;
+  if (!activityOpen) return true;
   const rows = rowsByName[activityOpen];
   for (const item of rows) {
     const row = document.createElement("div");
@@ -2318,6 +2392,7 @@ function renderActivity() {
     panel.append(row);
   }
   renderAdvanced();
+  return true;
 }
 
 async function stopAgent() {
@@ -2424,9 +2499,12 @@ function selectAdvancedTool(name) {
 
 function renderAdvanced() {
   if (!advanced) return;
+  const inProgress = statusName === "sending" || statusName === "agent_working";
   renderAdvancedFiles();
-  renderAdvancedChanges();
-  renderAdvancedTerminal();
+  if (!inProgress) {
+    renderAdvancedChanges();
+    renderAdvancedTerminal();
+  }
   renderAdvancedDetails();
 }
 
@@ -2584,11 +2662,16 @@ async function copyReply() {
 }
 
 function clearChat() {
+  const project = projectEl.value.trim();
   thread = [];
   renderedReply = "";
   promptQueue = [];
   sessionTerminals = [];
   sessionFiles = [];
+  activityFiles = [];
+  activityTerminals = [];
+  activityPaint = "";
+  threadPaint = "";
   activityOpen = "";
   activityDismissed = new Set();
   resultEl.hidden = true;
@@ -2596,6 +2679,9 @@ function clearChat() {
   renderThread();
   renderActivity();
   closeMore();
+  if (project) {
+    void api("/api/conversation/reset", { method: "POST", body: JSON.stringify({ projectPath: project }) }).catch(() => undefined);
+  }
 }
 
 async function moveHooxie() {
@@ -2647,10 +2733,12 @@ function showOnly(which) {
   presetToggle.setAttribute("aria-expanded", String(panel === "presets"));
   document.querySelector("#usage-toggle").setAttribute("aria-expanded", String(panel === "usage"));
   syncFold();
-  scheduleFit();
+  scheduleFit(true);
 }
 
 const PRESET_KEY = "hooxie-presets";
+let editingPresetId = "";
+let viewingPresetId = "";
 
 function readPresets() {
   try {
@@ -2661,33 +2749,67 @@ function readPresets() {
   }
 }
 
+function presetButton(label, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = label;
+  button.addEventListener("click", onClick);
+  return button;
+}
+
 function renderPresets() {
   const list = document.querySelector("#preset-list");
+  const save = document.querySelector("#preset-save");
+  if (save) save.textContent = editingPresetId ? "Update" : "Save";
   list.replaceChildren(...readPresets().map((preset) => {
     const row = document.createElement("div");
     row.className = "preset";
+    if (viewingPresetId === preset.id) row.classList.add("is-open");
     const name = document.createElement("strong");
     name.textContent = preset.name;
-    name.title = preset.text;
-    const use = document.createElement("button");
-    use.type = "button";
-    use.textContent = "Use";
-    use.addEventListener("click", () => {
-      promptEl.value = preset.text;
-      stopPlaceholder();
-      syncAction();
-      showOnly("none");
-    });
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.textContent = "Delete";
-    remove.addEventListener("click", () => {
-      localStorage.setItem(PRESET_KEY, JSON.stringify(readPresets().filter((item) => item.id !== preset.id)));
-      renderPresets();
-    });
-    row.append(name, use, remove);
+    const actions = document.createElement("div");
+    actions.className = "preset-actions";
+    actions.append(
+      presetButton("Use", () => {
+        promptEl.value = preset.text;
+        stopPlaceholder();
+        syncAction();
+        showOnly("none");
+      }),
+      presetButton("View", () => {
+        viewingPresetId = viewingPresetId === preset.id ? "" : preset.id;
+        renderPresets();
+      }),
+      presetButton("Edit", () => {
+        editingPresetId = preset.id;
+        document.querySelector("#preset-name").value = preset.name;
+        document.querySelector("#preset-text").value = preset.text;
+        document.querySelector("#preset-text").focus();
+        renderPresets();
+      }),
+      presetButton("Delete", () => {
+        if (editingPresetId === preset.id) clearPresetEditor();
+        if (viewingPresetId === preset.id) viewingPresetId = "";
+        localStorage.setItem(PRESET_KEY, JSON.stringify(readPresets().filter((item) => item.id !== preset.id)));
+        renderPresets();
+      }),
+    );
+    row.append(name, actions);
+    if (viewingPresetId === preset.id) {
+      const view = document.createElement("p");
+      view.className = "preset-view";
+      view.textContent = preset.text;
+      row.append(view);
+    }
     return row;
   }));
+  if (!presetsEl.hidden) scheduleFit(true);
+}
+
+function clearPresetEditor() {
+  editingPresetId = "";
+  document.querySelector("#preset-name").value = "";
+  document.querySelector("#preset-text").value = "";
 }
 
 function savePreset() {
@@ -2698,14 +2820,14 @@ function savePreset() {
   }
   const typedName = document.querySelector("#preset-name").value.trim();
   const name = typedName || text.split("\n")[0].slice(0, 42);
-  const next = [{ id: crypto.randomUUID(), name, text }, ...readPresets()].slice(0, 40);
+  const current = readPresets();
+  const next = editingPresetId
+    ? current.map((item) => item.id === editingPresetId ? { ...item, name, text } : item)
+    : [{ id: crypto.randomUUID(), name, text }, ...current].slice(0, 40);
   localStorage.setItem(PRESET_KEY, JSON.stringify(next));
-  document.querySelector("#preset-name").value = "";
-  document.querySelector("#preset-text").value = "";
+  clearPresetEditor();
   renderPresets();
 }
-
-let fitInstant = false;
 
 function scheduleFit(instant = false) {
   if (instant) fitInstant = true;
@@ -2752,9 +2874,22 @@ function fitTrace() {
   ring.setAttribute("y", String(edge));
   ring.setAttribute("width", String(ringW));
   ring.setAttribute("height", String(ringH));
-  const ringRadius = Math.min(28, ringH / 2);
+  const ringRadius = shellEl.classList.contains("is-open") ? Math.min(26, ringH / 2) : ringH / 2;
   ring.setAttribute("rx", String(ringRadius));
   ring.setAttribute("ry", String(ringRadius));
+  placeStealthDots(ring, ringW, ringH, ringRadius);
+}
+
+let stealthDots = 0;
+
+function placeStealthDots(ring, width, height, radius) {
+  const perimeter = 2 * (width + height - 2 * radius) + 2 * Math.PI * radius;
+  const ideal = Math.max(16, Math.round(perimeter / 7.5));
+  if (!stealthDots || Math.abs(ideal - stealthDots) > 1) stealthDots = ideal;
+  const step = 100 / stealthDots;
+  const dot = Math.min(step * 0.42, (1.6 / Math.max(perimeter, 1)) * 100);
+  ring.setAttribute("pathLength", "100");
+  ring.setAttribute("stroke-dasharray", `${dot.toFixed(3)} ${(step - dot).toFixed(3)}`);
 }
 
 if (typeof ResizeObserver === "function") {
@@ -2811,11 +2946,15 @@ function measureFrame() {
   document.body.style.height = "auto";
   frameEl.style.maxHeight = "none";
   shellEl.style.maxHeight = "none";
-  const height = Math.ceil(frameEl.getBoundingClientRect().height);
+  frameEl.style.overflow = "visible";
+  shellEl.style.overflow = "visible";
+  const height = Math.ceil(Math.max(frameEl.getBoundingClientRect().height, frameEl.scrollHeight));
   html.style.height = saved.htmlHeight;
   document.body.style.height = saved.bodyHeight;
   frameEl.style.maxHeight = saved.frameMax;
   shellEl.style.maxHeight = saved.shellMax;
+  frameEl.style.overflow = "";
+  shellEl.style.overflow = "";
   return Math.max(48, height || 48);
 }
 

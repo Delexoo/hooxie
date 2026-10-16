@@ -323,11 +323,6 @@ function parseLine(line: string): HostResponse | undefined {
 }
 
 async function closePreviousWidget(): Promise<void> {
-  const script = `
-Get-Process msedge, chrome, HooxieShell -ErrorAction SilentlyContinue |
-  Where-Object { $_.MainWindowTitle -eq 'Hooxie' } |
-  Stop-Process -Force -ErrorAction SilentlyContinue
-`;
-  const encoded = Buffer.from(script, "utf16le").toString("base64");
-  await execFileAsync("powershell.exe", ["-NoProfile", "-EncodedCommand", encoded], { windowsHide: true }).catch(() => undefined);
+  if (process.platform !== "win32") return;
+  await execFileAsync("taskkill", ["/F", "/IM", "HooxieShell.exe"], { windowsHide: true }).catch(() => undefined);
 }

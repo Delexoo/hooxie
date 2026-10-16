@@ -40,7 +40,7 @@ export const IDE_CATALOG: IdeProfile[] = [
     "Cursor",
     "Official Cursor SDK can run an agent on a folder you choose. A companion extension can also place text in the chat input through an internal VS Code command. That placement is not agent acceptance.",
     [
-      "The SDK starts a Cursor agent session for the selected folder. It does not type into the Composer thread that is already open.",
+      "The SDK runs a local Cursor agent on the selected folder, using that project's Cursor rules. A follow-up in the widget stays in that chat until you clear it. It does not type into a Composer thread already open in the IDE.",
       "Local SDK runs can edit files and run commands. There is no IDE approval dialog on that path.",
       "Cloud agents can appear in Cursor's Agents window. This build targets a local folder through the SDK.",
       "Placing text with the companion extension uses the internal command workbench.action.chat.open. Cursor staff have said the string form does not auto-submit, and the command is not a stable public contract.",

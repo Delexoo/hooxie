@@ -21,6 +21,24 @@ export function emptyActivity(): RunActivity {
   return { terminals: [], files: [] };
 }
 
+export function joinReply(current: string, incoming: string): string {
+  if (!incoming) return current;
+  if (!current) return incoming;
+  if (incoming.startsWith(current)) return incoming;
+  if (current.endsWith(incoming)) return current;
+  return current + incoming;
+}
+
+export function replyFromMessage(message: unknown): string {
+  if (!message || typeof message !== "object") return "";
+  const record = message as { type?: string; message?: { content?: { type?: string; text?: string }[] } };
+  if (record.type !== "assistant" || !Array.isArray(record.message?.content)) return "";
+  return record.message.content
+    .filter((block) => block?.type === "text" && typeof block.text === "string")
+    .map((block) => block.text as string)
+    .join("");
+}
+
 export function foldActivity(current: RunActivity, message: unknown): RunActivity {
   const call = readToolCall(message);
   if (!call) return current;

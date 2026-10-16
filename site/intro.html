@@ -19,6 +19,8 @@
   <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body class="intro">
@@ -30,8 +32,9 @@
       <span></span>
     </div>
 
+    <div class="intro-slides">
     <section class="intro-step is-on" data-step="1">
-      <h1 id="intro-open" tabindex="-1">Imagine a desktop widget for your coding agent... Oh ohh and it's very compact and is invisible to screenshare. 🤯</h1>
+      <h1 id="intro-open" tabindex="-1"><span class="intro-fade">Imagine a desktop widget for your coding agent...</span> <span class="intro-fade intro-fade-late">Oh ohh and it's very compact and is invisible to screenshare. 🤯</span></h1>
       <div class="intro-mark" aria-hidden="true"><span></span></div>
       <button class="intro-go" type="button" data-go="2">See how it works →</button>
     </section>
@@ -47,18 +50,67 @@
     </section>
 
     <section class="intro-step" data-step="3" hidden>
-      <h2 tabindex="-1">It stays on the screen.</h2>
+      <h2 tabindex="-1">Here's a quick Demo.</h2>
       <div class="intro-stage">
-        <div class="intro-window">
-          <div class="intro-pill" id="intro-pill">
-            <span class="intro-prompt" id="intro-prompt"></span>
-            <span class="intro-mic" id="intro-mic" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><rect x="9" y="3.2" width="6" height="11" rx="3"></rect><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"></path><path d="M12 17v3.2"></path><path d="M8.8 20.2h6.4"></path></svg>
-            </span>
-          </div>
-          <div class="intro-card" id="intro-card" hidden>
-            <p class="intro-kicker" id="intro-kicker"></p>
-            <p class="intro-line" id="intro-line"></p>
+        <div class="intro-desk">
+          <div class="intro-bezel">
+            <div class="intro-screen">
+              <article class="intro-page" id="intro-card">
+                <div class="intro-page-top">
+                  <p class="intro-kicker" id="intro-kicker"></p>
+                  <p class="intro-nav">Open</p>
+                </div>
+                <p class="intro-line" id="intro-line"></p>
+                <div class="intro-blocks" aria-hidden="true"><i></i><i></i><i></i></div>
+              </article>
+              <div class="pill" id="intro-pill">
+                <svg class="pill-trace" id="pill-trace" aria-hidden="true" viewBox="0 0 448 47">
+                  <defs>
+                    <linearGradient id="pill-trace-grad" gradientUnits="userSpaceOnUse" x1="0" y1="23.5" x2="448" y2="23.5">
+                      <stop offset="0" stop-color="#3a78ff"></stop>
+                      <stop offset="42%" stop-color="#9eb6ff"></stop>
+                      <stop offset="72%" stop-color="#f6d0c6"></stop>
+                      <stop offset="100%" stop-color="#f0aa98"></stop>
+                    </linearGradient>
+                  </defs>
+                  <rect pathLength="100" fill="none" x="2.4" y="2.4" width="443.2" height="42.2" rx="21.1" ry="21.1"></rect>
+                  <rect class="lag-5" pathLength="100" fill="none" x="2.4" y="2.4" width="443.2" height="42.2" rx="21.1" ry="21.1"></rect>
+                  <rect class="lag-10" pathLength="100" fill="none" x="2.4" y="2.4" width="443.2" height="42.2" rx="21.1" ry="21.1"></rect>
+                  <rect class="lag-16" pathLength="100" fill="none" x="2.4" y="2.4" width="443.2" height="42.2" rx="21.1" ry="21.1"></rect>
+                </svg>
+                <svg class="pill-stealth" id="pill-stealth" aria-hidden="true" viewBox="0 0 448 47"><rect fill="none" x="1.4" y="1.4" width="445.2" height="44.2" rx="22.1" ry="22.1"></rect></svg>
+                <form class="pill-field" id="intro-form">
+                  <span class="pill-add" aria-hidden="true">+</span>
+                  <span class="pill-type">
+                    <input id="pill-input" type="text" placeholder="Prompt anything." autocomplete="off" aria-label="Prompt" readonly tabindex="-1">
+                    <span class="pill-measure" id="pill-measure" aria-hidden="true"></span>
+                    <span class="pill-caret" id="pill-caret" hidden></span>
+                  </span>
+                  <button class="pill-send" id="demo-send" type="button" tabindex="-1" aria-label="Voice">
+                    <svg class="send-mic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.2" width="6" height="11" rx="3"></rect><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"></path><path d="M12 17v3.2"></path><path d="M8.8 20.2h6.4"></path></svg>
+                    <svg class="send-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6"></path><path d="M6.8 11.2 12 6l5.2 5.2"></path></svg>
+                  </button>
+                </form>
+                <div class="pill-tools">
+                  <button class="pill-icon" type="button" tabindex="-1" aria-label="Preset prompts">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14l-6.5-3.2L5.5 20V6A1.5 1.5 0 0 1 7 4.5z"></path><path d="M9 9h6"></path></svg>
+                  </button>
+                  <button class="pill-icon" type="button" tabindex="-1" aria-label="More options">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="18" cy="12" r="1.6"></circle></svg>
+                  </button>
+                  <button class="pill-usage" type="button" tabindex="-1" aria-label="AI usage">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="usage-track" cx="12" cy="12" r="10"></circle><circle class="usage-ring" cx="12" cy="12" r="10"></circle></svg>
+                    <span>42</span>
+                  </button>
+                  <button class="pill-icon" type="button" tabindex="-1" aria-label="Dashboard">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"></rect><rect x="13" y="4" width="7" height="7" rx="1.5"></rect><rect x="4" y="13" width="7" height="7" rx="1.5"></rect><rect x="13" y="13" width="7" height="7" rx="1.5"></rect></svg>
+                  </button>
+                  <button class="pill-drag" type="button" tabindex="-1" aria-label="Drag to move">
+                    <svg viewBox="0 0 10 16" aria-hidden="true"><circle cx="2.2" cy="2.2" r="1.55"></circle><circle cx="7.8" cy="2.2" r="1.55"></circle><circle cx="2.2" cy="8" r="1.55"></circle><circle cx="7.8" cy="8" r="1.55"></circle><circle cx="2.2" cy="13.8" r="1.55"></circle><circle cx="7.8" cy="13.8" r="1.55"></circle></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -66,10 +118,11 @@
     </section>
 
     <section class="intro-step" data-step="4" hidden>
-      <h2 tabindex="-1">Download it.<br>Or learn more.</h2>
-      <p class="intro-lead">The next page is the Hooxie site, with the download and the rest of the tour.</p>
+      <h2 tabindex="-1">Download it!</h2>
+      <p class="intro-lead">Click on Continue to visit hooxie.com.</p>
       <a class="intro-go" href="/">Continue →</a>
     </section>
+    </div>
   </main>
   <script src="/intro.js"></script>
 </body>

@@ -44,7 +44,7 @@
           <input id="folder" type="file" webkitdirectory hidden>
           <label class="prompt-label" for="prompt">Prompt</label>
           <div id="composer">
-            <textarea id="prompt" rows="1" placeholder="Prompt Cursor anything." autocomplete="off"></textarea>
+            <textarea id="prompt" rows="1" placeholder="Prompt anything." autocomplete="off"></textarea>
             <div id="prompt-ghost" hidden aria-hidden="true"></div>
           </div>
           <div id="prompt-measure" aria-hidden="true"></div>
@@ -361,8 +361,14 @@
       </div>
       <div id="setup-connect">
         <p class="note" id="setup-note">Choose the IDE this widget should use.</p>
-        <label for="setup-ide">IDE</label>
-        <select id="setup-ide" aria-label="IDE"></select>
+        <label for="setup-ide-button">IDE</label>
+        <div id="setup-ide">
+          <button id="setup-ide-button" type="button" aria-expanded="false" aria-controls="setup-ide-menu" aria-haspopup="listbox">
+            <span id="setup-ide-label">Choose an IDE</span>
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 4.2 6 8l3.8-3.8"/></svg>
+          </button>
+          <div id="setup-ide-menu" role="listbox" aria-label="IDE" hidden></div>
+        </div>
         <p id="setup-ide-note" class="note"></p>
       </div>
       <div id="setup-license" hidden>
@@ -412,16 +418,13 @@
     </section>
 
     <section id="presets" hidden>
-      <h2>Preset prompts</h2>
-      <p class="note">Save a prompt here, then use it again whenever you need it.</p>
+      <h2>Presets</h2>
       <div id="preset-list"></div>
-      <label for="preset-name">Name</label>
-      <input id="preset-name" type="text" maxlength="80" placeholder="Bug check" autocomplete="off">
-      <label for="preset-text">Prompt</label>
-      <textarea id="preset-text" rows="4" placeholder="Look at the failing test and explain the cause."></textarea>
+      <input id="preset-name" type="text" maxlength="80" placeholder="Name" autocomplete="off" aria-label="Name">
+      <textarea id="preset-text" rows="2" placeholder="Prompt" aria-label="Prompt"></textarea>
       <div class="row">
-        <button id="preset-save" type="button">Save preset</button>
-        <button id="preset-from-prompt" type="button">Use current prompt</button>
+        <button id="preset-save" type="button">Save</button>
+        <button id="preset-from-prompt" type="button">From prompt</button>
       </div>
     </section>
 

@@ -447,7 +447,7 @@ test("the Cursor connection is open before the prompt is sent", async () => {
   }
 });
 
-test("the next Cursor connection opens while the first prompt is still running", async () => {
+test("a running prompt keeps the same agent instead of opening a second one", async () => {
   const sdk = createFakeSdk();
   sdk.mode = "hang";
   let creates = 0;
@@ -469,10 +469,52 @@ test("the next Cursor connection opens while the first prompt is still running",
     const delivery = await sendDelivery(ctx.bridge, ctx.project, { idempotencyKey: "warm-connection-2" });
     assert.equal(delivery.status, 200);
     assert.equal(delivery.body.status, "agent_working");
-    assert.equal(creates, 2);
+    assert.equal(creates, 1);
     await api(ctx.bridge, `/api/deliveries/${delivery.body.id}/cancel`, ctx.bridge.pageToken, { method: "POST" });
   } finally {
     releaseNext();
+    await ctx.bridge.close();
+  }
+});
+
+test("a plain prompt is sent as written, and a follow-up stays on the same agent", async () => {
+  const sdk = createFakeSdk();
+  let creates = 0;
+  const original = sdk.client.createAgent.bind(sdk.client);
+  sdk.client.createAgent = async (options) => {
+    creates += 1;
+    return original(options);
+  };
+  const ctx = await boot({ sdk });
+  try {
+    const first = await sendDelivery(ctx.bridge, ctx.project, {
+      prompt: "Add a hello heading.",
+      idempotencyKey: "chat-turn-1",
+    });
+    await untilStatus(ctx.bridge, first.body.id, "completed");
+    const second = await sendDelivery(ctx.bridge, ctx.project, {
+      prompt: "Make it bold.",
+      idempotencyKey: "chat-turn-2",
+    });
+    await untilStatus(ctx.bridge, second.body.id, "completed");
+    assert.equal(creates, 1);
+    assert.equal(ctx.sdk.calls.length, 2);
+    assert.equal(ctx.sdk.calls[0].message.text, "Add a hello heading.");
+    assert.equal(ctx.sdk.calls[1].message.text, "Make it bold.");
+
+    const reset = await api(ctx.bridge, "/api/conversation/reset", ctx.bridge.pageToken, {
+      method: "POST",
+      body: JSON.stringify({ projectPath: ctx.project }),
+    });
+    assert.equal(reset.status, 200);
+    const third = await sendDelivery(ctx.bridge, ctx.project, {
+      prompt: "Start over.",
+      idempotencyKey: "chat-turn-3",
+    });
+    await untilStatus(ctx.bridge, third.body.id, "completed");
+    assert.equal(creates, 2);
+    assert.equal(ctx.sdk.calls[2].message.text, "Start over.");
+  } finally {
     await ctx.bridge.close();
   }
 });

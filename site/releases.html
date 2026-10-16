@@ -19,6 +19,8 @@
   <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
@@ -44,12 +46,78 @@
     <p class="lede">The same list as the <a href="https://github.com/Delexoo/hooxie/releases">GitHub releases</a>.</p>
     <div class="release-log">
       <!-- brain:notes -->
+      <article class="release" id="v0.2.2">
+        <div class="release-mark" aria-hidden="true"></div>
+        <div class="release-body">
+          <header class="release-meta">
+            <a class="release-tag" href="https://github.com/Delexoo/hooxie/releases/tag/v0.2.2">v0.2.2</a>
+            <span class="release-latest">Latest</span>
+            <time datetime="2026-10-16">16 Oct 2026</time>
+          </header>
+          <div class="release-card">
+            <h2>Faster launch and a slimmer preset list</h2>
+            <h3>Added</h3>
+            <h4>Site</h4>
+            <ul>
+              <li>The intro progress bar is thicker.</li>
+              <li>The intro question sits a little lower.</li>
+              <li>The intro demo is a computer that plays on its own under Here's a quick Demo.</li>
+              <li>Learn more sits a little farther left in the hero control.</li>
+              <li>What is Hooxie says Hooxie is a desktop widget that stays on your screen and is invisible to screenshare.</li>
+              <li>What is Hooxie adds that it is very compact and invisible to screenshare.</li>
+              <li>The hooxie.com pages no longer show a scrollbar.</li>
+              <li>The intro demo always types a prompt, and the voice recording stays off that computer.</li>
+              <li>The intro opener fades in, with a pause before the second sentence.</li>
+              <li>The intro fits the screen on phones, short landscape screens, and desktops.</li>
+              <li>The intro opener's first line is larger, and the follow-up line is smaller.</li>
+              <li>The intro opener waits longer before the second sentence fades in.</li>
+              <li>The intro choices sit a little higher.</li>
+              <li>The last intro screen says Download it! and points Continue to hooxie.com.</li>
+              <li>Each intro step fades into the next.</li>
+              <li>The intro choices sit a little higher again.</li>
+              <li>Intro steps fade out before the next one fades in.</li>
+              <li>The intro demo uses the Hooxie pill and types the prompt on its own.</li>
+              <li>The intro pill sits above the page on the demo screen.</li>
+              <li>The intro slide titles sit at the same height as the opening sentence.</li>
+              <li>The intro choices are a little larger.</li>
+              <li>The site font starts loading with the page, and fonts, styles, and pictures stay cached for the next visit.</li>
+            </ul>
+            <h4>Audit</h4>
+            <ul>
+              <li>Checklist audit at 2:43 AM PT on 16 Oct 2026 found 39 of 72 applicable checks in place, and the save is estimated at about 2:55 AM because the next message in that chat is 2:57 AM.</li>
+              <li>Checklist audit at 3:10 AM PT on 16 Oct 2026 found 54 of 73 applicable checks in place, and the save is estimated at about 3:25 AM because the next message is 3:27 AM.</li>
+              <li>Checklist audit at 3:53 AM PT on 16 Oct 2026 is the report on disk, 69 of 72 applicable checks passed, restored at 4:31 AM and last saved at 4:52 AM; GitHub has no copy of that file.</li>
+              <li>The dependency check on 16 Oct 2026 reported 0 high and 0 critical, and the hour is estimated as during the 3:53 AM checklist audit because that report is what cites it.</li>
+            </ul>
+            <h4>Setup</h4>
+            <ul>
+              <li>The installer downloads Node.js 22 and the WebView2 runtime when they are missing, then installs the Hooxie packages.</li>
+            </ul>
+            <h3>Bug fixes</h3>
+            <h4>Widget</h4>
+            <ul>
+              <li>Setup shows the IDE list inside the window, so choosing one no longer opens a blank dropdown.</li>
+              <li>A follow-up in the widget stays in the same Cursor agent chat, and that agent uses the same project rules as the IDE.</li>
+              <li>The chat stays put while the agent is working, and file changes open after the run finishes.</li>
+              <li>The widget pill matches the landing page demo: one dark bar, the prompt in the middle, and outline icons.</li>
+              <li>Setup stays a rounded window, so the IDE chooser is no longer clipped into the prompt pill.</li>
+              <li>The IDE dropdown opens again. Startup no longer stops before that list is wired up.</li>
+              <li>Toolbar buttons show a press, and their panels open with the window.</li>
+              <li>The undetectable dotted ring stays even instead of jumping as the pill changes size.</li>
+              <li>Dashboard controls grow only a little on hover, and the sidebar no longer clips that grow.</li>
+              <li>Clicks beside the rounded pill pass through to the window underneath.</li>
+              <li>Preset prompts have View and Edit, and each row is slimmer.</li>
+              <li>Hooxie opens before the Cursor connection and the IDE scan finish.</li>
+              <li>The dashboard browser starts when you open the dashboard, so launch does not wait on it.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
       <article class="release" id="v0.2.1">
         <div class="release-mark" aria-hidden="true"></div>
         <div class="release-body">
           <header class="release-meta">
             <a class="release-tag" href="https://github.com/Delexoo/hooxie/releases/tag/v0.2.1">v0.2.1</a>
-            <span class="release-latest">Latest</span>
             <time datetime="2026-10-16">16 Oct 2026</time>
           </header>
           <div class="release-card">

@@ -19,6 +19,8 @@
   <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
@@ -74,7 +76,7 @@
         <p>When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward. Drag the bottom of the conversation to make it taller.</p>
 
         <h2 id="prompts">Prompts</h2>
-        <p>Type and press Enter, or use the send button. Set the project folder first. That folder is the workspace the agent uses. Each prompt starts a new session for that folder. It does not continue a chat you already have open in the IDE.</p>
+        <p>Type and press Enter, or use the send button. Set the project folder first. That folder is the workspace, and the agent uses the same Cursor rules as the IDE. A follow-up stays in that chat until you clear it. It does not type into a Composer thread already open in the IDE.</p>
         <p>While the agent is working, the round button becomes a square and stops the run. A prompt you type during that run is queued. Queued messages are numbered cards. The first one sends next, and each card can be removed. The field says “Queue a follow-up” while one is in progress.</p>
         <p>Under the conversation you can clear the chat, copy the reply, or send the last prompt again. Clear chat is also in More, and on Ctrl+R.</p>
 

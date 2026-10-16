@@ -1,5 +1,5 @@
 #define MyAppName "Hooxie"
-#define MyAppVersion "0.2.1"
+#define MyAppVersion "0.2.2"
 #define MyAppPublisher "Delexo"
 #define MyAppURL "https://hooxie.com"
 #define MyAppExeName "Hooxie.cmd"
@@ -30,7 +30,7 @@ WizardStyle=modern
 UninstallDisplayName=Hooxie
 VersionInfoCompany=Delexo
 VersionInfoProductName=Hooxie
-VersionInfoVersion=0.2.1.0
+VersionInfoVersion=0.2.2.0
 VersionInfoCopyright=Copyright (C) 2026 Delexo
 SetupLogging=yes
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -56,31 +56,8 @@ Name: "{autodesktop}\Hooxie"; Filename: "{sys}\wscript.exe"; Parameters: """{app
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hooxie"; ValueData: """{sys}\wscript.exe"" ""{app}\Hooxie.vbs"""; Flags: uninsdeletevalue; Tasks: startonlogon
 
 [Run]
-Filename: "{cmd}"; Parameters: "/c set ""PATH={autopf}\nodejs;{localappdata}\Programs\nodejs;%PATH%"" && npm install"; WorkingDir: "{app}"; StatusMsg: "Installing Hooxie packages..."; Flags: runhidden waituntilterminated skipifsilent
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\install-deps.ps1"""; WorkingDir: "{app}"; StatusMsg: "Downloading Node.js, WebView2, and Hooxie packages..."; Flags: runhidden waituntilterminated
 Filename: "{sys}\wscript.exe"; Parameters: """{app}\Hooxie.vbs"""; Description: "Launch Hooxie"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\node_modules"
-
-[Code]
-function NodeOnPath: Boolean;
-var
-  ResultCode: Integer;
-begin
-  Result := Exec('where.exe', 'node', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
-  if not Result then
-    Result := FileExists(ExpandConstant('{autopf}\nodejs\node.exe')) or FileExists(ExpandConstant('{localappdata}\Programs\nodejs\node.exe'));
-end;
-
-function InitializeSetup(): Boolean;
-var
-  Dummy: Integer;
-begin
-  Result := True;
-  if not NodeOnPath then
-  begin
-    MsgBox('Hooxie needs Node.js 22.13 or newer.'#13#10#13#10'Install Node LTS from https://nodejs.org, then run this installer again.'#13#10'Hooxie: https://hooxie.com', mbError, MB_OK);
-    ShellExec('open', 'https://nodejs.org', '', '', SW_SHOWNORMAL, ewNoWait, Dummy);
-    Result := False;
-  end;
-end;

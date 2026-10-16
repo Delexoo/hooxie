@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { changedSince, foldActivity, mergeFileChanges, parsePorcelain } from "../src/run-activity.ts";
+import { changedSince, foldActivity, joinReply, mergeFileChanges, parsePorcelain, replyFromMessage } from "../src/run-activity.ts";
 
 test("a running shell is a background terminal and a finished one drops off the running list", () => {
   const started = foldActivity({ terminals: [], files: [] }, {
@@ -72,4 +72,15 @@ test("git status only reports paths that changed after the run started", () => {
     { path: "src/fresh.ts", kind: "added" },
   ]);
   assert.equal(mergeFileChanges([{ path: "public/app.js", kind: "modified" }], changedSince(before, after)).length, 2);
+});
+
+test("assistant text grows as the run streams", () => {
+  const chunk = replyFromMessage({
+    type: "assistant",
+    message: { content: [{ type: "text", text: "Hello" }] },
+  });
+  assert.equal(joinReply("", chunk), "Hello");
+  assert.equal(joinReply("Hello", "Hello world"), "Hello world");
+  assert.equal(joinReply("Hello", " world"), "Hello world");
+  assert.equal(replyFromMessage({ type: "thinking", text: "hidden" }), "");
 });

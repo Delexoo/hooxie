@@ -1,5 +1,3 @@
-@import url("/fonts.css");
-
 :root,
 html[data-appearance="light"] {
   color-scheme: light;
@@ -93,6 +91,8 @@ a { color: inherit; text-underline-offset: 3px; }
   gap: 2px;
   flex: 1;
   min-height: 0;
+  margin-inline: -8px;
+  padding: 4px 8px;
   overflow: auto;
 }
 
@@ -201,7 +201,7 @@ a { color: inherit; text-underline-offset: 3px; }
 .sound-off:hover,
 .swatch:hover,
 .pick-menu-btn:hover {
-  transform: scale(1.02);
+  transform: scale(1.012);
 }
 
 .side-nav > button:active,
@@ -216,7 +216,7 @@ a { color: inherit; text-underline-offset: 3px; }
 .sound-off:active,
 .swatch:active,
 .pick-menu-btn:active {
-  transform: scale(1.045);
+  transform: scale(1.012);
 }
 
 .btn:disabled,

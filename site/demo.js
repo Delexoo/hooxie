@@ -83,6 +83,17 @@ if (screen && preview && pill && form && input && showBtn) {
     caret.style.transform = `translateX(${Math.min(text, max)}px)`;
   };
 
+  let stealthDots = 0;
+  const placeStealthDots = (rect, width, height, radius) => {
+    const perimeter = 2 * (width + height - 2 * radius) + 2 * Math.PI * radius;
+    const ideal = Math.max(16, Math.round(perimeter / 7.5));
+    if (!stealthDots || Math.abs(ideal - stealthDots) > 1) stealthDots = ideal;
+    const step = 100 / stealthDots;
+    const dot = Math.min(step * 0.42, (1.6 / Math.max(perimeter, 1)) * 100);
+    rect.setAttribute("pathLength", "100");
+    rect.setAttribute("stroke-dasharray", `${dot.toFixed(3)} ${(step - dot).toFixed(3)}`);
+  };
+
   const fitRing = () => {
     const width = Math.max(1, pill.clientWidth);
     const height = Math.max(1, pill.clientHeight);
@@ -100,6 +111,7 @@ if (screen && preview && pill && form && input && showBtn) {
         rect.setAttribute("height", String(h));
         rect.setAttribute("rx", String(radius));
         rect.setAttribute("ry", String(radius));
+        if (svg.id === "pill-stealth") placeStealthDots(rect, w, h, radius);
       });
     }
     if (!traceGrad) return;
