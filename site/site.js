@@ -1049,6 +1049,13 @@ function bootDashboard() {
         list.style.bottom = "auto";
         list.style.top = `${box.bottom + 6}px`;
       }
+      const selected = list.querySelector(".pick-menu-item[aria-selected='true']");
+      if (selected) {
+        const top = selected.offsetTop;
+        const bottom = top + selected.offsetHeight;
+        if (top < list.scrollTop) list.scrollTop = top;
+        else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+      }
     }
     function close() {
       list.hidden = true;

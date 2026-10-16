@@ -2,6 +2,19 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.10",
+      "date": "2026-10-16",
+      "title": "Dashboard controls share one look",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "added": [
+            "Fields, dropdowns, buttons, checkboxes, the slider, and tags use one paper style."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.9",
       "date": "2026-10-16",
       "title": "Connect opens a key page",
