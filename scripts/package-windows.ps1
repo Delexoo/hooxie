@@ -48,6 +48,44 @@ Copy-Item (Join-Path $root "installer\Hooxie.cmd") (Join-Path $stage "Hooxie.cmd
 Copy-Item (Join-Path $root "installer\Hooxie.vbs") (Join-Path $stage "Hooxie.vbs") -Force
 Copy-Item (Join-Path $root "installer\install-deps.ps1") (Join-Path $stage "install-deps.ps1") -Force
 
+$index = Invoke-RestMethod "https://nodejs.org/dist/index.json"
+$release = $index | Where-Object { $_.version -like "v22.*" } | Select-Object -First 1
+if (-not $release) { throw "Could not find a Node.js 22 release." }
+$parts = "$($release.version)".TrimStart("v").Split(".")
+if ([int]$parts[0] -lt 22 -or ([int]$parts[0] -eq 22 -and [int]$parts[1] -lt 13)) {
+  throw "Latest Node.js 22 is $($release.version), which is older than 22.13."
+}
+$cache = Join-Path $dist "cache"
+New-Item -ItemType Directory -Force -Path $cache | Out-Null
+$zipName = "node-$($release.version)-win-x64.zip"
+$zip = Join-Path $cache $zipName
+if (-not (Test-Path $zip)) {
+  Write-Host "Downloading $zipName"
+  & curl.exe -fsSL -o $zip "https://nodejs.org/dist/$($release.version)/$zipName"
+  if ($LASTEXITCODE -ne 0) { throw "Could not download Node.js $($release.version)." }
+}
+$extract = Join-Path $cache "node-extract"
+if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
+Expand-Archive -Path $zip -DestinationPath $extract
+$inner = Get-ChildItem $extract -Directory | Select-Object -First 1
+if (-not $inner) { throw "The Node.js archive had no folder." }
+$nodeDir = Join-Path $stage "node"
+Move-Item $inner.FullName $nodeDir
+Set-Content -Path (Join-Path $nodeDir "HOOXIE-NODE.txt") -Value $release.version
+$bundled = & (Join-Path $nodeDir "node.exe") -p "process.versions.node"
+if ("$bundled" -ne "$($release.version)".TrimStart("v")) { throw "Bundled Node.js reported $bundled." }
+Write-Host "Bundled Node.js $bundled"
+Push-Location $stage
+try {
+  & (Join-Path $nodeDir "npm.cmd") ci --omit=dev --no-fund --no-audit
+  if ($LASTEXITCODE -ne 0) { throw "npm ci failed ($LASTEXITCODE)." }
+} finally {
+  Pop-Location
+}
+if (-not (Test-Path (Join-Path $stage "node_modules\@cursor\sdk"))) {
+  throw "The Hooxie packages did not install."
+}
+
 & $issc (Join-Path $root "installer\hooxie.iss")
 Write-Host "Installer written to $dist"
 Get-ChildItem $dist -Filter "Hooxie-Setup-*.exe" | Select-Object Name, Length, FullName

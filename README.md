@@ -9,7 +9,7 @@ Use is governed by the [Hooxie License Agreement](LICENSE). When a public showin
 ## Requirements
 
 - Windows 10 or 11
-- [Node.js](https://nodejs.org) 22.13 or newer
+- The Windows installer includes Node.js. A source checkout needs [Node.js](https://nodejs.org) 22.13 or newer
 - The [Cursor](https://cursor.com/download) desktop app, signed in, with an available Cursor plan
 
 ## Install
@@ -23,7 +23,7 @@ npm install
 powershell -File scripts/package-windows.ps1
 ```
 
-The installer is written to `dist-setup/Hooxie-Setup-0.2.5.exe`. It installs Hooxie under `Program Files\Delexo\Hooxie`, shows the license, and can add a Start Menu shortcut, a desktop shortcut, and a sign-in startup entry. The current download is on the [0.2.5 release](https://github.com/Delexoo/hooxie/releases/download/v0.2.5/Hooxie-Setup-0.2.5.exe) and at [hooxie.com/download/Hooxie-Setup.exe](https://hooxie.com/download/Hooxie-Setup.exe). If Node.js 22.13 or the WebView2 runtime is missing, the installer downloads them, then installs the Hooxie packages. The desktop shell is included, so a separate .NET install is not.
+The installer is written to `dist-setup/Hooxie-Setup-0.2.6.exe`. It installs Hooxie under `Program Files\Delexo\Hooxie`, shows the license, and can add a Start Menu shortcut, a desktop shortcut, and a sign-in startup entry. The current download is on the [0.2.6 release](https://github.com/Delexoo/hooxie/releases/download/v0.2.6/Hooxie-Setup-0.2.6.exe) and at [hooxie.com/download/Hooxie-Setup.exe](https://hooxie.com/download/Hooxie-Setup.exe). The setup includes the newest Node.js 22 available when that setup was built, and the Hooxie packages, inside the Hooxie folder. It does not change a Node.js already installed on the computer. Uninstall removes Hooxie's copy with the app. If the WebView2 runtime is missing, setup downloads it. The desktop shell is included, so a separate .NET install is not.
 
 ### From source
 

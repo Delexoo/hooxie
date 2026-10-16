@@ -1,5 +1,5 @@
 #define MyAppName "Hooxie"
-#define MyAppVersion "0.2.5"
+#define MyAppVersion "0.2.6"
 #define MyAppPublisher "Delexo"
 #define MyAppURL "https://hooxie.com"
 #define MyAppExeName "Hooxie.cmd"
@@ -30,7 +30,7 @@ WizardStyle=modern
 UninstallDisplayName=Hooxie
 VersionInfoCompany=Delexo
 VersionInfoProductName=Hooxie
-VersionInfoVersion=0.2.5.0
+VersionInfoVersion=0.2.6.0
 VersionInfoCopyright=Copyright (C) 2026 Delexo
 SetupLogging=yes
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -56,7 +56,7 @@ Name: "{autodesktop}\Hooxie"; Filename: "{sys}\wscript.exe"; Parameters: """{app
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hooxie"; ValueData: """{sys}\wscript.exe"" ""{app}\Hooxie.vbs"""; Flags: uninsdeletevalue; Tasks: startonlogon
 
 [Run]
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\install-deps.ps1"""; WorkingDir: "{app}"; StatusMsg: "Downloading Node.js, WebView2, and Hooxie packages..."; Flags: runhidden waituntilterminated
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\install-deps.ps1"""; WorkingDir: "{app}"; StatusMsg: "Checking the WebView2 runtime..."; Flags: runhidden waituntilterminated
 Filename: "{sys}\wscript.exe"; Parameters: """{app}\Hooxie.vbs"""; Description: "Launch Hooxie"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]

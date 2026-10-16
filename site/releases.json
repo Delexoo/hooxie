@@ -2,6 +2,34 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.6",
+      "date": "2026-10-16",
+      "title": "Node.js comes with the installer",
+      "tag": "v0.2.6",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.6",
+      "sections": [
+        {
+          "heading": "Setup",
+          "added": [
+            "The installer includes the newest Node.js 22 from the day it was built, and the Hooxie packages, inside the Hooxie folder. It does not change a Node.js already on the computer, and it downloads WebView2 only when that runtime is missing."
+          ]
+        },
+        {
+          "heading": "Dashboard",
+          "added": [
+            "Settings groups appearance, audio, sounds, and the widget. Connections can unlink every IDE and show whether GitHub, Supabase, Vercel, Cloudflare, Resend, Stripe, or OpenAI is online.",
+            "Keybinds draw each shortcut as a key. Billing is one price and a code. Help links to the site, and Contact support is a card you can save."
+          ]
+        },
+        {
+          "heading": "Widget",
+          "fixes": [
+            "The file chip stays compact. Opening a file puts its name at the bottom-left of the preview and the close button at the top-right of that preview."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.5",
       "date": "2026-10-16",
       "title": "File name on the preview",
