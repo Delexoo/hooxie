@@ -45,6 +45,7 @@ $global:LASTEXITCODE = 0
 
 Remove-Item (Join-Path $stage "site\download\Hooxie-Setup.exe") -Force -ErrorAction SilentlyContinue
 Copy-Item (Join-Path $root "installer\Hooxie.cmd") (Join-Path $stage "Hooxie.cmd") -Force
+Copy-Item (Join-Path $root "installer\Hooxie.vbs") (Join-Path $stage "Hooxie.vbs") -Force
 
 & $issc (Join-Path $root "installer\hooxie.iss")
 Write-Host "Installer written to $dist"

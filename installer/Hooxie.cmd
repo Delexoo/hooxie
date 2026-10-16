@@ -1,7 +1,10 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Hooxie
+if /I not "%~1"=="--run" (
+  wscript //nologo "%~dp0Hooxie.vbs"
+  exit /b 0
+)
 where node >nul 2>nul
 if errorlevel 1 (
   echo Hooxie needs Node.js 22.13 or newer.

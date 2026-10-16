@@ -172,7 +172,7 @@ main {
   flex-direction: column;
   align-items: center;
   min-height: 100svh;
-  padding: 14rem 1.25rem 2.5rem;
+  padding: 17.5rem 1.25rem 2.5rem;
   text-align: center;
 }
 
@@ -360,6 +360,29 @@ p { margin: 0.7rem 0 0; }
 .band > .kicker { margin-bottom: 0.35rem; }
 
 .cards h3 { margin: 0; font-size: 1.15rem; letter-spacing: -0.03em; }
+
+#features {
+  width: min(76rem, calc(100% - 2.5rem));
+}
+
+#features > h2 { font-size: clamp(2.4rem, 4.8vw, 3.7rem); }
+
+#features .cards {
+  gap: 1rem;
+  margin-top: 1.8rem;
+}
+
+#features .cards article {
+  padding: 2rem 1.75rem 2.15rem;
+  border-radius: 1.85rem;
+}
+
+#features .cards h3 { font-size: 1.4rem; }
+
+#features .cards p {
+  margin-top: 0.65rem;
+  font-size: 1.08rem;
+}
 
 .desk {
   position: relative;
@@ -822,7 +845,7 @@ p { margin: 0.7rem 0 0; }
   position: relative;
   inset: auto;
   width: min(64rem, 100%);
-  height: min(32rem, 56vh);
+  height: min(40rem, 68vh);
   margin: 2.2rem auto 0;
 }
 
@@ -866,6 +889,7 @@ p { margin: 0.7rem 0 0; }
   align-items: flex-start;
   width: 11rem;
   max-width: calc(100% - 1.2rem);
+  padding-left: 0.9rem;
   transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -938,14 +962,32 @@ p { margin: 0.7rem 0 0; }
 
 .cta {
   width: min(68rem, calc(100% - 2.5rem));
-  margin: 4.5rem auto 0;
-  padding: 3.2rem 1.4rem;
+  margin: 5.5rem auto 1.5rem;
+  padding: clamp(3.4rem, 8vw, 5.8rem) 1.5rem;
   border-radius: 2rem;
-  background: linear-gradient(180deg, #fff, #ece7df);
+  background:
+    radial-gradient(90% 70% at 50% -10%, #3c3a36 0%, transparent 58%),
+    var(--ink);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
+  color: #fffcf8;
   text-align: center;
 }
 
-.cta h2 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.045em; }
+.cta h2 {
+  margin: 0;
+  color: #fffcf8;
+  font-size: clamp(2.7rem, 6.4vw, 4.8rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.96;
+}
+
+.cta .button {
+  background: #fffcf8;
+  color: var(--ink);
+}
+
+.cta .button:hover { background: #fff; }
 
 .faq-list { display: grid; gap: 0.7rem; }
 .faq-item { padding: 0; overflow: hidden; }
@@ -1071,7 +1113,7 @@ footer > p a:hover { text-decoration: underline; }
 }
 
 @media (max-width: 760px) {
-  .hero { min-height: 0; padding: 7.5rem 1rem 1.5rem; }
+  .hero { min-height: 0; padding: 15rem 1rem 1.5rem; }
   .hero-copy { width: 100%; margin-top: 0; }
   .hero h1 { font-size: clamp(2.15rem, 11vw, 3.1rem); }
   .desk,
@@ -1093,7 +1135,7 @@ footer > p a:hover { text-decoration: underline; }
     top: 0.55rem;
     width: 9.5rem;
     max-width: calc(100% - 1.2rem);
-    padding: 0.14rem 0.12rem 0.14rem 0.35rem;
+    padding: 0.14rem 0.12rem 0.14rem 0.65rem;
   }
   .pill-add { font-size: 0.95rem; }
   .pill input,

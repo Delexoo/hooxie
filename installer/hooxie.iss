@@ -47,17 +47,17 @@ Name: "startonlogon"; Description: "Start Hooxie when I sign in to Windows"; Gro
 Source: "..\dist-setup\stage\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Comment: "Hooxie overlay by Delexo"
+Name: "{group}\Hooxie"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Hooxie.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Comment: "Hooxie overlay by Delexo"
 Name: "{group}\Hooxie website"; Filename: "{#MyAppURL}"
 Name: "{group}\Uninstall Hooxie"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Hooxie"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Tasks: desktopicon
+Name: "{autodesktop}\Hooxie"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Hooxie.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Tasks: desktopicon
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hooxie"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startonlogon
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hooxie"; ValueData: """{sys}\wscript.exe"" ""{app}\Hooxie.vbs"""; Flags: uninsdeletevalue; Tasks: startonlogon
 
 [Run]
 Filename: "{cmd}"; Parameters: "/c set ""PATH={autopf}\nodejs;{localappdata}\Programs\nodejs;%PATH%"" && npm install"; WorkingDir: "{app}"; StatusMsg: "Installing Hooxie packages..."; Flags: runhidden waituntilterminated skipifsilent
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch Hooxie"; Flags: nowait postinstall skipifsilent
+Filename: "{sys}\wscript.exe"; Parameters: """{app}\Hooxie.vbs"""; Description: "Launch Hooxie"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\node_modules"
