@@ -3,7 +3,7 @@ const LOCAL = document.querySelector('meta[name="hooxie-local"]')?.content === "
 const TOKEN = document.querySelector('meta[name="z-token"]')?.content || "";
 const COPY = {
   en: {
-    "nav.general": "Settings", "nav.onboarding": "Connections", "nav.keybinds": "Keybinds", "nav.profile": "Profile", "nav.language": "Language", "nav.billing": "Billing", "nav.support": "Support", "nav.releases": "Release notes", "nav.help": "Help center", "nav.contact": "Contact support", "nav.toggle": "Toggle Hooxie",
+    "nav.general": "Settings", "nav.onboarding": "Connections", "nav.keybinds": "Keybinds", "nav.profile": "Profile", "nav.language": "Language", "nav.billing": "Billing", "nav.support": "Support", "nav.releases": "Release notes", "nav.help": "Help center", "nav.contact": "Contact support", "nav.toggle": "Toggle Hooxie", "nav.quit": "Quit Hooxie",
     "general.title": "Settings", "general.intro": "Appearance, audio, and sounds for this computer.", "general.upload": "Upload a sound",
     "ide.title": "Connections", "ide.note": "Connect a service, pick an IDE, and choose the project folder.", "ide.browse": "Browse", "ide.clear": "Clear", "ide.connect": "Connect Cursor", "ide.save": "Save key", "ide.open": "Open IDE",
     "keybinds.title": "Keybinds", "keybinds.note": "These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in Settings.",
@@ -11,13 +11,13 @@ const COPY = {
     "language.title": "Language", "language.note": "The dashboard language on this computer.",
     "billing.title": "Billing", "billing.note": "One purchase covers this computer. Copying the app or its files does not license another device.", "billing.plan": "This computer", "billing.once": "once", "billing.lead": "Included with Hooxie:", "billing.item1": "The widget, voice, and screen context", "billing.item2": "Undetectable mode on this computer", "billing.item3": "A license that stays on this device", "billing.subscribe": "Buy for this computer", "billing.paid": "Already paid", "billing.receipt": "Paid $5.99 once for the Hooxie license on this computer.", "billing.promo": "Promotional code",
     "releases.title": "Release notes", "releases.open": "Open the release notes page",
-    "help.title": "Help center", "help.open": "Open the help center", "help.s1": "Start Hooxie", "help.p1": "Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.", "help.s2": "Voice, screen, and files", "help.p2": "An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.", "help.s3": "Hide from a call", "help.p3": "Turn Detectable off, or start a session with Ctrl+Shift+\\. You still see Hooxie. A normal screen share does not.",
+    "help.title": "Help center", "help.open": "Open the help center", "help.s1": "Start Hooxie", "help.p1": "Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.", "help.s2": "Voice, screen, and files", "help.p2": "An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.", "help.s3": "Hide from a call", "help.p3": "Turn Detectable off, or start a session with Ctrl+Shift+\\. You still see the pill and the dashboard. A normal screen share does not see either window.",
     "contact.title": "Contact support", "contact.note": "Email support@delexo.store.", "contact.open": "Open the contact form",
     "mode.light": "Light", "mode.dark": "Dark", "session.running": "Running", "session.stopped": "Stopped",
     "status.shown": "Hooxie is on screen.", "status.hidden": "Hooxie is hidden. Ctrl+\\ shows it again.", "status.desktop": "Toggle Hooxie from the desktop app.",
   },
   es: {
-    "nav.general": "Ajustes", "nav.onboarding": "Conexiones", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.support": "Soporte", "nav.releases": "Notas de versión", "nav.help": "Centro de ayuda", "nav.contact": "Contacto", "nav.toggle": "Mostrar u ocultar",
+    "nav.general": "Ajustes", "nav.onboarding": "Conexiones", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.support": "Soporte", "nav.releases": "Notas de versión", "nav.help": "Centro de ayuda", "nav.contact": "Contacto", "nav.toggle": "Mostrar u ocultar", "nav.quit": "Salir de Hooxie",
     "general.title": "Ajustes", "general.intro": "Apariencia, audio y sonidos de este equipo.", "general.upload": "Subir un sonido",
     "ide.title": "Conexiones", "ide.note": "Conecta un servicio, elige un IDE y la carpeta del proyecto.", "ide.browse": "Examinar", "ide.clear": "Borrar", "ide.connect": "Conectar Cursor", "ide.save": "Guardar clave", "ide.open": "Abrir IDE",
     "keybinds.title": "Atajos", "keybinds.note": "Estos atajos funcionan mientras Hooxie está abierto. Las flechas no mueven el widget hasta que actives las teclas de flecha en Ajustes.",
@@ -31,7 +31,7 @@ const COPY = {
     "status.shown": "Hooxie está en pantalla.", "status.hidden": "Hooxie está oculto. Ctrl+\\ lo muestra de nuevo.", "status.desktop": "Muestra u oculta Hooxie desde la aplicación.",
   },
   fr: {
-    "nav.general": "Réglages", "nav.onboarding": "Connexions", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.support": "Assistance", "nav.releases": "Notes de version", "nav.help": "Centre d'aide", "nav.contact": "Contact", "nav.toggle": "Afficher ou masquer",
+    "nav.general": "Réglages", "nav.onboarding": "Connexions", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.support": "Assistance", "nav.releases": "Notes de version", "nav.help": "Centre d'aide", "nav.contact": "Contact", "nav.toggle": "Afficher ou masquer", "nav.quit": "Quitter Hooxie",
     "general.title": "Réglages", "general.intro": "Apparence, audio et sons de cet ordinateur.", "general.upload": "Importer un son",
     "ide.title": "Connexions", "ide.note": "Connectez un service, choisissez un IDE et le dossier du projet.", "ide.browse": "Parcourir", "ide.clear": "Effacer", "ide.connect": "Connecter Cursor", "ide.save": "Enregistrer la clé", "ide.open": "Ouvrir l'IDE",
     "keybinds.title": "Raccourcis", "keybinds.note": "Ces raccourcis marchent tant que Hooxie est ouvert. Les flèches ne déplacent le widget qu'après avoir activé les touches fléchées dans Réglages.",
@@ -45,7 +45,7 @@ const COPY = {
     "status.shown": "Hooxie est à l'écran.", "status.hidden": "Hooxie est masqué. Ctrl+\\ le réaffiche.", "status.desktop": "Affichez ou masquez Hooxie depuis l'application.",
   },
   de: {
-    "nav.general": "Einstellungen", "nav.onboarding": "Verbindungen", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.support": "Support", "nav.releases": "Versionshinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt", "nav.toggle": "Ein- oder ausblenden",
+    "nav.general": "Einstellungen", "nav.onboarding": "Verbindungen", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.support": "Support", "nav.releases": "Versionshinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt", "nav.toggle": "Ein- oder ausblenden", "nav.quit": "Hooxie beenden",
     "general.title": "Einstellungen", "general.intro": "Darstellung, Audio und Töne auf diesem Computer.", "general.upload": "Ton hochladen",
     "ide.title": "Verbindungen", "ide.note": "Verbinde einen Dienst, wähle eine IDE und den Projektordner.", "ide.browse": "Durchsuchen", "ide.clear": "Leeren", "ide.connect": "Cursor verbinden", "ide.save": "Schlüssel sichern", "ide.open": "IDE öffnen",
     "keybinds.title": "Tasten", "keybinds.note": "Diese Kürzel gelten, solange Hooxie läuft. Pfeiltasten bewegen das Widget erst, wenn du sie unter Einstellungen einschaltest.",
@@ -59,7 +59,7 @@ const COPY = {
     "status.shown": "Hooxie ist auf dem Bildschirm.", "status.hidden": "Hooxie ist ausgeblendet. Strg+\\ zeigt es wieder.", "status.desktop": "Blende Hooxie in der App ein oder aus.",
   },
   pt: {
-    "nav.general": "Ajustes", "nav.onboarding": "Conexões", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.support": "Suporte", "nav.releases": "Notas da versão", "nav.help": "Central de ajuda", "nav.contact": "Contato", "nav.toggle": "Mostrar ou ocultar",
+    "nav.general": "Ajustes", "nav.onboarding": "Conexões", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.support": "Suporte", "nav.releases": "Notas da versão", "nav.help": "Central de ajuda", "nav.contact": "Contato", "nav.toggle": "Mostrar ou ocultar", "nav.quit": "Sair do Hooxie",
     "general.title": "Ajustes", "general.intro": "Aparência, áudio e sons deste computador.", "general.upload": "Enviar um som",
     "ide.title": "Conexões", "ide.note": "Conecte um serviço, escolha um IDE e a pasta do projeto.", "ide.browse": "Procurar", "ide.clear": "Limpar", "ide.connect": "Conectar o Cursor", "ide.save": "Salvar chave", "ide.open": "Abrir o IDE",
     "keybinds.title": "Atalhos", "keybinds.note": "Estes atalhos funcionam enquanto o Hooxie está aberto. As setas só movem o widget depois que você liga as teclas de seta em Ajustes.",
@@ -73,7 +73,7 @@ const COPY = {
     "status.shown": "O Hooxie está na tela.", "status.hidden": "O Hooxie está oculto. Ctrl+\\ mostra de novo.", "status.desktop": "Mostre ou oculte o Hooxie no aplicativo.",
   },
   ja: {
-    "nav.general": "設定", "nav.onboarding": "接続", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.support": "サポート", "nav.releases": "リリースノート", "nav.help": "ヘルプ", "nav.contact": "連絡", "nav.toggle": "表示の切り替え",
+    "nav.general": "設定", "nav.onboarding": "接続", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.support": "サポート", "nav.releases": "リリースノート", "nav.help": "ヘルプ", "nav.contact": "連絡", "nav.toggle": "表示の切り替え", "nav.quit": "Hooxie を終了",
     "general.title": "設定", "general.intro": "このパソコンの外観、音声、効果音。", "general.upload": "音をアップロード",
     "ide.title": "接続", "ide.note": "サービスを接続し、IDE とプロジェクトフォルダを選びます。", "ide.browse": "参照", "ide.clear": "クリア", "ide.connect": "Cursor を接続", "ide.save": "キーを保存", "ide.open": "IDE を開く",
     "keybinds.title": "キー", "keybinds.note": "Hooxie の実行中に使えるショートカットです。矢印キーは、設定で矢印キーをオンにするまでウィジェットを動かしません。",
@@ -87,7 +87,7 @@ const COPY = {
     "status.shown": "Hooxie は画面に出ています。", "status.hidden": "Hooxie は隠れています。Ctrl+\\ で戻ります。", "status.desktop": "アプリから Hooxie の表示を切り替えます。",
   },
   zh: {
-    "nav.general": "设置", "nav.onboarding": "连接", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.support": "支持", "nav.releases": "更新说明", "nav.help": "帮助中心", "nav.contact": "联系支持", "nav.toggle": "显示或隐藏",
+    "nav.general": "设置", "nav.onboarding": "连接", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.support": "支持", "nav.releases": "更新说明", "nav.help": "帮助中心", "nav.contact": "联系支持", "nav.toggle": "显示或隐藏", "nav.quit": "退出 Hooxie",
     "general.title": "设置", "general.intro": "这台电脑的外观、音频和声音。", "general.upload": "上传声音",
     "ide.title": "连接", "ide.note": "连接服务，选择 IDE 和项目文件夹。", "ide.browse": "浏览", "ide.clear": "清除", "ide.connect": "连接 Cursor", "ide.save": "保存密钥", "ide.open": "打开 IDE",
     "keybinds.title": "快捷键", "keybinds.note": "这些快捷键在 Hooxie 运行时可用。在“设置”里打开方向键之前，方向键不会移动小组件。",
@@ -377,11 +377,26 @@ function wireSidebar(status) {
     try {
       const result = await request("/api/widget/visible", { shown: next });
       widgetShown = result.shown !== false;
-      status.textContent = widgetShown ? t("status.shown") : t("status.hidden");
+      status.classList.remove("is-error");
+      status.textContent = widgetShown ? "" : t("status.hidden");
     } catch (error) {
       explainFailure(status, error);
     } finally {
       toggle.disabled = false;
+    }
+  });
+  document.querySelector("#quit-hooxie")?.addEventListener("click", async () => {
+    if (!LOCAL || !TOKEN) {
+      status.textContent = t("status.desktop");
+      return;
+    }
+    const quit = document.querySelector("#quit-hooxie");
+    if (quit) quit.disabled = true;
+    try {
+      await request("/api/widget/exit", {});
+    } catch (error) {
+      explainFailure(status, error);
+      if (quit) quit.disabled = false;
     }
   });
 }
@@ -439,7 +454,7 @@ function bootDashboard() {
   const opacity = document.querySelector("#opacity");
   const opacityValue = document.querySelector("#opacity-value");
   const swatches = document.querySelector("#swatches");
-  const languageButtons = [...document.querySelectorAll("#language-choices button")];
+  const languageSelect = document.querySelector("#language-choices");
   const promo = document.querySelector("#promo");
   const session = document.querySelector("#session-state");
   let paid = false;
@@ -533,6 +548,7 @@ function bootDashboard() {
   mountPickMenu(document.querySelector("#dash-ide"));
   mountPickMenu(document.querySelector("#key-service"));
   mountPickMenu(document.querySelector("#service-choice"));
+  mountPickMenu(languageSelect);
 
   function paint() {
     detectable.checked = settings.detectable !== false;
@@ -592,8 +608,10 @@ function bootDashboard() {
   }
 
   function setLanguage(code) {
-    const next = languageButtons.some((button) => button.dataset.lang === code) ? code : "en";
-    for (const button of languageButtons) button.setAttribute("aria-checked", String(button.dataset.lang === next));
+    const known = languageSelect && [...languageSelect.options].some((option) => option.value === code);
+    const next = known ? code : "en";
+    if (languageSelect && languageSelect.value !== next) languageSelect.value = next;
+    languageSelect?.dispatchEvent(new Event("pick-sync"));
     applyLanguage(next);
   }
 
@@ -643,9 +661,7 @@ function bootDashboard() {
     window.clearTimeout(opacityTimer);
     opacityTimer = window.setTimeout(() => save({ opacity: Number(opacity.value), lookReady: true }), 80);
   });
-  for (const button of languageButtons) {
-    button.addEventListener("click", () => save({ language: button.dataset.lang }));
-  }
+  languageSelect?.addEventListener("change", () => save({ language: languageSelect.value }));
   for (const button of document.querySelectorAll("[data-dashboard-mode]")) {
     button.addEventListener("click", () => save({ dashboardMode: button.dataset.dashboardMode }));
   }

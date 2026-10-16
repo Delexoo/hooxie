@@ -479,8 +479,17 @@ internal sealed class ShellForm : Form
     private bool ApplyCaptureAffinity()
     {
         var affinity = excludeCapture ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE;
-        var applied = SetWindowDisplayAffinity(Handle, affinity);
-        EnumChildWindows(Handle, (child, _) =>
+        var applied = PaintAffinity(Handle, affinity);
+        if (dashboard != null && !dashboard.IsDisposed && dashboard.IsHandleCreated)
+            PaintAffinity(dashboard.Handle, affinity);
+        return applied;
+    }
+
+    private static bool PaintAffinity(IntPtr handle, uint affinity)
+    {
+        if (handle == IntPtr.Zero) return false;
+        var applied = SetWindowDisplayAffinity(handle, affinity);
+        EnumChildWindows(handle, (child, _) =>
         {
             SetWindowDisplayAffinity(child, affinity);
             return true;
@@ -728,6 +737,7 @@ internal sealed class ShellForm : Form
         window.DpiChanged += (_, _) => PlaceDashboard(window);
         _ = window.Handle;
         PlaceDashboard(window);
+        if (excludeCapture) ApplyCaptureAffinity();
         return window;
     }
 
@@ -759,6 +769,7 @@ internal sealed class ShellForm : Form
         }
         window.BringToFront();
         window.Activate();
+        if (excludeCapture) ApplyCaptureAffinity();
         window.BeginInvoke(() => { _ = LoadDashboardPage(); });
         NotifyDashboard(true);
     }
@@ -812,6 +823,7 @@ internal sealed class ShellForm : Form
             var source = page.CoreWebView2.Source ?? "";
             if (!source.StartsWith(target, StringComparison.OrdinalIgnoreCase))
                 page.CoreWebView2.Navigate(target);
+            if (excludeCapture) ApplyCaptureAffinity();
         }
         catch
         {
@@ -958,6 +970,7 @@ internal sealed class ShellForm : Form
                         Emit(new { ok = true });
                         BeginInvoke(() =>
                         {
+                            shellClosing = true;
                             if (dashboard != null && !dashboard.IsDisposed) dashboard.Close();
                             Application.Exit();
                         });

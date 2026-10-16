@@ -2,6 +2,27 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.11",
+      "date": "2026-10-16",
+      "title": "Dashboard uses the settings-panel layout",
+      "tag": "v0.2.11",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.11",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "added": [
+            "The desktop dashboard is a gray window with a white panel, icon rows, blue switches, and outlined controls.",
+            "Quit Hooxie sits under Toggle Hooxie and closes the app."
+          ],
+          "fixes": [
+            "Undetectable mode hides both the pill and the dashboard from capture.",
+            "Opening the sidebar keeps the icons in place while the names appear.",
+            "The dashboard no longer says that Hooxie is on screen."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.10",
       "date": "2026-10-16",
       "title": "Dashboard controls share one look",
