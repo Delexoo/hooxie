@@ -6,8 +6,21 @@
   <meta name="z-token" content="">
   <meta name="hooxie-local" content="0">
   <title>Dashboard · Hooxie</title>
+  <meta name="description" content="Settings, language, and the one-time license for this computer.">
+  <link rel="canonical" href="https://hooxie.com/dashboard">
+  <meta property="og:title" content="Dashboard · Hooxie">
+  <meta property="og:description" content="Settings, language, and the one-time license for this computer.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hooxie.com/dashboard">
+  <meta property="og:image" content="https://hooxie.com/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Dashboard · Hooxie">
+  <meta name="twitter:description" content="Settings, language, and the one-time license for this computer.">
+  <meta name="theme-color" content="#f4f2ee">
   <link rel="icon" href="/favicon.ico?v=4" sizes="any">
   <link rel="icon" href="/icon.png?v=4" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/dash.css">
 </head>
 <body data-page="dashboard">
@@ -62,12 +75,12 @@
     </nav>
     <main class="main">
       <p class="status" id="status"></p>
-      <section data-section="general">
-        <h1 data-i18n="general.title">General</h1>
+      <section data-section="general" data-title="general.title">
+        <h1 id="page-title" data-i18n="general.title">General</h1>
         <p class="note" data-i18n="general.intro">Hooxie version, whether a screen share can see the widget, the color theme, and the microphone.</p>
         <p class="note">Hooxie sends prompts through an IDE installed on this computer. Choose it in IDE. If it is not installed, that choice opens its download. After it is connected, the rest of the widget opens. A Cursor account still needs an available plan. Hooxie Pro does not replace that plan.</p>
         <div class="rows">
-          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.0</span></div>
+          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.1</span></div>
           <div class="row">
             <div><strong>Detectable</strong><span>On: screen share and recordings can see Hooxie. Off: they cannot. You still can.</span></div>
             <label class="switch"><input id="detectable" type="checkbox" checked><i></i></label>
@@ -151,8 +164,7 @@
           <p id="chime-note" class="note"></p>
         </div>
       </section>
-      <section data-section="ide" hidden>
-        <h1 data-i18n="ide.title">IDE</h1>
+      <section data-section="ide" data-title="ide.title" hidden>
         <p class="note" data-i18n="ide.note">Pick an IDE. The widget uses that one. Switch it any time.</p>
         <div class="widget-form">
           <label for="dash-ide">IDE</label>
@@ -194,8 +206,7 @@
           </div>
         </div>
       </section>
-      <section data-section="keybinds" hidden>
-        <h1 data-i18n="keybinds.title">Keybinds</h1>
+      <section data-section="keybinds" data-title="keybinds.title" hidden>
         <p class="note" data-i18n="keybinds.note">These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in General.</p>
         <div class="rows">
           <div class="row"><div><strong>Toggle visibility of Hooxie</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>\</kbd></div></div>
@@ -208,8 +219,7 @@
           <div class="row"><div><strong>Move the widget position right</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>→</kbd></div></div>
         </div>
       </section>
-      <section data-section="language" hidden>
-        <h1 data-i18n="language.title">Language</h1>
+      <section data-section="language" data-title="language.title" hidden>
         <p class="note" data-i18n="language.note">The dashboard language on this computer.</p>
         <div id="language-choices" class="lang-choices" role="radiogroup" aria-label="Language">
           <button type="button" data-lang="en" aria-checked="true">English</button>
@@ -221,12 +231,12 @@
           <button type="button" data-lang="zh" aria-checked="false">中文</button>
         </div>
       </section>
-      <section data-section="billing" hidden>
-        <h1 data-i18n="billing.title">Billing</h1>
+      <section data-section="billing" data-title="billing.title" hidden>
         <p class="note" data-i18n="billing.note">One purchase covers this computer. Copying the app or its files does not license another device.</p>
         <article class="plan">
           <p class="plan-name" data-i18n="billing.plan">This computer</p>
           <p class="plan-price">$5.99 <span data-i18n="billing.once">once</span></p>
+          <p class="receipt" id="receipt" data-i18n="billing.receipt" hidden>Paid $5.99 once for the Hooxie license on this computer.</p>
           <p class="plan-lead" data-i18n="billing.lead">Included with Hooxie:</p>
           <ul>
             <li data-i18n="billing.item1">The widget, voice, and screen context</li>
@@ -236,23 +246,22 @@
           <button class="btn" id="subscribe" type="button" data-i18n="billing.subscribe">Buy for this computer</button>
         </article>
         <div class="field promo-field">
-          <input id="promo" type="text" autocomplete="off" placeholder="Promotional code" aria-label="Promotional code">
+          <label for="promo" data-i18n="billing.promo">Promotional code</label>
+          <input id="promo" type="text" autocomplete="off" aria-describedby="promo-error">
+          <p id="promo-error" class="field-error" hidden></p>
         </div>
       </section>
-      <section data-section="releases" hidden>
-        <h1 data-i18n="releases.title">Release notes</h1>
+      <section data-section="releases" data-title="releases.title" hidden>
         <div id="release-notes" class="release-log"></div>
       </section>
-      <section data-section="help" hidden>
-        <h1 data-i18n="help.title">Help center</h1>
+      <section data-section="help" data-title="help.title" hidden>
         <div class="help-list">
           <article><h2 data-i18n="help.s1">Start Hooxie</h2><p data-i18n="help.p1">Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.</p></article>
           <article><h2 data-i18n="help.s2">Voice, screen, and files</h2><p data-i18n="help.p2">An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.</p></article>
           <article><h2 data-i18n="help.s3">Hide from a call</h2><p data-i18n="help.p3">Turn Detectable off, or start a session with Ctrl+Shift+\. You still see Hooxie. A normal screen share does not.</p></article>
         </div>
       </section>
-      <section data-section="contact" hidden>
-        <h1 data-i18n="contact.title">Contact support</h1>
+      <section data-section="contact" data-title="contact.title" hidden>
         <p class="note" data-i18n="contact.note">Email support@delexo.store.</p>
       </section>
     </main>

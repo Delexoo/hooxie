@@ -6,6 +6,8 @@ const log = JSON.parse(fs.readFileSync(path.join(root, "brain", "log.json"), "ut
 const repo = String(log.repo || "");
 if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error("brain/log.json needs a repo owner/name.");
 
+for (const update of log.updates) checkUpdate(update);
+
 const releases = {
   repo,
   updates: log.updates.map((update) => ({
@@ -35,9 +37,34 @@ const next = html.replace(
 fs.writeFileSync(page, next);
 console.log(`Release notes rendered for ${releases.updates.map((update) => update.version).join(", ")}.`);
 
+function checkUpdate(update) {
+  if (!Array.isArray(update.sections) || update.sections.length === 0) {
+    throw new Error(`${update.version} needs sections.`);
+  }
+  let count = 0;
+  for (const section of update.sections) {
+    if (section.notes) throw new Error(`${update.version} ${section.heading} uses notes. Use added and fixes.`);
+    for (const key of ["added", "fixes"]) {
+      const notes = section[key];
+      if (notes == null) continue;
+      if (!Array.isArray(notes) || notes.some((note) => typeof note !== "string" || !note.trim())) {
+        throw new Error(`${update.version} ${section.heading} has a bad ${key} list.`);
+      }
+      count += notes.length;
+    }
+    if (!section.added?.length && !section.fixes?.length) {
+      throw new Error(`${update.version} ${section.heading} has no added or fixes.`);
+    }
+  }
+  if (count === 0) throw new Error(`${update.version} has no notes.`);
+}
+
 function renderUpdate(update, index) {
   const latest = index === 0 ? `            <span class="release-latest">Latest</span>\n` : "";
-  const sections = update.sections.map((section) => `            <h3>${escapeHtml(section.heading)}</h3>\n${list(section.notes, 12)}`).join("\n");
+  const sections = ["added", "fixes"]
+    .map((key) => renderGroup(update.sections, key === "added" ? "Added" : "Bug fixes", key))
+    .filter(Boolean)
+    .join("\n");
   return `      <article class="release" id="v${escapeHtml(update.version)}">
         <div class="release-mark" aria-hidden="true"></div>
         <div class="release-body">
@@ -51,6 +78,14 @@ ${sections}
           </div>
         </div>
       </article>`;
+}
+
+function renderGroup(sections, label, key) {
+  const blocks = sections
+    .filter((section) => section[key]?.length)
+    .map((section) => `            <h4>${escapeHtml(section.heading)}</h4>\n${list(section[key], 12)}`);
+  if (!blocks.length) return "";
+  return `            <h3>${label}</h3>\n${blocks.join("\n")}`;
 }
 
 function list(notes, indent) {

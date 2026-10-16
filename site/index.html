@@ -5,11 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hooxie</title>
   <meta name="description" content="Hooxie is a Windows overlay for your coding agent. It stays on your screen and off a screen share.">
+  <link rel="canonical" href="https://hooxie.com/">
+  <meta property="og:title" content="Hooxie">
+  <meta property="og:description" content="Hooxie is a Windows overlay for your coding agent. It stays on your screen and off a screen share.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hooxie.com/">
+  <meta property="og:image" content="https://hooxie.com/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Hooxie">
+  <meta name="twitter:description" content="Hooxie is a Windows overlay for your coding agent. It stays on your screen and off a screen share.">
+  <meta name="theme-color" content="#f4f2ee">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Hooxie",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Windows",
+      "description": "Hooxie is a Windows overlay for your coding agent. It stays on your screen and off a screen share.",
+      "offers": {
+        "@type": "Offer",
+        "price": "5.99",
+        "priceCurrency": "USD"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Delexo",
+        "url": "https://hooxie.com",
+        "email": "support@delexo.store"
+      }
+    }
+  </script>
   <link rel="icon" href="/favicon.ico?v=4" sizes="any">
   <link rel="icon" href="/icon.png?v=4" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body class="home">
+  <a class="skip" href="#content">Skip to content</a>
   <header>
     <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
             <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
@@ -18,19 +52,19 @@
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
+      <a href="/intro">Introduction</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
       <a href="/docs">Docs</a>
       <a href="/legal">Legal</a>
-      <a href="/ides">IDEs</a>
     </nav>
   </header>
-  <main>
+  <main id="content">
     <div class="hero-pin">
     <section class="hero">
       <div class="hero-copy">
-        <h1><span>#1 Widget</span><span>for Developers.</span></h1>
+        <h1><span>A widget</span><span>for developers.</span></h1>
         <div id="download" class="split-widget">
           <div class="split-track">
             <a class="split-download" href="/download/Hooxie-Setup.exe"><span>Download</span></a>
@@ -64,7 +98,7 @@
               <form class="pill-field" id="demo-form">
                 <span class="pill-add" aria-hidden="true">+</span>
                 <span class="pill-type">
-                  <input id="pill-input" type="text" placeholder="Prompt anything." autocomplete="off" aria-label="Prompt">
+                  <input id="pill-input" type="text" placeholder="Prompt anything." autocomplete="off" aria-label="Prompt" readonly tabindex="-1">
                   <span class="pill-measure" id="pill-measure" aria-hidden="true"></span>
                   <span class="pill-caret" id="pill-caret" hidden></span>
                 </span>
@@ -87,9 +121,9 @@
                 <button class="pill-icon" id="demo-dash" type="button" aria-label="Dashboard" aria-expanded="false" title="Dashboard">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
                 </button>
-                <div class="pill-drag" id="demo-drag" title="Drag to move" aria-label="Drag to move">
+                <button class="pill-drag" id="demo-drag" type="button" title="Drag to move. Arrow keys nudge the pill." aria-label="Drag to move. Arrow keys nudge the pill.">
                   <svg viewBox="0 0 10 16" aria-hidden="true"><circle cx="2.2" cy="2.2" r="1.55"/><circle cx="7.8" cy="2.2" r="1.55"/><circle cx="2.2" cy="8" r="1.55"/><circle cx="7.8" cy="8" r="1.55"/><circle cx="2.2" cy="13.8" r="1.55"/><circle cx="7.8" cy="13.8" r="1.55"/></svg>
-                </div>
+                </button>
               </div>
               <div class="pill-pop" id="demo-presets" hidden>
                 <p class="pill-pop-title">Presets</p>
@@ -126,53 +160,72 @@
       <h2>Features</h2>
       <div class="cards">
         <article>
-          <h3>Undetectable</h3>
-          <p>Invisible to screen share.</p>
+          <div>
+            <h3>Undetectable</h3>
+            <p>Invisible to screen share.</p>
+          </div>
+          <div class="feat feat-ghost" aria-hidden="true"></div>
         </article>
         <article>
-          <h3>Close</h3>
-          <p>Ctrl+\ hides it.</p>
+          <div>
+            <h3>Close</h3>
+            <p>Ctrl+\ hides it.</p>
+          </div>
+          <div class="feat feat-keys" aria-hidden="true"><kbd>Ctrl</kbd><span>+</span><kbd>\</kbd></div>
         </article>
         <article>
-          <h3>Preset prompts</h3>
-          <p>Save one. Send it again.</p>
+          <div>
+            <h3>Preset prompts</h3>
+            <p>Save one. Send it again.</p>
+          </div>
+          <div class="feat feat-prompts" aria-hidden="true"><span></span><span class="is-saved"></span><span></span></div>
         </article>
         <article>
-          <h3>Track AI usage</h3>
-          <p>See what's left this month.</p>
+          <div>
+            <h3>Track AI usage</h3>
+            <p>See what's left this month.</p>
+          </div>
+          <div class="feat feat-usage" aria-hidden="true"><i></i></div>
         </article>
       </div>
     </section>
 
-    <section class="band voice" id="voice">
-      <p class="kicker">Optional voice activation</p>
-      <blockquote>“Hey Hooxie! Can you extend that word count from 10 to 20!”</blockquote>
-      <div class="desk voice-desk">
-        <div class="monitor">
-          <div class="screen" id="voice-screen">
-            <div class="voice-stage">
-              <article class="voice-note">
-                <div class="mini-top">
-                  <p class="mini-brand">Note</p>
-                  <p class="voice-count" id="voice-count">10 words</p>
+    <section class="band about" id="about">
+      <h2>What is Hooxie?</h2>
+      <p>Hooxie is a Windows overlay for your coding agent. It stays on your screen and off a screen share.</p>
+    </section>
+
+    <div class="voice-pin">
+      <div class="voice-story" id="voice-story">
+        <div class="voice-sticky">
+          <section class="band voice" id="voice">
+            <p class="kicker">Optional voice activation</p>
+            <blockquote id="voice-spoken">
+              <span id="voice-line">“Hey Hooxie! Create me a blank html that says Hello World”</span>
+              <span id="voice-follow">“Hey Hooxie, I forgot to bold it, haha.”</span>
+            </blockquote>
+            <div class="desk voice-desk">
+              <div class="monitor">
+                <div class="screen" id="voice-screen">
+                  <div class="voice-stage">
+                    <article class="voice-page">
+                      <p class="voice-file">index.html</p>
+                      <p class="voice-hello" id="voice-hello"></p>
+                    </article>
+                  </div>
+                  <div class="pill voice-pill" id="voice-pill">
+                    <p class="voice-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></p>
+                    <button class="pill-send" id="voice-mic" type="button" aria-label="Listening" tabindex="-1">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.2" width="6" height="11" rx="3"></rect><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"></path><path d="M12 17v3.2"></path><path d="M8.8 20.2h6.4"></path></svg>
+                    </button>
+                  </div>
                 </div>
-                <p class="voice-body" id="voice-body">This short note gives the page room to breathe well.</p>
-              </article>
+              </div>
             </div>
-            <div class="pill voice-pill" id="voice-pill">
-              <span class="pill-type">
-                <textarea id="voice-input" rows="1" placeholder="Listening…" readonly aria-label="Voice prompt"></textarea>
-                <span class="pill-measure" id="voice-measure" aria-hidden="true"></span>
-                <span class="pill-caret" id="voice-caret" hidden></span>
-              </span>
-              <button class="pill-send" id="voice-mic" type="button" aria-label="Listening">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.2" width="6" height="11" rx="3"></rect><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"></path><path d="M12 17v3.2"></path><path d="M8.8 20.2h6.4"></path></svg>
-              </button>
-            </div>
-          </div>
+          </section>
         </div>
       </div>
-    </section>
+    </div>
 
     <section class="band faq-home" id="faq">
       <h2>FAQ</h2>
@@ -208,7 +261,6 @@
         <a href="/#download">Download</a>
         <a href="/help">Help</a>
         <a href="/docs">Documentation</a>
-        <a href="/ides">IDEs</a>
         <a href="/releases">Releases</a>
         <a href="/contact">Contact</a>
         <a href="/legal">Legal</a>
@@ -245,7 +297,7 @@
         }
         const start = window.scrollY;
         const distance = target.getBoundingClientRect().top;
-        const duration = Math.min(4800, Math.max(700, Math.abs(distance) * 1.15));
+        const duration = Math.min(1600, Math.max(400, Math.abs(distance) * 0.38));
         const began = performance.now();
         expected = start;
         const step = (now) => {
@@ -264,6 +316,39 @@
         };
         frame = requestAnimationFrame(step);
       });
+    }
+    const about = document.querySelector("#about");
+    const aboutLine = about?.querySelector("p");
+    if (aboutLine && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const words = aboutLine.textContent.trim().split(/\s+/);
+      const frag = document.createDocumentFragment();
+      words.forEach((word, index) => {
+        if (index) frag.append(document.createTextNode(" "));
+        const span = document.createElement("span");
+        span.className = "about-word";
+        span.textContent = word;
+        frag.append(span);
+      });
+      aboutLine.replaceChildren(frag);
+      const spans = [...aboutLine.querySelectorAll(".about-word")];
+      let aboutFrame = 0;
+      const paintAbout = () => {
+        aboutFrame = 0;
+        const view = window.innerHeight || 1;
+        const top = aboutLine.getBoundingClientRect().top;
+        const progress = Math.min(1, Math.max(0, (view * 0.52 - top) / (view * 0.34)));
+        const edge = 2.4;
+        spans.forEach((span, index) => {
+          const read = Math.min(1, Math.max(0, progress * (spans.length + edge) - index) / edge);
+          span.style.setProperty("--read", read.toFixed(3));
+        });
+      };
+      const queueAbout = () => {
+        if (!aboutFrame) aboutFrame = requestAnimationFrame(paintAbout);
+      };
+      window.addEventListener("scroll", queueAbout, { passive: true });
+      window.addEventListener("resize", queueAbout);
+      paintAbout();
     }
   </script>
   <script src="/demo.js"></script>

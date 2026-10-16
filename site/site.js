@@ -9,7 +9,7 @@ const COPY = {
     "keybinds.title": "Keybinds", "keybinds.note": "These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in General.",
     "profile.title": "Profile", "profile.note": "Connect the email Stripe should use for this computer.", "profile.connect": "Connect account",
     "language.title": "Language", "language.note": "The dashboard language on this computer.",
-    "billing.title": "Billing", "billing.note": "One purchase covers this computer. Copying the app or its files does not license another device.", "billing.plan": "This computer", "billing.once": "once", "billing.lead": "Included with Hooxie:", "billing.item1": "The widget, voice, and screen context", "billing.item2": "Undetectable mode on this computer", "billing.item3": "A license that stays on this device", "billing.subscribe": "Buy for this computer", "billing.paid": "Already paid",
+    "billing.title": "Billing", "billing.note": "One purchase covers this computer. Copying the app or its files does not license another device.", "billing.plan": "This computer", "billing.once": "once", "billing.lead": "Included with Hooxie:", "billing.item1": "The widget, voice, and screen context", "billing.item2": "Undetectable mode on this computer", "billing.item3": "A license that stays on this device", "billing.subscribe": "Buy for this computer", "billing.paid": "Already paid", "billing.receipt": "Paid $5.99 once for the Hooxie license on this computer.", "billing.promo": "Promotional code",
     "releases.title": "Release notes", "releases.open": "Open the release notes page",
     "help.title": "Help center", "help.open": "Open the help center", "help.s1": "Start Hooxie", "help.p1": "Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.", "help.s2": "Voice, screen, and files", "help.p2": "An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.", "help.s3": "Hide from a call", "help.p3": "Turn Detectable off, or start a session with Ctrl+Shift+\\. You still see Hooxie. A normal screen share does not.",
     "contact.title": "Contact support", "contact.note": "Email support@delexo.store.", "contact.open": "Open the contact form",
@@ -23,7 +23,7 @@ const COPY = {
     "keybinds.title": "Atajos", "keybinds.note": "Estos atajos funcionan mientras Hooxie está abierto. Las flechas no mueven el widget hasta que actives las teclas de flecha en General.",
     "profile.title": "Perfil", "profile.note": "Conecta el correo que Stripe debe usar para este equipo.", "profile.connect": "Conectar cuenta",
     "language.title": "Idioma", "language.note": "El idioma del panel en este equipo.",
-    "billing.title": "Facturación", "billing.note": "Una compra cubre este equipo. Copiar la aplicación o sus archivos no licencia otro dispositivo.", "billing.plan": "Este equipo", "billing.once": "una vez", "billing.lead": "Incluido con Hooxie:", "billing.item1": "El widget, la voz y el contexto de pantalla", "billing.item2": "Modo indetectable en este equipo", "billing.item3": "Una licencia que se queda en este dispositivo", "billing.subscribe": "Comprar para este equipo", "billing.paid": "Ya está pagado",
+    "billing.title": "Facturación", "billing.note": "Una compra cubre este equipo. Copiar la aplicación o sus archivos no licencia otro dispositivo.", "billing.plan": "Este equipo", "billing.once": "una vez", "billing.lead": "Incluido con Hooxie:", "billing.item1": "El widget, la voz y el contexto de pantalla", "billing.item2": "Modo indetectable en este equipo", "billing.item3": "Una licencia que se queda en este dispositivo", "billing.subscribe": "Comprar para este equipo", "billing.paid": "Ya está pagado", "billing.receipt": "Pagado $5.99 una vez por la licencia de Hooxie en este equipo.", "billing.promo": "Código promocional",
     "releases.title": "Notas de versión", "releases.open": "Abrir la página de notas",
     "help.title": "Centro de ayuda", "help.open": "Abrir el centro de ayuda", "help.s1": "Inicia Hooxie", "help.p1": "Ejecuta Hooxie en Windows. La pastilla queda arriba, al centro. Elige la carpeta del proyecto antes del primer mensaje.", "help.s2": "Voz, pantalla y archivos", "help.p2": "Un mensaje vacío muestra el micrófono. El texto convierte ese botón en enviar. Mientras el agente trabaja, el mismo botón es un cuadrado y detiene la ejecución. “Ver la pantalla” adjunta una captura. El botón más añade archivos o una carpeta.", "help.s3": "Ocultar en una llamada", "help.p3": "Apaga Detectable, o inicia una sesión con Ctrl+Mayús+\\. Tú sigues viendo Hooxie. Una pantalla compartida normal no.",
     "contact.title": "Contactar soporte", "contact.note": "Escribe a support@delexo.store.", "contact.open": "Abrir el formulario",
@@ -37,7 +37,7 @@ const COPY = {
     "keybinds.title": "Raccourcis", "keybinds.note": "Ces raccourcis marchent tant que Hooxie est ouvert. Les flèches ne déplacent le widget qu'après avoir activé les touches fléchées dans Général.",
     "profile.title": "Profil", "profile.note": "Indiquez l'e-mail que Stripe doit utiliser pour cet ordinateur.", "profile.connect": "Connecter le compte",
     "language.title": "Langue", "language.note": "La langue du tableau de bord sur cet ordinateur.",
-    "billing.title": "Facturation", "billing.note": "Un achat couvre cet ordinateur. Copier l'application ou ses fichiers ne donne pas de licence à un autre appareil.", "billing.plan": "Cet ordinateur", "billing.once": "une fois", "billing.lead": "Inclus avec Hooxie :", "billing.item1": "Le widget, la voix et le contexte d'écran", "billing.item2": "Le mode invisible sur cet ordinateur", "billing.item3": "Une licence qui reste sur cet appareil", "billing.subscribe": "Acheter pour cet ordinateur", "billing.paid": "Déjà payé",
+    "billing.title": "Facturation", "billing.note": "Un achat couvre cet ordinateur. Copier l'application ou ses fichiers ne donne pas de licence à un autre appareil.", "billing.plan": "Cet ordinateur", "billing.once": "une fois", "billing.lead": "Inclus avec Hooxie :", "billing.item1": "Le widget, la voix et le contexte d'écran", "billing.item2": "Le mode invisible sur cet ordinateur", "billing.item3": "Une licence qui reste sur cet appareil", "billing.subscribe": "Acheter pour cet ordinateur", "billing.paid": "Déjà payé", "billing.receipt": "Payé 5,99 $ une fois pour la licence Hooxie sur cet ordinateur.", "billing.promo": "Code promotionnel",
     "releases.title": "Notes de version", "releases.open": "Ouvrir la page des notes",
     "help.title": "Centre d'aide", "help.open": "Ouvrir le centre d'aide", "help.s1": "Démarrer Hooxie", "help.p1": "Lancez Hooxie sur Windows. La pilule se place en haut au centre. Choisissez le dossier du projet avant le premier message.", "help.s2": "Voix, écran et fichiers", "help.p2": "Un message vide affiche le microphone. Le texte transforme ce bouton en envoi. Pendant que l'agent travaille, le même bouton est un carré et arrête l'exécution. « Voir l'écran » joint une capture. Le bouton plus ajoute des fichiers ou un dossier.", "help.s3": "Masquer pendant un appel", "help.p3": "Désactivez Détectable, ou démarrez une session avec Ctrl+Maj+\\. Vous voyez toujours Hooxie. Un partage d'écran normal ne le voit pas.",
     "contact.title": "Contacter le support", "contact.note": "Écrivez à support@delexo.store.", "contact.open": "Ouvrir le formulaire",
@@ -51,7 +51,7 @@ const COPY = {
     "keybinds.title": "Tasten", "keybinds.note": "Diese Kürzel gelten, solange Hooxie läuft. Pfeiltasten bewegen das Widget erst, wenn du sie unter Allgemein einschaltest.",
     "profile.title": "Profil", "profile.note": "Verbinde die E-Mail, die Stripe für diesen Computer nutzen soll.", "profile.connect": "Konto verbinden",
     "language.title": "Sprache", "language.note": "Die Sprache dieses Fensters auf diesem Computer.",
-    "billing.title": "Abrechnung", "billing.note": "Ein Kauf gilt für diesen Computer. Das Kopieren der App oder ihrer Dateien lizenziert kein anderes Gerät.", "billing.plan": "Dieser Computer", "billing.once": "einmal", "billing.lead": "In Hooxie enthalten:", "billing.item1": "Widget, Sprache und Bildschirmkontext", "billing.item2": "Unsichtbarer Modus auf diesem Computer", "billing.item3": "Eine Lizenz, die auf diesem Gerät bleibt", "billing.subscribe": "Für diesen Computer kaufen", "billing.paid": "Bereits bezahlt",
+    "billing.title": "Abrechnung", "billing.note": "Ein Kauf gilt für diesen Computer. Das Kopieren der App oder ihrer Dateien lizenziert kein anderes Gerät.", "billing.plan": "Dieser Computer", "billing.once": "einmal", "billing.lead": "In Hooxie enthalten:", "billing.item1": "Widget, Sprache und Bildschirmkontext", "billing.item2": "Unsichtbarer Modus auf diesem Computer", "billing.item3": "Eine Lizenz, die auf diesem Gerät bleibt", "billing.subscribe": "Für diesen Computer kaufen", "billing.paid": "Bereits bezahlt", "billing.receipt": "5,99 $ einmal für die Hooxie-Lizenz auf diesem Computer bezahlt.", "billing.promo": "Aktionscode",
     "releases.title": "Versionshinweise", "releases.open": "Versionshinweise öffnen",
     "help.title": "Hilfe", "help.open": "Hilfe öffnen", "help.s1": "Hooxie starten", "help.p1": "Starte Hooxie unter Windows. Die Pille sitzt oben in der Mitte. Wähle den Projektordner vor der ersten Eingabe.", "help.s2": "Sprache, Bildschirm und Dateien", "help.p2": "Eine leere Eingabe zeigt das Mikrofon. Text macht aus dem Knopf Senden. Während der Agent arbeitet, ist derselbe Knopf ein Quadrat und stoppt den Lauf. „Bildschirm ansehen“ hängt einen Screenshot an. Plus fügt Dateien oder einen Ordner hinzu.", "help.s3": "In einem Anruf ausblenden", "help.p3": "Schalte Erkennbar aus, oder starte eine Sitzung mit Strg+Umschalt+\\. Du siehst Hooxie weiter. Eine normale Bildschirmfreigabe nicht.",
     "contact.title": "Support kontaktieren", "contact.note": "Schreib an support@delexo.store.", "contact.open": "Formular öffnen",
@@ -65,7 +65,7 @@ const COPY = {
     "keybinds.title": "Atalhos", "keybinds.note": "Estes atalhos funcionam enquanto o Hooxie está aberto. As setas só movem o widget depois que você liga as teclas de seta em Geral.",
     "profile.title": "Perfil", "profile.note": "Conecte o e-mail que o Stripe deve usar neste computador.", "profile.connect": "Conectar conta",
     "language.title": "Idioma", "language.note": "O idioma do painel neste computador.",
-    "billing.title": "Cobrança", "billing.note": "Uma compra cobre este computador. Copiar o aplicativo ou os arquivos não licencia outro dispositivo.", "billing.plan": "Este computador", "billing.once": "uma vez", "billing.lead": "Incluído no Hooxie:", "billing.item1": "O widget, a voz e o contexto da tela", "billing.item2": "Modo indetectável neste computador", "billing.item3": "Uma licença que fica neste dispositivo", "billing.subscribe": "Comprar para este computador", "billing.paid": "Já pago",
+    "billing.title": "Cobrança", "billing.note": "Uma compra cobre este computador. Copiar o aplicativo ou os arquivos não licencia outro dispositivo.", "billing.plan": "Este computador", "billing.once": "uma vez", "billing.lead": "Incluído no Hooxie:", "billing.item1": "O widget, a voz e o contexto da tela", "billing.item2": "Modo indetectável neste computador", "billing.item3": "Uma licença que fica neste dispositivo", "billing.subscribe": "Comprar para este computador", "billing.paid": "Já pago", "billing.receipt": "Pago US$ 5,99 uma vez pela licença do Hooxie neste computador.", "billing.promo": "Código promocional",
     "releases.title": "Notas da versão", "releases.open": "Abrir as notas da versão",
     "help.title": "Central de ajuda", "help.open": "Abrir a central de ajuda", "help.s1": "Iniciar o Hooxie", "help.p1": "Execute o Hooxie no Windows. A pílula fica no topo, ao centro. Escolha a pasta do projeto antes do primeiro pedido.", "help.s2": "Voz, tela e arquivos", "help.p2": "Um pedido vazio mostra o microfone. O texto transforma esse botão em enviar. Enquanto o agente trabalha, o mesmo botão é um quadrado e interrompe a execução. “Ver a tela” anexa uma captura. O botão de mais adiciona arquivos ou uma pasta.", "help.s3": "Ocultar numa chamada", "help.p3": "Desligue Detectável, ou inicie uma sessão com Ctrl+Shift+\\. Você continua vendo o Hooxie. Um compartilhamento normal de tela não.",
     "contact.title": "Falar com o suporte", "contact.note": "Escreva para support@delexo.store.", "contact.open": "Abrir o formulário",
@@ -79,7 +79,7 @@ const COPY = {
     "keybinds.title": "キー", "keybinds.note": "Hooxie の実行中に使えるショートカットです。矢印キーは、一般で矢印キーをオンにするまでウィジェットを動かしません。",
     "profile.title": "プロフィール", "profile.note": "このパソコンの支払いに使うメールを接続します。", "profile.connect": "アカウントを接続",
     "language.title": "言語", "language.note": "このパソコンのダッシュボードの言語。",
-    "billing.title": "料金", "billing.note": "1回の購入でこのパソコンを使えます。アプリやファイルをコピーしても、別の端末のライセンスにはなりません。", "billing.plan": "このパソコン", "billing.once": "1回", "billing.lead": "Hooxie に含まれるもの:", "billing.item1": "ウィジェット、音声、画面の内容", "billing.item2": "このパソコンでの検知されないモード", "billing.item3": "この端末に残るライセンス", "billing.subscribe": "このパソコン用に購入", "billing.paid": "支払い済み",
+    "billing.title": "料金", "billing.note": "1回の購入でこのパソコンを使えます。アプリやファイルをコピーしても、別の端末のライセンスにはなりません。", "billing.plan": "このパソコン", "billing.once": "1回", "billing.lead": "Hooxie に含まれるもの:", "billing.item1": "ウィジェット、音声、画面の内容", "billing.item2": "このパソコンでの検知されないモード", "billing.item3": "この端末に残るライセンス", "billing.subscribe": "このパソコン用に購入", "billing.paid": "支払い済み", "billing.receipt": "このパソコンの Hooxie ライセンスとして $5.99 を一度支払いました。", "billing.promo": "プロモーションコード",
     "releases.title": "リリースノート", "releases.open": "リリースノートを開く",
     "help.title": "ヘルプ", "help.open": "ヘルプを開く", "help.s1": "Hooxie を起動", "help.p1": "Windows で Hooxie を起動します。ピルは上中央にあります。最初のプロンプトの前にプロジェクトフォルダーを選びます。", "help.s2": "音声、画面、ファイル", "help.p2": "空のプロンプトではマイクが表示されます。文字を入れるとそのボタンが送信になります。エージェントの作業中は同じボタンが四角になり、実行を止めます。「画面を見る」はスクリーンショットを添付します。プラスはファイルやフォルダーを追加します。", "help.s3": "通話中に隠す", "help.p3": "検出可能をオフにするか、Ctrl+Shift+\\ でセッションを始めます。自分には見えます。通常の画面共有には映りません。",
     "contact.title": "サポートに連絡", "contact.note": "support@delexo.store にメールします。", "contact.open": "フォームを開く",
@@ -93,7 +93,7 @@ const COPY = {
     "keybinds.title": "快捷键", "keybinds.note": "这些快捷键在 Hooxie 运行时可用。在“通用”里打开方向键之前，方向键不会移动小组件。",
     "profile.title": "账户", "profile.note": "填写这台电脑付款时 Stripe 要使用的邮箱。", "profile.connect": "连接账户",
     "language.title": "语言", "language.note": "这台电脑上的仪表盘语言。",
-    "billing.title": "账单", "billing.note": "一次购买只覆盖这台电脑。复制应用或文件不能给另一台设备授权。", "billing.plan": "这台电脑", "billing.once": "一次", "billing.lead": "Hooxie 包含：", "billing.item1": "小组件、语音和屏幕内容", "billing.item2": "这台电脑上的不可检测模式", "billing.item3": "留在这台设备上的许可证", "billing.subscribe": "为这台电脑购买", "billing.paid": "已购买",
+    "billing.title": "账单", "billing.note": "一次购买只覆盖这台电脑。复制应用或文件不能给另一台设备授权。", "billing.plan": "这台电脑", "billing.once": "一次", "billing.lead": "Hooxie 包含：", "billing.item1": "小组件、语音和屏幕内容", "billing.item2": "这台电脑上的不可检测模式", "billing.item3": "留在这台设备上的许可证", "billing.subscribe": "为这台电脑购买", "billing.paid": "已购买", "billing.receipt": "已为这台电脑的 Hooxie 许可证支付一次 $5.99。", "billing.promo": "优惠码",
     "releases.title": "更新说明", "releases.open": "打开更新说明",
     "help.title": "帮助中心", "help.open": "打开帮助中心", "help.s1": "启动 Hooxie", "help.p1": "在 Windows 上运行 Hooxie。胶囊位于顶部居中。第一次提问前先选择项目文件夹。", "help.s2": "语音、屏幕和文件", "help.p2": "提示为空时显示麦克风。输入文字后，这个按钮变成发送。代理工作时，同一个按钮变成方块并停止运行。“查看屏幕”会附上截图。加号可以添加文件或文件夹。", "help.s3": "通话时隐藏", "help.p3": "关闭“可被检测”，或用 Ctrl+Shift+\\ 开始会话。你仍然看得到 Hooxie。普通的屏幕共享看不到。",
     "contact.title": "联系支持", "contact.note": "发邮件到 support@delexo.store。", "contact.open": "打开联系表单",
@@ -297,15 +297,62 @@ function bootHome() {
 
 function bootContact() {
   const form = document.querySelector("#contact-form");
-  form?.addEventListener("submit", (event) => {
+  const success = document.querySelector("#contact-success");
+  if (!form) return;
+  const fields = ["name", "email", "message"];
+  const showFieldError = (name, text) => {
+    const input = form.querySelector(`[name="${name}"]`);
+    const error = document.querySelector(`#contact-${name}-error`);
+    if (input) input.setAttribute("aria-invalid", text ? "true" : "false");
+    if (!error) return;
+    error.hidden = !text;
+    error.textContent = text || "";
+  };
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const data = new FormData(form);
-    const name = String(data.get("name") || "").trim();
-    const email = String(data.get("email") || "").trim();
-    const message = String(data.get("message") || "").trim();
-    const subject = encodeURIComponent(name ? `Hooxie support from ${name}` : "Hooxie support");
-    const body = encodeURIComponent(`${message}\n\n${email}`);
-    location.href = `mailto:support@delexo.store?subject=${subject}&body=${body}`;
+    if (success) success.hidden = true;
+    const submit = form.querySelector("button[type=submit]");
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = "Sending…";
+    }
+    try {
+      const data = new FormData(form);
+      const name = String(data.get("name") || "").trim();
+      const email = String(data.get("email") || "").trim();
+      const message = String(data.get("message") || "").trim();
+      for (const field of fields) showFieldError(field, "");
+      let payload = {};
+      try {
+        const response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ name, email, message }),
+        });
+        payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const problems = payload.fields || {};
+          if (!Object.keys(problems).length) {
+            showFieldError("message", payload.error || "The form could not be checked. Email support@delexo.store.");
+            return;
+          }
+          for (const field of fields) showFieldError(field, problems[field] || "");
+          return;
+        }
+      } catch {
+        showFieldError("message", "The form could not be checked. Email support@delexo.store.");
+        return;
+      }
+      if (success) success.hidden = false;
+      const subject = encodeURIComponent(`Hooxie support from ${name}`);
+      const body = encodeURIComponent(`${message}\n\n${email}`);
+      location.href = `mailto:support@delexo.store?subject=${subject}&body=${body}`;
+    } finally {
+      if (submit) {
+        submit.disabled = false;
+        submit.textContent = "Email support";
+      }
+    }
   });
 }
 
@@ -332,11 +379,30 @@ function wireSidebar(status) {
       widgetShown = result.shown !== false;
       status.textContent = widgetShown ? t("status.shown") : t("status.hidden");
     } catch (error) {
-      status.textContent = error.message;
+      explainFailure(status, error);
     } finally {
       toggle.disabled = false;
     }
   });
+}
+
+function explainFailure(status, error) {
+  if (!status) return;
+  const message = error?.message || "That request did not go through.";
+  status.classList.add("is-error");
+  status.textContent = /support@delexo\.store/.test(message) ? message : `${message} Try again, or email support@delexo.store.`;
+}
+
+function showPromoError(message) {
+  const input = document.querySelector("#promo");
+  const error = document.querySelector("#promo-error");
+  if (input) {
+    if (message) input.setAttribute("aria-invalid", "true");
+    else input.removeAttribute("aria-invalid");
+  }
+  if (!error) return;
+  error.hidden = !message;
+  error.textContent = message || "";
 }
 
 function bootDashboard() {
@@ -424,6 +490,16 @@ function bootDashboard() {
       else button.removeAttribute("aria-current");
     }
     history.replaceState(null, "", `#${sectionName}`);
+    const title = document.querySelector("#page-title");
+    const openSection = sections.find((section) => section.dataset.section === sectionName);
+    if (title && openSection) {
+      const key = openSection.dataset.title;
+      if (key) {
+        title.dataset.i18n = key;
+        title.textContent = t(key);
+      }
+      openSection.prepend(title);
+    }
   }
     for (const button of buttons) button.addEventListener("click", () => {
       show(button.dataset.open);
@@ -477,7 +553,9 @@ function bootDashboard() {
     button.textContent = t(paid ? "billing.paid" : "billing.subscribe");
     button.disabled = paid;
     if (promoField) promoField.hidden = paid;
-    if (price) price.hidden = paid;
+    if (price) price.hidden = false;
+    const receipt = document.querySelector("#receipt");
+    if (receipt) receipt.hidden = !paid;
   }
 
   function paintModes() {
@@ -527,7 +605,7 @@ function bootDashboard() {
       settings = result;
       paint();
     } catch (error) {
-      status.textContent = error.message;
+      explainFailure(status, error);
     }
   }
 
@@ -557,7 +635,14 @@ function bootDashboard() {
   });
 
   async function startCheckout(accountEmail, code) {
+    const button = document.querySelector("#subscribe");
+    status.classList.remove("is-error");
+    showPromoError("");
     status.textContent = "Opening checkout.";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Opening checkout.";
+    }
     try {
       if (accountEmail) localStorage.setItem("hooxie-account-email", accountEmail.trim());
       const path = LOCAL ? "/api/billing/checkout" : "/api/checkout";
@@ -579,7 +664,10 @@ function bootDashboard() {
       }
       location.href = result.url;
     } catch (error) {
-      status.textContent = error.message;
+      if (/promotional code/i.test(error.message || "")) showPromoError(error.message);
+      else explainFailure(status, error);
+    } finally {
+      paintBilling();
     }
   }
 
@@ -616,8 +704,9 @@ function bootDashboard() {
           paid = true;
           paintBilling();
         }
-        status.textContent = result.active ? "This computer is licensed." : "Checkout is not complete yet.";
-      }).catch((error) => { status.textContent = error.message; });
+        status.classList.remove("is-error");
+        status.textContent = result.active ? t("billing.receipt") : "Checkout is not complete yet.";
+      }).catch((error) => { explainFailure(status, error); });
     }
   } else if (params.get("billing") === "cancel") {
     status.textContent = "Checkout was canceled.";
@@ -658,7 +747,7 @@ function bootDashboard() {
   let soundSignature = "";
   let previewAudio = null;
   let previewUrl = "";
-  refresh().catch((error) => { status.textContent = error.message; });
+  refresh().catch((error) => { explainFailure(status, error); });
   loadAudioDevices().then(() => paint()).catch(() => undefined);
   if (LOCAL && TOKEN) window.setInterval(() => { refresh().catch(() => {}); }, 1500);
 
@@ -713,7 +802,7 @@ function bootDashboard() {
     preview.addEventListener("click", () => {
       row.classList.add("is-playing");
       window.setTimeout(() => row.classList.remove("is-playing"), 1600);
-      previewChime(id).catch((error) => { status.textContent = error.message; });
+      previewChime(id).catch((error) => { explainFailure(status, error); });
     });
     row.append(pick, preview);
     return row;
@@ -1186,7 +1275,7 @@ function bootDashboard() {
     document.querySelector("#dash-experimental").addEventListener("change", (event) => save({ experimental: event.target.checked, deliveryReady: true }));
     document.querySelector("#dash-ide").addEventListener("change", (event) => {
       switchIde(event.target.value).catch((error) => {
-        status.textContent = error.message;
+        explainFailure(status, error);
       });
     });
     document.querySelector("#dash-browse").addEventListener("click", async () => {
@@ -1196,7 +1285,7 @@ function bootDashboard() {
         await save({ project: body.path, deliveryReady: true });
         loadRoutes();
       } catch (error) {
-        status.textContent = error.message;
+        explainFailure(status, error);
       }
     });
     document.querySelector("#dash-clear").addEventListener("click", () => {
@@ -1208,7 +1297,7 @@ function bootDashboard() {
         const body = await request("/api/open", { installationId: settings.installationId, projectPath: settings.project || "" });
         status.textContent = body.detail || "Opened.";
       } catch (error) {
-        status.textContent = error.message;
+        explainFailure(status, error);
       }
     });
     document.querySelector("#dash-save-key").addEventListener("click", async () => {
@@ -1291,17 +1380,7 @@ function paintReleaseNotes() {
         title.textContent = update.title || update.version;
         card.append(title);
         body.append(meta, card);
-        for (const section of update.sections || []) {
-          const heading = document.createElement("h3");
-          heading.textContent = section.heading;
-          const list = document.createElement("ul");
-          for (const note of section.notes || []) {
-            const item = document.createElement("li");
-            item.textContent = note;
-            list.append(item);
-          }
-          card.append(heading, list);
-        }
+        appendReleaseGroups(card, update.sections);
         article.append(mark, body);
         root.append(article);
       });
@@ -1309,6 +1388,27 @@ function paintReleaseNotes() {
     .catch(() => {
       root.textContent = "Release notes could not be loaded.";
     });
+}
+
+function appendReleaseGroups(card, sections) {
+  for (const [label, key] of [["Added", "added"], ["Bug fixes", "fixes"]]) {
+    const filled = (sections || []).filter((section) => (section[key] || []).length);
+    if (!filled.length) continue;
+    const heading = document.createElement("h3");
+    heading.textContent = label;
+    card.append(heading);
+    for (const section of filled) {
+      const area = document.createElement("h4");
+      area.textContent = section.heading;
+      const list = document.createElement("ul");
+      for (const note of section[key]) {
+        const item = document.createElement("li");
+        item.textContent = note;
+        list.append(item);
+      }
+      card.append(area, list);
+    }
+  }
 }
 
 async function request(path, body) {
@@ -1320,6 +1420,6 @@ async function request(path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || "Request failed.");
+    if (!response.ok) throw new Error(payload.error || "That request did not go through. Try again, or email support@delexo.store.");
   return payload;
 }

@@ -187,7 +187,7 @@ if (screen && preview && pill && form && input && showBtn) {
   let shown = false;
   const prompt = prompts[0];
   const renderScroll = () => {
-    if (!story || taken || document.activeElement === input) return;
+    if (!story || taken) return;
     const distance = Math.max(1, story.offsetHeight - window.innerHeight);
     const scrolled = Math.min(distance, Math.max(0, -story.getBoundingClientRect().top));
     const progress = scrolled / distance;
@@ -234,24 +234,15 @@ if (screen && preview && pill && form && input && showBtn) {
     build(text);
   });
 
-  input.addEventListener("pointerdown", () => {
-    stop();
-  });
-
-  input.addEventListener("keydown", () => {
-    stop();
-  });
-
-  input.addEventListener("input", () => {
-    stop();
-    syncWidget();
-  });
-
-  input.addEventListener("focus", () => {
-    stop();
-    syncWidget();
-  });
-  input.addEventListener("blur", () => syncWidget());
+  const blockTyping = (event) => {
+    event.preventDefault();
+    input.blur();
+  };
+  input.addEventListener("beforeinput", blockTyping);
+  input.addEventListener("paste", blockTyping);
+  input.addEventListener("drop", blockTyping);
+  input.addEventListener("keydown", blockTyping);
+  input.addEventListener("focus", () => input.blur());
 
   sendBtn.addEventListener("click", () => {
     if (input.value.trim()) {
@@ -357,6 +348,23 @@ if (screen && preview && pill && form && input && showBtn) {
     drag.addEventListener("pointerup", end);
     drag.addEventListener("pointercancel", end);
   });
+  drag.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 28 : 14;
+    const key = event.key;
+    if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "ArrowUp" && key !== "ArrowDown") return;
+    event.preventDefault();
+    const screenBox = screen.getBoundingClientRect();
+    const box = pill.getBoundingClientRect();
+    pill.style.right = "auto";
+    pill.style.margin = "0";
+    pill.style.transform = "none";
+    const dx = key === "ArrowLeft" ? -step : key === "ArrowRight" ? step : 0;
+    const dy = key === "ArrowUp" ? -step : key === "ArrowDown" ? step : 0;
+    const x = Math.max(8, Math.min(box.left - screenBox.left + dx, screenBox.width - pill.offsetWidth - 8));
+    const y = Math.max(8, Math.min(box.top - screenBox.top + dy, screenBox.height - pill.offsetHeight - 8));
+    pill.style.left = `${x}px`;
+    pill.style.top = `${y}px`;
+  });
 
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     input.value = prompts[0].text;
@@ -373,136 +381,88 @@ if (screen && preview && pill && form && input && showBtn) {
   requestAnimationFrame(spinRing);
 }
 
-const voiceInput = document.querySelector("#voice-input");
-const voiceBody = document.querySelector("#voice-body");
-const voiceCount = document.querySelector("#voice-count");
+const voiceHello = document.querySelector("#voice-hello");
 const voiceMic = document.querySelector("#voice-mic");
-const voiceCaret = document.querySelector("#voice-caret");
-const voiceMeasure = document.querySelector("#voice-measure");
 
-if (voiceInput && voiceBody && voiceCount && voiceMic && voiceCaret && voiceMeasure) {
-  const line = "Hey Hooxie! Can you extend that word count from 10 to 20!";
-  const base = "This short note gives the page room to breathe well.";
-  const more = ["And", "leaves", "a", "clear", "space", "for", "the", "work", "that", "follows."];
-  const pause = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+if (voiceHello && voiceMic) {
+  const line = "Hey Hooxie! Create me a blank html that says Hello World";
+  const follow = "Hey Hooxie, I forgot to bold it, haha.";
+  const hello = "Hello World!";
+  const voicePage = document.querySelector(".voice-page");
+  const lineEl = document.querySelector("#voice-line");
+  const followEl = document.querySelector("#voice-follow");
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  voiceHello.replaceChildren(...[...hello].map((char) => {
+    const span = document.createElement("span");
+    span.textContent = char;
+    return span;
+  }));
+  const letters = [...voiceHello.children];
 
-  const voicePill = document.querySelector("#voice-pill");
-  const voiceScreen = document.querySelector("#voice-screen");
+  const voice = document.querySelector("#voice");
+  const story = document.querySelector("#voice-story");
+  let recording = false;
+  let bold = false;
 
-  const growVoice = () => {
-    const text = voiceInput.value;
-    if (!text) {
-      voicePill.style.width = "";
-      voiceInput.style.height = "";
-      voiceCaret.style.top = "";
-      voiceCaret.style.bottom = "";
-      voiceCaret.style.height = "";
-      voiceCaret.style.transform = "translateX(0px)";
+  const paintBold = (on) => {
+    if (on === bold) return;
+    bold = on;
+    letters.forEach((letter) => letter.classList.toggle("is-bold", on));
+  };
+
+  const setRecording = (hearing) => {
+    if (recording === hearing) return;
+    recording = hearing;
+    voiceMic.classList.toggle("is-live", hearing);
+    voice.classList.toggle("is-recording", hearing);
+  };
+
+  const showPage = () => {
+    voicePage?.classList.add("is-in");
+    if (lineEl) lineEl.textContent = `“${line}”`;
+    if (followEl) followEl.textContent = `“${follow}”`;
+    paintBold(true);
+  };
+
+  const renderVoice = () => {
+    if (!story) return;
+    const distance = Math.max(1, story.offsetHeight - window.innerHeight);
+    const scrolled = Math.min(distance, Math.max(0, -story.getBoundingClientRect().top));
+    const progress = scrolled / distance;
+    const pageAt = 0.32;
+    const followAt = 0.4;
+    if (progress < pageAt) {
+      const count = Math.round(Math.min(1, progress / 0.26) * line.length);
+      const next = line.slice(0, count);
+      const spoken = next ? (count >= line.length ? `“${next}”` : `“${next}`) : "";
+      if (lineEl && lineEl.textContent !== spoken) lineEl.textContent = spoken;
+      if (followEl && followEl.textContent) followEl.textContent = "";
+      setRecording(count > 0 && count < line.length);
+      voicePage?.classList.remove("is-in");
+      paintBold(false);
       return;
     }
-
-    const inputStyle = getComputedStyle(voiceInput);
-    const pillStyle = getComputedStyle(voicePill);
-    const lineHeight = parseFloat(inputStyle.lineHeight) || 22;
-    const padTop = parseFloat(inputStyle.paddingTop) || 0;
-    const padBottom = parseFloat(inputStyle.paddingBottom) || 0;
-    const padLeft = parseFloat(inputStyle.paddingLeft) || 0;
-    const padRight = parseFloat(inputStyle.paddingRight) || 0;
-    const oneLine = Math.ceil(lineHeight + padTop + padBottom);
-
-    voiceMeasure.style.font = inputStyle.font;
-    voiceMeasure.style.letterSpacing = inputStyle.letterSpacing;
-    voiceMeasure.style.lineHeight = `${lineHeight}px`;
-    voiceMeasure.style.padding = "0";
-    voiceMeasure.style.whiteSpace = "nowrap";
-    voiceMeasure.style.width = "auto";
-    voiceMeasure.textContent = text;
-    const textWidth = Math.ceil(voiceMeasure.getBoundingClientRect().width);
-
-    const chrome = parseFloat(pillStyle.paddingLeft) + parseFloat(pillStyle.paddingRight) + (parseFloat(pillStyle.columnGap) || 0) + voiceMic.offsetWidth;
-    const max = Math.max(96, voiceScreen.clientWidth - 14);
-    const floor = Math.min(136, max);
-    const next = Math.min(max, Math.max(floor, textWidth + chrome + padLeft + padRight + 2));
-    voicePill.style.width = `${Math.ceil(next)}px`;
-
-    const contentWidth = Math.max(8, next - chrome - padLeft - padRight);
-    let lines = 1;
-    let caretX = textWidth;
-    let height = oneLine;
-    if (textWidth > contentWidth + 1) {
-      voiceMeasure.style.whiteSpace = "pre-wrap";
-      voiceMeasure.style.width = `${contentWidth}px`;
-      const wrapped = voiceMeasure.getBoundingClientRect().height;
-      lines = Math.max(2, Math.round(wrapped / lineHeight));
-      const cap = Math.max(oneLine, Math.min(voiceScreen.clientHeight * 0.46, 112));
-      height = Math.min(cap, Math.ceil(lines * lineHeight + padTop + padBottom));
-      caretX = textWidth - (lines - 1) * contentWidth;
-      voiceMeasure.style.whiteSpace = "nowrap";
-      voiceMeasure.style.width = "auto";
+    voicePage?.classList.add("is-in");
+    if (lineEl && lineEl.textContent !== `“${line}”`) lineEl.textContent = `“${line}”`;
+    if (progress < followAt) {
+      if (followEl && followEl.textContent) followEl.textContent = "";
+      setRecording(false);
+      paintBold(false);
+      return;
     }
-
-    voiceInput.style.height = `${height}px`;
-    if (lines <= 1) {
-      voiceCaret.style.top = "";
-      voiceCaret.style.bottom = "";
-      voiceCaret.style.height = "";
-    } else {
-      voiceCaret.style.bottom = "auto";
-      voiceCaret.style.height = `${lineHeight}px`;
-      voiceCaret.style.top = `${padTop + (lines - 1) * lineHeight}px`;
-    }
-    voiceCaret.style.transform = `translateX(${Math.max(0, caretX)}px)`;
+    const count = Math.round(Math.min(1, (progress - followAt) / 0.28) * follow.length);
+    const safe = Math.max(0, count);
+    const done = safe >= follow.length;
+    const next = follow.slice(0, safe);
+    const spoken = next ? (done ? `“${next}”` : `“${next}`) : "";
+    if (followEl && followEl.textContent !== spoken) followEl.textContent = spoken;
+    setRecording(safe > 0 && !done);
+    paintBold(done);
   };
 
-  const resetVoice = () => {
-    voicePill.style.width = "";
-    voiceInput.style.height = "";
-    voiceCaret.style.top = "";
-    voiceCaret.style.bottom = "";
-    voiceCaret.style.height = "";
-    voiceCaret.style.transform = "translateX(0px)";
-  };
-
-  const showExtended = () => {
-    voiceBody.textContent = `${base} ${more.join(" ")}`;
-    voiceCount.textContent = "20 words";
-    voiceCount.classList.add("is-grown");
-    voiceInput.value = line;
-    growVoice();
-  };
-
-  const playVoice = async () => {
-    voiceBody.textContent = base;
-    voiceCount.textContent = "10 words";
-    voiceCount.classList.remove("is-grown");
-    voiceInput.value = "";
-    resetVoice();
-    voiceCaret.hidden = false;
-    growVoice();
-    voiceMic.classList.add("is-live");
-    for (const letter of line) {
-      voiceInput.value += letter;
-      growVoice();
-      await pause(letter === " " ? 70 : 38);
-    }
-    voiceMic.classList.remove("is-live");
-    voiceCaret.hidden = true;
-    await pause(420);
-    const added = document.createElement("span");
-    added.className = "voice-added";
-    voiceBody.append(document.createTextNode(" "));
-    voiceBody.append(added);
-    for (let i = 0; i < more.length; i += 1) {
-      added.textContent = more.slice(0, i + 1).join(" ");
-      voiceCount.textContent = `${11 + i} words`;
-      await pause(150);
-    }
-    voiceCount.classList.add("is-grown");
-    await pause(2400);
-    playVoice();
-  };
-
-  if (reduced) showExtended();
-  else pause(700).then(playVoice);
+  if (reduced) showPage();
+  else {
+    window.addEventListener("scroll", renderVoice, { passive: true });
+    renderVoice();
+  }
 }

@@ -2,13 +2,77 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.1",
+      "date": "2026-10-16",
+      "title": "Advanced mode and the Hello World voice demo",
+      "sections": [
+        {
+          "heading": "Widget",
+          "added": [
+            "More options includes Advanced mode, which widens the widget and adds Files, Changes, Terminal, Details, and Look.",
+            "Arrow keys nudge the pill when the drag handle is focused."
+          ],
+          "fixes": [
+            "The prompt has a visible name, and a sent message can be edited from the keyboard."
+          ]
+        },
+        {
+          "heading": "Dashboard",
+          "fixes": [
+            "The dashboard window sits with other windows. Only the widget stays on top.",
+            "Buy stays on Opening checkout until the payment page is ready."
+          ]
+        },
+        {
+          "heading": "Site",
+          "added": [
+            "Each feature card has a small drawing: dotted lines, keys, a saved prompt, and a usage bar.",
+            "Release notes list what was added and what was fixed in each version.",
+            "The voice demo asks Hooxie to create a blank page that says Hello World.",
+            "The blank page stays hidden until the voice prompt finishes, then pops in with Hello World.",
+            "The Hello World page is the same size as the page in the first demo.",
+            "An intro page walks through Hooxie, plays a short demo, then opens the landing page.",
+            "The demo computer uses a blue bloom wallpaper in the Windows 11 style.",
+            "The sentence under What is Hooxie fades on from left to right as you scroll. The heading stays plain.",
+            "What is Hooxie says Hooxie stays on your screen and off a screen share.",
+            "The What is Hooxie sentence is larger and centered.",
+            "What is Hooxie is smaller, the sentence under it is larger, and the fade starts later in the scroll.",
+            "Optional voice activation is larger.",
+            "The Undetectable drawing keeps the dotted outline and drops the solid bar.",
+            "Each feature card puts the title and description on the left and the drawing on the right.",
+            "Learn more reaches Features faster.",
+            "The hero no longer shows the Windows overlay sentence under the title.",
+            "The voice pill shows a recording wave instead of Listening, and the spoken line stays in the quote above it.",
+            "After Hello World appears, a second line asks to bold it, and the words turn bold as you scroll.",
+            "The Hello World bold is lighter.",
+            "The voice pill sits in the horizontal center of the demo computer.",
+            "The What is Hooxie heading no longer has the blue dot.",
+            "index.html sits in the top left of the Hello World page.",
+            "Optional voice activation sits farther below What is Hooxie.",
+            "The Hello World scroll bold is a little thicker.",
+            "The intro has one page title, plus a canonical link and a share title.",
+            "The IDEs page is gone.",
+            "Hello World turns bold all at once when the second voice line finishes.",
+            "The intro opens lower, with the desktop widget sentence, and the voice choice says Voice activation.",
+            "The intro sentence types itself when the page opens."
+          ],
+          "fixes": [
+            "The demo prompt on the site fills only while you scroll.",
+            "The homepage says Hooxie is a Windows overlay, and it no longer calls itself the number one widget.",
+            "The contact form says Sending while the message is checked, and repeat attempts are slowed.",
+            "The local site serves the bloom wallpaper, the intro, and the docs."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.0",
       "date": "2026-10-16",
       "title": "Type fold, voice outline, and a license for this computer",
       "sections": [
         {
           "heading": "Widget",
-          "notes": [
+          "added": [
             "The prompt stays on the bar, with upload on the left and send or voice on the right. Presets, more, usage, dashboard, and drag sit beside it.",
             "View the screen, the project path, attachments, and the conversation open when you type, attach a file, already have a conversation, are listening, or the agent is working. Clearing the prompt folds them away.",
             "When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward.",
@@ -19,14 +83,16 @@
             "While Cursor usage is loading, the ring eases around the circle, then fills to the percentage. That spin and fill take a little longer.",
             "Ctrl+\\ slides the pill off the nearest edge of the screen and fades it out. Showing it glides back. Pressing the shortcut again during the slide reverses it.",
             "More options includes Recenter, which moves the pill back to the top center.",
-            "The app and installer icon is a sharper rounded pill.",
+            "The app and installer icon is a sharper rounded pill."
+          ],
+          "fixes": [
             "The installer icon is a rounded squircle, so the setup file no longer shows a square tile.",
             "Clear chat, Copy reply, and Send again have more padding, so the labels no longer sit on the rounded ends."
           ]
         },
         {
           "heading": "Dashboard",
-          "notes": [
+          "added": [
             "The search button and its search field are gone.",
             "The website menu no longer opens a separate dashboard. The dashboard is the window inside Hooxie.",
             "The window is white, with a grey sidebar and black text. Dark is still available.",
@@ -34,17 +100,19 @@
             "Buttons and language choices are pills. A collapsed sidebar uses circles.",
             "English, Spanish, French, German, Portuguese, Japanese, and Chinese translate the navigation, help, and the one-time $5.99 purchase. Switching back to English restores the original words.",
             "Opening a section eases in, and collapsing the sidebar glides.",
-            "Opening the dashboard no longer stops on a missing catalog or revision.",
-            "The microphone and speaker lists stay open when you click them.",
             "Opening, closing, and done each have a sound list, shown as a waveform with the name and a play preview.",
             "Dashboard motion fades in, and buttons grow slightly on hover and click.",
-            "Dashboard pages sit in the center of the window.",
+            "Dashboard pages sit in the center of the window."
+          ],
+          "fixes": [
+            "Opening the dashboard no longer stops on a missing catalog or revision.",
+            "The microphone and speaker lists stay open when you click them.",
             "The dashboard stays on its own pages. Help, notes, contact, and downloads no longer open another site in that window."
           ]
         },
         {
           "heading": "Setup",
-          "notes": [
+          "added": [
             "Setup is two steps: choose an IDE, then the license. Back and Next move between them, and a progress bar shows how far along you are.",
             "Each IDE has a plain Download link and a switch. On means the widget uses that IDE. Only one IDE can be on. An IDE that is not installed stays off.",
             "Setup can be dragged, minimized, and closed. Help opens the onboarding section of the website.",
@@ -54,7 +122,7 @@
         },
         {
           "heading": "Voice",
-          "notes": [
+          "added": [
             "Saying “Hooxie” starts one voice session.",
             "The open sound plays when the typing outline appears. The close sound plays when that outline turns off, including when you click out of the prompt or stop voice.",
             "Holding Escape for three quarters of a second clears the prompt and lets the widget go. While you hold it, the outline color closes around the border. When the hold finishes, the outline stays closed.",
@@ -64,19 +132,21 @@
         },
         {
           "heading": "Chat",
-          "notes": [
+          "added": [
             "Conversation text is smaller and more compact.",
             "Queued messages are numbered cards. The first one sends next, and each card can be removed."
           ]
         },
         {
           "heading": "Site",
-          "notes": [
+          "added": [
             "The footer spreads Download, Help, IDEs, Releases, Contact, and Legal under Product.",
             "Documentation covers the widget: the pill, prompts, presets, voice, files, the screen, usage, and shortcuts.",
             "The home title and the Download and Learn more control sit in the center of the screen.",
             "The home title stays locked while the demo computer scrolls up over it.",
-            "On a phone, the demo computer fills the screen while the prompt types, and the caret stays in the field.",
+            "On a phone, the demo computer fills the screen while the prompt types, and the caret stays in the field."
+          ],
+          "fixes": [
             "Clicking the demo prompt lets you type in it, and scrolling no longer replaces what you wrote."
           ]
         }
@@ -90,7 +160,7 @@
       "sections": [
         {
           "heading": "First build",
-          "notes": [
+          "added": [
             "The widget sits at the top of the screen and sends a prompt to a Cursor agent for the folder you choose.",
             "One button is the microphone when the prompt is empty, send when there is text, and a square stop while the agent is working.",
             "You can attach files, a folder, or a screenshot of the current screen.",

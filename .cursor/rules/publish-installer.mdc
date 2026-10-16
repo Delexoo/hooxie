@@ -5,15 +5,25 @@ alwaysApply: true
 
 # Publish Hooxie on every commit, update, or deploy
 
-Whenever you commit, push, update a release, or redeploy Hooxie, ship that same source to the official site, GitHub, and the README. Do this before you tell the user the update is published. Do not wait to be asked.
+Whenever you commit, push, update a release, or redeploy Hooxie, raise the version first, then ship that same source to the official site, GitHub, and the README. Do this before you tell the user the update is published. Do not wait to be asked. Do not ship two commits on the same version.
 
-1. Read `MyAppVersion` in `installer/hooxie.iss`. Add any unlogged change to `brain/log.json`, then run `npm run notes` so `site/releases.json` and `site/releases.html` match.
+The version is one number. If the user did not name the next one, raise the patch number. Write that same number in every place below before you package or publish. Do not leave the previous number in any of them.
+
+- `installer/hooxie.iss`: `MyAppVersion` and `VersionInfoVersion`. A version `0.2.1` has `VersionInfoVersion` `0.2.1.0`.
+- `package.json` `version`, and both `version` fields in `package-lock.json` (the root and `packages[""]`).
+- `site/dashboard.html`, the text inside `#version`. The running app also shows `package.json`.
+- `README.md`: `dist-setup/Hooxie-Setup-<version>.exe` and `https://github.com/Delexoo/hooxie/releases/download/v<version>/Hooxie-Setup-<version>.exe`.
+- `brain/log.json`: this commit's notes go on a new top entry for that version, dated today. Leave shipped versions as they are. If the top entry is still the shipped version, add the new entry and move the unreleased notes into it. Run `npm run notes` so `site/releases.json` and `site/releases.html` match.
+
+The bridge extension version is not the Hooxie version. Do not change it for an app release.
+
+1. Raise the version in the list above. Add any unlogged change to that new `brain/log.json` entry under `added` or `fixes`, then run `npm run notes` so `site/releases.json` and `site/releases.html` match.
 2. Update `README.md` so the version, the installer path `dist-setup/Hooxie-Setup-<version>.exe`, the download link `https://github.com/Delexoo/hooxie/releases/download/v<version>/Hooxie-Setup-<version>.exe`, and the "What it does" list match this build.
 3. Rebuild with `npm run pack:win`. The setup file is `dist-setup/Hooxie-Setup-<version>.exe`.
 4. Copy that file onto the website download: `site/download/Hooxie-Setup.exe`. Copy it after packaging. The package script removes that file from the installer stage so the setup does not contain itself.
 5. Commit the source, the README, the release notes, and `site/download/Hooxie-Setup.exe` together. Never commit `.env`. `site/.vercel` stays uncommitted.
 6. Push `main` to `https://github.com/Delexoo/hooxie`. `gh` is not signed in. Use `GITHUB_TOKEN` from `E:\MasterVault\hooxie\.env` and do not print the token. If git reports dubious ownership, pass `-c safe.directory=E:/MasterVault/hooxie` on the command. Do not change git config.
-7. On the existing GitHub release tag `v<version>`, replace the asset `Hooxie-Setup-<version>.exe` and set the release body from the current `brain/log.json` notes for that version. The download is `https://github.com/Delexoo/hooxie/releases/download/v<version>/Hooxie-Setup-<version>.exe`. `node scripts/post-release-notes.mjs` only creates a tag that does not exist yet, so an existing tag still needs its notes and asset replaced.
+7. Publish GitHub release tag `v<version>` with asset `Hooxie-Setup-<version>.exe` and the body from that version's `brain/log.json` notes. The download is `https://github.com/Delexoo/hooxie/releases/download/v<version>/Hooxie-Setup-<version>.exe`. `node scripts/post-release-notes.mjs` only creates a tag that does not exist yet. If the tag already exists, replace its notes and that asset.
 8. Keep the repo homepage `https://hooxie.com` and the description `Hooxie • #1 Widget for Developers.`
 9. Redeploy the `site` folder to the Vercel project `hooxie` (production `https://hooxie.com`) with `VERCEL_TOKEN` from the same `.env`. Do not print the token.
 10. Stop only when both downloads return a `Content-Length` equal to the local setup file:

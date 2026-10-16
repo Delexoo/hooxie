@@ -663,6 +663,7 @@ internal sealed class ShellForm : Form
             ClientSize = new Size(1120, 760),
             BackColor = Color.White,
             ShowInTaskbar = true,
+            TopMost = false,
         };
         var page = new WebView2 { Dock = DockStyle.Fill };
         page.DefaultBackgroundColor = Color.White;
@@ -704,7 +705,7 @@ internal sealed class ShellForm : Form
     {
         var window = EnsureDashboardWindow();
         if (window.WindowState == FormWindowState.Minimized) window.WindowState = FormWindowState.Normal;
-        window.TopMost = true;
+        window.TopMost = false;
         PlaceDashboard(window);
         window.Show();
         if (window.IsHandleCreated)
@@ -713,7 +714,7 @@ internal sealed class ShellForm : Form
             // ignores the first ShowWindow. A second show is what actually appears.
             ShowWindow(window.Handle, SW_SHOWNORMAL);
             ShowWindow(window.Handle, SW_SHOWNORMAL);
-            SetWindowPos(window.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            SetWindowPos(window.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         }
         window.BringToFront();
         window.Activate();
@@ -1613,6 +1614,7 @@ internal sealed class ShellForm : Form
     }
 
     private static readonly IntPtr HWND_TOPMOST = new(-1);
+    private static readonly IntPtr HWND_NOTOPMOST = new(-2);
     private const uint SWP_NOSIZE = 0x0001;
     private const uint SWP_NOMOVE = 0x0002;
     private const uint SWP_NOZORDER = 0x0004;

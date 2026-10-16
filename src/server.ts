@@ -10,7 +10,7 @@ import { IDE_CATALOG, ideDownloadUrl } from "./catalog.ts";
 import { CompanionHub } from "./companion.ts";
 import { DeliveryService } from "./delivery.ts";
 import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
-import { accountConnected, openIdeDownload, openLoginUrl, openLoopbackIdes, openOnboardingHelp, openStripeCheckout, publicConnectError } from "./cursor-account.ts";
+import { accountConnected, openIdeDownload, openLoginUrl, openOnboardingHelp, openStripeCheckout, publicConnectError } from "./cursor-account.ts";
 import { readDeviceId, readStoredLicense, saveLicense } from "./license.ts";
 import { describeSetup, onboardingStep } from "./setup.ts";
 import { readCursorUsage } from "./cursor-usage.ts";
@@ -53,15 +53,30 @@ const SITE_FILES: Record<string, string> = {
   "/help": "help.html",
   "/contact": "contact.html",
   "/license": "license.html",
-  "/ides": "ides.html",
   "/site.css": "site.css",
   "/dash.css": "dash.css",
   "/site.js": "site.js",
   "/menu.js": "menu.js",
   "/demo.js": "demo.js",
-  "/wallpaper.jpg": "wallpaper.jpg",
+  "/docs": "docs.html",
+  "/intro": "intro.html",
+  "/intro.js": "intro.js",
+  "/wallpaper.svg": "wallpaper.svg",
   "/favicon.ico": "favicon.ico",
   "/icon.png": "icon.png",
+  "/apple-touch-icon.png": "apple-touch-icon.png",
+  "/site.webmanifest": "site.webmanifest",
+  "/fonts.css": "fonts.css",
+  "/robots.txt": "robots.txt",
+  "/sitemap.xml": "sitemap.xml",
+  "/llms.txt": "llms.txt",
+  "/404.html": "404.html",
+  "/fonts/manrope-latin.woff2": "fonts/manrope-latin.woff2",
+  "/fonts/manrope-latin-ext.woff2": "fonts/manrope-latin-ext.woff2",
+  "/fonts/manrope-cyrillic.woff2": "fonts/manrope-cyrillic.woff2",
+  "/fonts/manrope-cyrillic-ext.woff2": "fonts/manrope-cyrillic-ext.woff2",
+  "/fonts/manrope-greek.woff2": "fonts/manrope-greek.woff2",
+  "/fonts/manrope-vietnamese.woff2": "fonts/manrope-vietnamese.woff2",
   "/download/hooxie-windows.ps1": "download/hooxie-windows.ps1",
 };
 
@@ -275,7 +290,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       connectedIde: settings.connectedIde,
       cursorConnected: accountConnected(apiKey, sdkAccount),
       licensed: await licensedForDevice(),
-      onboardingStep: settings.onboardingStep,
+      onboardingStep: onboardingStep(settings.onboardingStep),
     });
   }
 
@@ -336,7 +351,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     } catch (error) {
       const status = error instanceof DeliveryError ? error.statusCode : 500;
       const message = error instanceof Error ? error.message : "Request failed.";
-      sendJson(res, status, { error: status === 500 ? "The request failed." : message });
+      sendJson(res, status, { error: status === 500 ? "Something went wrong on this computer. Try again, or email support@delexo.store." : message });
     }
   });
 
@@ -510,11 +525,9 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       const body = asRecord(await readJson(req, 4000));
       const ide = stringField(body, "ide");
       const listed = ide ? ideDownloadUrl(ide) : "";
-      if (ide && !listed) throw new DeliveryError(400, "Unknown IDE.");
-      const target = listed || `http://127.0.0.1:${port}/ides`;
-      if (options.openUrl) options.openUrl(target);
-      else if (listed) openIdeDownload(listed);
-      else openLoopbackIdes(target);
+      if (!listed) throw new DeliveryError(400, ide ? "Unknown IDE." : "Choose an IDE.");
+      if (options.openUrl) options.openUrl(listed);
+      else openIdeDownload(listed);
       sendJson(res, 200, { ok: true });
       return;
     }
@@ -740,7 +753,8 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     if (req.method === "POST" && url.pathname === "/api/widget/play") {
       if (!options.widget) throw new DeliveryError(400, "Sound plays through the desktop widget.");
       const body = asRecord(await readJson(req, 4000));
-      const file = body.custom === true ? await customChimePath(configDir) : soundFilePath(stringField(body, "file"));
+      const sound = stringField(body, "file");
+      const file = body.custom === true ? await customChimePath(configDir) : sound ? soundFilePath(sound) : undefined;
       if (!file) throw new DeliveryError(404, "That sound is not available.");
       try {
         await fs.access(file);
@@ -1366,7 +1380,12 @@ async function serveSite(res: http.ServerResponse, pathname: string, pageToken: 
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".png": "image/png",
+    ".svg": "image/svg+xml",
     ".ico": "image/x-icon",
+    ".woff2": "font/woff2",
+    ".xml": "application/xml; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+    ".webmanifest": "application/manifest+json",
     ".webp": "image/webp",
     ".ps1": "text/plain; charset=utf-8",
   };

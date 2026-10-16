@@ -12,7 +12,7 @@ let posted = 0;
 for (const update of log.updates) {
   const tag = `v${update.version}`;
   if (await releaseExists(tag)) continue;
-  const notes = update.sections.flatMap((section) => [`## ${section.heading}`, ...section.notes.map((note) => `- ${note}`), ""]).join("\n");
+  const notes = releaseBody(update);
   const response = await fetch(`https://api.github.com/repos/${repo}/releases`, {
     method: "POST",
     headers: githubHeaders(),
@@ -31,6 +31,18 @@ for (const update of log.updates) {
   console.log(`Posted ${tag}.`);
 }
 if (posted === 0) console.log("GitHub releases already match the log.");
+
+function releaseBody(update) {
+  return [["Added", "added"], ["Bug fixes", "fixes"]]
+    .flatMap(([label, key]) => {
+      const blocks = update.sections
+        .filter((section) => section[key]?.length)
+        .flatMap((section) => [`### ${section.heading}`, ...section[key].map((note) => `- ${note}`), ""]);
+      return blocks.length ? [`## ${label}`, ...blocks] : [];
+    })
+    .join("\n")
+    .trim();
+}
 
 async function releaseExists(tag) {
   const response = await fetch(`https://api.github.com/repos/${repo}/releases/tags/${encodeURIComponent(tag)}`, {

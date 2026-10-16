@@ -5,11 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Documentation · Hooxie</title>
   <meta name="description" content="How the Hooxie widget works: the pill, prompts, presets, voice, files, the screen, and shortcuts.">
+  <link rel="canonical" href="https://hooxie.com/docs">
+  <meta property="og:title" content="Documentation · Hooxie">
+  <meta property="og:description" content="How the Hooxie widget works: the pill, prompts, presets, voice, files, the screen, and shortcuts.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hooxie.com/docs">
+  <meta property="og:image" content="https://hooxie.com/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Documentation · Hooxie">
+  <meta name="twitter:description" content="How the Hooxie widget works: the pill, prompts, presets, voice, files, the screen, and shortcuts.">
+  <meta name="theme-color" content="#f4f2ee">
   <link rel="icon" href="/favicon.ico?v=4" sizes="any">
   <link rel="icon" href="/icon.png?v=4" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
+  <a class="skip" href="#content">Skip to content</a>
   <header>
     <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
@@ -18,15 +31,15 @@
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
+      <a href="/intro">Introduction</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
       <a href="/docs">Docs</a>
       <a href="/legal">Legal</a>
-      <a href="/ides">IDEs</a>
     </nav>
   </header>
-  <main class="docs-page">
+  <main id="content" class="docs-page">
     <h1>Documentation</h1>
     <p class="lede">The widget stays on the screen while you work. This is what you can do with it.</p>
     <div class="docs">
@@ -73,6 +86,7 @@
         <p>View the screen attaches a screenshot of the current display to the next prompt. Ctrl+Enter asks about the screen even when that switch is off. If you were dictating, the spoken text is the prompt.</p>
         <p>When the session changes files, the widget lists them as added, modified, or deleted. A running terminal from that session shows its command.</p>
         <p>In the dashboard, under IDE, you can add standing instructions, and list files inside the project, one relative path per line. Two switches can also put the project path, or stack markers found in the project root, into the prompt text.</p>
+        <p>More options includes Advanced mode. It makes the widget a little wider and keeps five IDE tools on it. Files attaches a file or a folder, chooses the project, and lists the project paths. Changes lists files this session added, modified, or deleted. Terminal shows commands from that session. Details shows the status, the delivery route, standing instructions, and those two switches. Look sets the button color, the background opacity, and the typing outline.</p>
 
         <h2 id="voice">Voice</h2>
         <p>With an empty prompt, the round button is the microphone. Click it to start, click again to stop. Words appear as you speak. When the field has text, that button is send.</p>
@@ -94,7 +108,7 @@
         <p>That number is the agent account’s usage. The $5.99 Hooxie license does not replace that plan, and it does not add to it.</p>
 
         <h2 id="project">The project</h2>
-        <p>Pick an IDE in setup or in the dashboard. The widget uses that one, and you can switch it. If it is not installed, that choice opens the download and stays off. The <a href="/ides">IDE list</a> has the downloads. Setup is two steps: the IDE, then the license. The prompt stays hidden until an IDE is connected and this computer is licensed.</p>
+        <p>Pick an IDE in setup or in the dashboard. The widget uses that one, and you can switch it. If it is not installed, that choice opens the download and stays off. Setup is two steps: the IDE, then the license. The prompt stays hidden until an IDE is connected and this computer is licensed.</p>
         <p>Hooxie is $5.99 once for this computer. Sharing the app or the license file does not unlock another computer. If this computer is already paid for, Hooxie finds that payment and continues.</p>
         <p>The project path on the pill is the folder Hooxie may use. Browse to it, or pick a recent workspace. More can open that folder in the connected IDE. Change IDE in that same menu switches which IDE the widget uses.</p>
         <p>How the prompt is delivered depends on the IDE:</p>
@@ -131,7 +145,6 @@
         <a href="/#download">Download</a>
         <a href="/help">Help</a>
         <a href="/docs">Documentation</a>
-        <a href="/ides">IDEs</a>
         <a href="/releases">Releases</a>
         <a href="/contact">Contact</a>
         <a href="/legal">Legal</a>

@@ -1,6 +1,12 @@
+import { rejectLimited, tooMany } from "./limit.js";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed." });
+    return;
+  }
+  if (tooMany(req, "checkout")) {
+    rejectLimited(res);
     return;
   }
   try {
@@ -44,6 +50,9 @@ async function startCheckout(req) {
     params.set("client_reference_id", device);
   }
   const typed = typeof body.promo === "string" ? body.promo.trim() : "";
+  if (typed && (typed.length > 40 || !/^[A-Za-z0-9-]+$/.test(typed))) {
+    throw new Error("Use letters, numbers, and hyphens in the promotional code.");
+  }
   if (typed && promoId && typed.toUpperCase() === promoCode.toUpperCase()) {
     params.set("discounts[0][promotion_code]", promoId);
   } else {

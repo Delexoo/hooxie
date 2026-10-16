@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Intro · Hooxie</title>
+  <meta name="description" content="Imagine a desktop widget for your coding agent. It is very compact and invisible to screenshare.">
+  <link rel="canonical" href="https://hooxie.com/intro">
+  <meta property="og:title" content="Intro · Hooxie">
+  <meta property="og:description" content="Imagine a desktop widget for your coding agent. It is very compact and invisible to screenshare.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hooxie.com/intro">
+  <meta property="og:image" content="https://hooxie.com/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Intro · Hooxie">
+  <meta name="twitter:description" content="Imagine a desktop widget for your coding agent. It is very compact and invisible to screenshare.">
+  <meta name="theme-color" content="#eef1f8">
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body class="intro">
+  <main class="intro-app">
+    <div class="intro-progress" aria-hidden="true">
+      <span class="is-on"></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <section class="intro-step is-on" data-step="1">
+      <h1 id="intro-open" tabindex="-1">Imagine a desktop widget for your coding agent... Oh ohh and it's very compact and is invisible to screenshare. 🤯</h1>
+      <div class="intro-mark" aria-hidden="true"><span></span></div>
+      <button class="intro-go" type="button" data-go="2">See how it works →</button>
+    </section>
+
+    <section class="intro-step" data-step="2" hidden>
+      <h2 tabindex="-1">How do you want to ask?</h2>
+      <div class="intro-choices">
+        <button class="intro-choice" type="button" data-choice="type">Type a prompt</button>
+        <button class="intro-choice" type="button" data-choice="voice">Voice activation</button>
+        <button class="intro-choice" type="button" data-choice="preset">Send a saved prompt</button>
+        <button class="intro-choice" type="button" data-choice="all">A bit of everything</button>
+      </div>
+    </section>
+
+    <section class="intro-step" data-step="3" hidden>
+      <h2 tabindex="-1">It stays on the screen.</h2>
+      <div class="intro-stage">
+        <div class="intro-window">
+          <div class="intro-pill" id="intro-pill">
+            <span class="intro-prompt" id="intro-prompt"></span>
+            <span class="intro-mic" id="intro-mic" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="9" y="3.2" width="6" height="11" rx="3"></rect><path d="M6.2 11.2a5.8 5.8 0 0 0 11.6 0"></path><path d="M12 17v3.2"></path><path d="M8.8 20.2h6.4"></path></svg>
+            </span>
+          </div>
+          <div class="intro-card" id="intro-card" hidden>
+            <p class="intro-kicker" id="intro-kicker"></p>
+            <p class="intro-line" id="intro-line"></p>
+          </div>
+        </div>
+      </div>
+      <button class="intro-go" type="button" data-go="4">Continue →</button>
+    </section>
+
+    <section class="intro-step" data-step="4" hidden>
+      <h2 tabindex="-1">Download it.<br>Or learn more.</h2>
+      <p class="intro-lead">The next page is the Hooxie site, with the download and the rest of the tour.</p>
+      <a class="intro-go" href="/">Continue →</a>
+    </section>
+  </main>
+  <script src="/intro.js"></script>
+</body>
+</html>

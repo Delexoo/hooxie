@@ -4,11 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Contact · Hooxie</title>
+  <meta name="description" content="Write to Hooxie support about this computer, billing, or the widget.">
+  <link rel="canonical" href="https://hooxie.com/contact">
+  <meta property="og:title" content="Contact · Hooxie">
+  <meta property="og:description" content="Write to Hooxie support about this computer, billing, or the widget.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hooxie.com/contact">
+  <meta property="og:image" content="https://hooxie.com/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Contact · Hooxie">
+  <meta name="twitter:description" content="Write to Hooxie support about this computer, billing, or the widget.">
+  <meta name="theme-color" content="#f4f2ee">
   <link rel="icon" href="/favicon.ico?v=4" sizes="any">
   <link rel="icon" href="/icon.png?v=4" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
+  <a class="skip" href="#content">Skip to content</a>
   <header>
     <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
             <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
@@ -17,22 +31,29 @@
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
+      <a href="/intro">Introduction</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
       <a href="/docs">Docs</a>
       <a href="/legal">Legal</a>
-      <a href="/ides">IDEs</a>
     </nav>
   </header>
-  <main>
+  <main id="content">
     <h1>Contact</h1>
     <p>Write to <a href="mailto:support@delexo.store">support@delexo.store</a>. For a billing question, include the email on your Stripe receipt.</p>
-    <form id="contact-form">
-      <input name="name" type="text" placeholder="Name" aria-label="Name" required>
-      <input name="email" type="email" placeholder="Email" aria-label="Email" required>
-      <textarea name="message" placeholder="How can we help?" aria-label="Message" required></textarea>
+    <form id="contact-form" data-page="contact" novalidate>
+      <label for="contact-name">Name</label>
+      <input id="contact-name" name="name" type="text" autocomplete="name" required aria-describedby="contact-name-error">
+      <p id="contact-name-error" class="field-error" hidden></p>
+      <label for="contact-email">Email</label>
+      <input id="contact-email" name="email" type="email" autocomplete="email" required aria-describedby="contact-email-error">
+      <p id="contact-email-error" class="field-error" hidden></p>
+      <label for="contact-message">Message</label>
+      <textarea id="contact-message" name="message" required aria-describedby="contact-message-error"></textarea>
+      <p id="contact-message-error" class="field-error" hidden></p>
       <button type="submit">Email support</button>
+      <p id="contact-success" class="form-success" hidden>Your message was handed to email.</p>
     </form>
   </main>
   <footer>
@@ -42,7 +63,6 @@
         <a href="/#download">Download</a>
         <a href="/help">Help</a>
         <a href="/docs">Documentation</a>
-        <a href="/ides">IDEs</a>
         <a href="/releases">Releases</a>
         <a href="/contact">Contact</a>
         <a href="/legal">Legal</a>
@@ -50,18 +70,7 @@
     </nav>
     <p class="fine">A Delexo product. Credit @delexo if you show or remix it.</p>
   </footer>
-  <script>
-    document.querySelector("#contact-form").addEventListener("submit", (event) => {
-      event.preventDefault();
-      const data = new FormData(event.currentTarget);
-      const name = String(data.get("name") || "").trim();
-      const email = String(data.get("email") || "").trim();
-      const message = String(data.get("message") || "").trim();
-      const subject = encodeURIComponent(name ? `Hooxie support from ${name}` : "Hooxie support");
-      const body = encodeURIComponent(`${message}\n\n${email}`);
-      location.href = `mailto:support@delexo.store?subject=${subject}&body=${body}`;
-    });
-  </script>
+  <script src="/site.js"></script>
   <script src="/menu.js"></script>
 </body>
 </html>

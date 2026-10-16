@@ -98,7 +98,7 @@ export function createWidgetController(): WidgetControl {
         text: typeof response.text === "string" ? response.text : "",
         error: typeof response.error === "string" ? response.error : "",
         phase: response.phase === "wake" || response.phase === "prompt" ? response.phase : "off",
-        silenceMs: Number.isFinite(response.silenceMs) ? Math.max(0, response.silenceMs) : 0,
+        silenceMs: typeof response.silenceMs === "number" && Number.isFinite(response.silenceMs) ? Math.max(0, response.silenceMs) : 0,
         awake: response.awake === true,
       };
     },

@@ -101,25 +101,16 @@ test("the setup API follows install and connect", async () => {
     assert.equal(disconnected.body.phase, "connect");
     assert.equal(disconnected.body.connectedIde, "");
     const page = await fetch(`${ctx.bridge.baseUrl}/ides`);
-    assert.equal(page.status, 200);
-    const html = await page.text();
-    assert.match(html, /Download an IDE/);
-    assert.match(html, /https:\/\/cursor.com\/download/);
-    assert.match(html, /https:\/\/code.visualstudio.com\/Download/);
-    assert.match(html, /Windsurf/);
-    assert.match(html, /JetBrains/);
-    assert.match(html, /Visual Studio/);
-    assert.match(html, /Zed/);
+    assert.equal(page.status, 404);
     const launch = await api(ctx.bridge, "/api/ides/open", ctx.bridge.pageToken, { method: "POST", body: "{}" });
-    assert.equal(launch.status, 200);
-    assert.equal(opened.length, 1);
-    assert.match(opened[0], /\/ides$/);
+    assert.equal(launch.status, 400);
+    assert.equal(opened.length, 0);
     const listed = await api(ctx.bridge, "/api/ides/open", ctx.bridge.pageToken, {
       method: "POST",
       body: JSON.stringify({ ide: "sublime" }),
     });
     assert.equal(listed.status, 200);
-    assert.equal(opened[1], "https://www.sublimetext.com/download");
+    assert.equal(opened[0], "https://www.sublimetext.com/download");
     const unknown = await api(ctx.bridge, "/api/ides/open", ctx.bridge.pageToken, {
       method: "POST",
       body: JSON.stringify({ ide: "notepad" }),

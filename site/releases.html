@@ -4,11 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Release notes · Hooxie</title>
+  <meta name="description" content="What changed in each version of Hooxie.">
+  <link rel="canonical" href="https://hooxie.com/releases">
+  <meta property="og:title" content="Release notes · Hooxie">
+  <meta property="og:description" content="What changed in each version of Hooxie.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hooxie.com/releases">
+  <meta property="og:image" content="https://hooxie.com/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Release notes · Hooxie">
+  <meta name="twitter:description" content="What changed in each version of Hooxie.">
+  <meta name="theme-color" content="#f4f2ee">
   <link rel="icon" href="/favicon.ico?v=4" sizes="any">
   <link rel="icon" href="/icon.png?v=4" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
+  <a class="skip" href="#content">Skip to content</a>
   <header>
     <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
             <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
@@ -17,30 +31,98 @@
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
+      <a href="/intro">Introduction</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
       <a href="/docs">Docs</a>
       <a href="/legal">Legal</a>
-      <a href="/ides">IDEs</a>
     </nav>
   </header>
-  <main>
+  <main id="content">
     <h1>Release notes</h1>
     <p class="lede">The same list as the <a href="https://github.com/Delexoo/hooxie/releases">GitHub releases</a>.</p>
     <div class="release-log">
       <!-- brain:notes -->
+      <article class="release" id="v0.2.1">
+        <div class="release-mark" aria-hidden="true"></div>
+        <div class="release-body">
+          <header class="release-meta">
+            <a class="release-tag" href="https://github.com/Delexoo/hooxie/releases/tag/v0.2.1">v0.2.1</a>
+            <span class="release-latest">Latest</span>
+            <time datetime="2026-10-16">16 Oct 2026</time>
+          </header>
+          <div class="release-card">
+            <h2>Advanced mode and the Hello World voice demo</h2>
+            <h3>Added</h3>
+            <h4>Widget</h4>
+            <ul>
+              <li>More options includes Advanced mode, which widens the widget and adds Files, Changes, Terminal, Details, and Look.</li>
+              <li>Arrow keys nudge the pill when the drag handle is focused.</li>
+            </ul>
+            <h4>Site</h4>
+            <ul>
+              <li>Each feature card has a small drawing: dotted lines, keys, a saved prompt, and a usage bar.</li>
+              <li>Release notes list what was added and what was fixed in each version.</li>
+              <li>The voice demo asks Hooxie to create a blank page that says Hello World.</li>
+              <li>The blank page stays hidden until the voice prompt finishes, then pops in with Hello World.</li>
+              <li>The Hello World page is the same size as the page in the first demo.</li>
+              <li>An intro page walks through Hooxie, plays a short demo, then opens the landing page.</li>
+              <li>The demo computer uses a blue bloom wallpaper in the Windows 11 style.</li>
+              <li>The sentence under What is Hooxie fades on from left to right as you scroll. The heading stays plain.</li>
+              <li>What is Hooxie says Hooxie stays on your screen and off a screen share.</li>
+              <li>The What is Hooxie sentence is larger and centered.</li>
+              <li>What is Hooxie is smaller, the sentence under it is larger, and the fade starts later in the scroll.</li>
+              <li>Optional voice activation is larger.</li>
+              <li>The Undetectable drawing keeps the dotted outline and drops the solid bar.</li>
+              <li>Each feature card puts the title and description on the left and the drawing on the right.</li>
+              <li>Learn more reaches Features faster.</li>
+              <li>The hero no longer shows the Windows overlay sentence under the title.</li>
+              <li>The voice pill shows a recording wave instead of Listening, and the spoken line stays in the quote above it.</li>
+              <li>After Hello World appears, a second line asks to bold it, and the words turn bold as you scroll.</li>
+              <li>The Hello World bold is lighter.</li>
+              <li>The voice pill sits in the horizontal center of the demo computer.</li>
+              <li>The What is Hooxie heading no longer has the blue dot.</li>
+              <li>index.html sits in the top left of the Hello World page.</li>
+              <li>Optional voice activation sits farther below What is Hooxie.</li>
+              <li>The Hello World scroll bold is a little thicker.</li>
+              <li>The intro has one page title, plus a canonical link and a share title.</li>
+              <li>The IDEs page is gone.</li>
+              <li>Hello World turns bold all at once when the second voice line finishes.</li>
+              <li>The intro opens lower, with the desktop widget sentence, and the voice choice says Voice activation.</li>
+              <li>The intro sentence types itself when the page opens.</li>
+            </ul>
+            <h3>Bug fixes</h3>
+            <h4>Widget</h4>
+            <ul>
+              <li>The prompt has a visible name, and a sent message can be edited from the keyboard.</li>
+            </ul>
+            <h4>Dashboard</h4>
+            <ul>
+              <li>The dashboard window sits with other windows. Only the widget stays on top.</li>
+              <li>Buy stays on Opening checkout until the payment page is ready.</li>
+            </ul>
+            <h4>Site</h4>
+            <ul>
+              <li>The demo prompt on the site fills only while you scroll.</li>
+              <li>The homepage says Hooxie is a Windows overlay, and it no longer calls itself the number one widget.</li>
+              <li>The contact form says Sending while the message is checked, and repeat attempts are slowed.</li>
+              <li>The local site serves the bloom wallpaper, the intro, and the docs.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
       <article class="release" id="v0.2.0">
         <div class="release-mark" aria-hidden="true"></div>
         <div class="release-body">
           <header class="release-meta">
             <a class="release-tag" href="https://github.com/Delexoo/hooxie/releases/tag/v0.2.0">v0.2.0</a>
-            <span class="release-latest">Latest</span>
             <time datetime="2026-10-16">16 Oct 2026</time>
           </header>
           <div class="release-card">
             <h2>Type fold, voice outline, and a license for this computer</h2>
-            <h3>Widget</h3>
+            <h3>Added</h3>
+            <h4>Widget</h4>
             <ul>
               <li>The prompt stays on the bar, with upload on the left and send or voice on the right. Presets, more, usage, dashboard, and drag sit beside it.</li>
               <li>View the screen, the project path, attachments, and the conversation open when you type, attach a file, already have a conversation, are listening, or the agent is working. Clearing the prompt folds them away.</li>
@@ -53,10 +135,8 @@
               <li>Ctrl+\ slides the pill off the nearest edge of the screen and fades it out. Showing it glides back. Pressing the shortcut again during the slide reverses it.</li>
               <li>More options includes Recenter, which moves the pill back to the top center.</li>
               <li>The app and installer icon is a sharper rounded pill.</li>
-              <li>The installer icon is a rounded squircle, so the setup file no longer shows a square tile.</li>
-              <li>Clear chat, Copy reply, and Send again have more padding, so the labels no longer sit on the rounded ends.</li>
             </ul>
-            <h3>Dashboard</h3>
+            <h4>Dashboard</h4>
             <ul>
               <li>The search button and its search field are gone.</li>
               <li>The website menu no longer opens a separate dashboard. The dashboard is the window inside Hooxie.</li>
@@ -65,14 +145,11 @@
               <li>Buttons and language choices are pills. A collapsed sidebar uses circles.</li>
               <li>English, Spanish, French, German, Portuguese, Japanese, and Chinese translate the navigation, help, and the one-time $5.99 purchase. Switching back to English restores the original words.</li>
               <li>Opening a section eases in, and collapsing the sidebar glides.</li>
-              <li>Opening the dashboard no longer stops on a missing catalog or revision.</li>
-              <li>The microphone and speaker lists stay open when you click them.</li>
               <li>Opening, closing, and done each have a sound list, shown as a waveform with the name and a play preview.</li>
               <li>Dashboard motion fades in, and buttons grow slightly on hover and click.</li>
               <li>Dashboard pages sit in the center of the window.</li>
-              <li>The dashboard stays on its own pages. Help, notes, contact, and downloads no longer open another site in that window.</li>
             </ul>
-            <h3>Setup</h3>
+            <h4>Setup</h4>
             <ul>
               <li>Setup is two steps: choose an IDE, then the license. Back and Next move between them, and a progress bar shows how far along you are.</li>
               <li>Each IDE has a plain Download link and a switch. On means the widget uses that IDE. Only one IDE can be on. An IDE that is not installed stays off.</li>
@@ -80,7 +157,7 @@
               <li>Hooxie is $5.99 once for this computer. Sharing the app or the license file does not unlock another computer.</li>
               <li>If this computer is already paid for, Hooxie finds that payment and continues.</li>
             </ul>
-            <h3>Voice</h3>
+            <h4>Voice</h4>
             <ul>
               <li>Saying “Hooxie” starts one voice session.</li>
               <li>The open sound plays when the typing outline appears. The close sound plays when that outline turns off, including when you click out of the prompt or stop voice.</li>
@@ -88,18 +165,33 @@
               <li>The blue-to-peach outline travels around the widget.</li>
               <li>Placeholder questions type on one letter at a time.</li>
             </ul>
-            <h3>Chat</h3>
+            <h4>Chat</h4>
             <ul>
               <li>Conversation text is smaller and more compact.</li>
               <li>Queued messages are numbered cards. The first one sends next, and each card can be removed.</li>
             </ul>
-            <h3>Site</h3>
+            <h4>Site</h4>
             <ul>
               <li>The footer spreads Download, Help, IDEs, Releases, Contact, and Legal under Product.</li>
               <li>Documentation covers the widget: the pill, prompts, presets, voice, files, the screen, usage, and shortcuts.</li>
               <li>The home title and the Download and Learn more control sit in the center of the screen.</li>
               <li>The home title stays locked while the demo computer scrolls up over it.</li>
               <li>On a phone, the demo computer fills the screen while the prompt types, and the caret stays in the field.</li>
+            </ul>
+            <h3>Bug fixes</h3>
+            <h4>Widget</h4>
+            <ul>
+              <li>The installer icon is a rounded squircle, so the setup file no longer shows a square tile.</li>
+              <li>Clear chat, Copy reply, and Send again have more padding, so the labels no longer sit on the rounded ends.</li>
+            </ul>
+            <h4>Dashboard</h4>
+            <ul>
+              <li>Opening the dashboard no longer stops on a missing catalog or revision.</li>
+              <li>The microphone and speaker lists stay open when you click them.</li>
+              <li>The dashboard stays on its own pages. Help, notes, contact, and downloads no longer open another site in that window.</li>
+            </ul>
+            <h4>Site</h4>
+            <ul>
               <li>Clicking the demo prompt lets you type in it, and scrolling no longer replaces what you wrote.</li>
             </ul>
           </div>
@@ -114,7 +206,8 @@
           </header>
           <div class="release-card">
             <h2>First public build</h2>
-            <h3>First build</h3>
+            <h3>Added</h3>
+            <h4>First build</h4>
             <ul>
               <li>The widget sits at the top of the screen and sends a prompt to a Cursor agent for the folder you choose.</li>
               <li>One button is the microphone when the prompt is empty, send when there is text, and a square stop while the agent is working.</li>
@@ -135,7 +228,6 @@
         <a href="/#download">Download</a>
         <a href="/help">Help</a>
         <a href="/docs">Documentation</a>
-        <a href="/ides">IDEs</a>
         <a href="/releases">Releases</a>
         <a href="/contact">Contact</a>
         <a href="/legal">Legal</a>

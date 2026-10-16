@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="z-token" content="__Z_TOKEN__">
   <title>Hooxie</title>
+  <meta name="theme-color" content="#111111">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/icon.png" type="image/png">
   <link rel="stylesheet" href="/app.css">
@@ -41,6 +42,7 @@
             <input id="images" type="file" multiple aria-label="Add files">
           </label>
           <input id="folder" type="file" webkitdirectory hidden>
+          <label class="prompt-label" for="prompt">Prompt</label>
           <div id="composer">
             <textarea id="prompt" rows="1" placeholder="Prompt Cursor anything." autocomplete="off"></textarea>
             <div id="prompt-ghost" hidden aria-hidden="true"></div>
@@ -91,7 +93,7 @@
             <rect x="13" y="13" width="7" height="7" rx="1.5"/>
           </svg>
         </button>
-        <div id="drag" title="Drag to move" aria-label="Drag to move">
+        <button id="drag" type="button" title="Drag to move. Arrow keys nudge Hooxie." aria-label="Drag to move. Arrow keys nudge Hooxie.">
           <svg viewBox="0 0 10 16" aria-hidden="true">
             <circle cx="2.2" cy="2.2" r="1.55"/>
             <circle cx="7.8" cy="2.2" r="1.55"/>
@@ -100,7 +102,70 @@
             <circle cx="2.2" cy="13.8" r="1.55"/>
             <circle cx="7.8" cy="13.8" r="1.55"/>
           </svg>
+        </button>
         </div>
+      </div>
+      <section id="advanced" hidden>
+        <div id="advanced-tools" role="tablist" aria-label="IDE tools">
+          <button type="button" role="tab" data-tool="files" aria-selected="false">Files</button>
+          <button type="button" role="tab" data-tool="changes" aria-selected="false">Changes</button>
+          <button type="button" role="tab" data-tool="terminal" aria-selected="false">Terminal</button>
+          <button type="button" role="tab" data-tool="details" aria-selected="false">Details</button>
+          <button type="button" role="tab" data-tool="look" aria-selected="false">Look</button>
+        </div>
+        <div id="advanced-body">
+          <div data-pane="files" hidden>
+            <div class="advanced-actions">
+              <button id="advanced-add" type="button">Add file</button>
+              <button id="advanced-folder" type="button">Add folder</button>
+              <button id="advanced-project" type="button">Project</button>
+            </div>
+            <div id="advanced-attached" class="advanced-list"></div>
+            <label for="files">Files in the project, one relative path per line</label>
+            <textarea id="files" rows="3" spellcheck="false" placeholder="src/app.ts"></textarea>
+          </div>
+          <div data-pane="changes" hidden>
+            <div id="advanced-changes" class="advanced-list"></div>
+          </div>
+          <div data-pane="terminal" hidden>
+            <div id="advanced-terminal" class="advanced-list"></div>
+          </div>
+          <div data-pane="details" hidden>
+            <p id="advanced-status"></p>
+            <p id="advanced-route" class="note"></p>
+            <p id="advanced-project" class="note"></p>
+            <label for="instructions">Additional instructions</label>
+            <textarea id="instructions" rows="3"></textarea>
+            <label class="check"><input id="include-path" type="checkbox"> Include the project path in the prompt text</label>
+            <label class="check"><input id="include-stack" type="checkbox"> Include stack markers found in the project root</label>
+          </div>
+          <div data-pane="look" hidden>
+            <label class="slider" for="opacity">Background opacity <span id="opacity-value">50%</span></label>
+            <input id="opacity" type="range" min="10" max="100" step="5" value="50">
+            <div class="swatches" role="radiogroup" aria-label="Color">
+              <button type="button" class="swatch" role="radio" data-color="#ffffff" aria-label="White" aria-checked="true"></button>
+              <button type="button" class="swatch" role="radio" data-color="#4d9fff" aria-label="Blue" aria-checked="false"></button>
+              <button type="button" class="swatch" role="radio" data-color="#3ddc97" aria-label="Green" aria-checked="false"></button>
+              <button type="button" class="swatch" role="radio" data-color="#ff8a3d" aria-label="Orange" aria-checked="false"></button>
+              <button type="button" class="swatch" role="radio" data-color="#ff5d8f" aria-label="Rose" aria-checked="false"></button>
+              <button type="button" class="swatch" role="radio" data-color="#b07bff" aria-label="Violet" aria-checked="false"></button>
+              <button type="button" class="swatch" role="radio" data-color="#ffe14a" aria-label="Yellow" aria-checked="false"></button>
+              <button type="button" class="swatch" role="radio" data-color="#ff4d4d" aria-label="Red" aria-checked="false"></button>
+              <button type="button" class="swatch" role="radio" data-color="#3ee0d2" aria-label="Cyan" aria-checked="false"></button>
+            </div>
+            <label class="switch trace-row">
+              <span class="switch-label">Typing outline</span>
+              <span class="switch-track" aria-hidden="true"></span>
+              <input id="trace-toggle" type="checkbox" role="switch" aria-label="Typing outline" checked>
+            </label>
+          </div>
+        </div>
+      </section>
+      <div id="trouble" hidden role="alert">
+        <p id="trouble-text"></p>
+        <div class="trouble-actions">
+          <button id="trouble-retry" type="button">Try again</button>
+          <a href="mailto:support@delexo.store">Email support</a>
         </div>
       </div>
       <div id="activity" hidden>
@@ -143,6 +208,37 @@
           <span id="more-open-ide-note">Open the project in the connected IDE</span>
         </span>
       </button>
+      <button id="more-advanced" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16"/>
+          <path d="M4 12h16"/>
+          <path d="M4 17h16"/>
+          <circle cx="8" cy="7" r="1.6"/>
+          <circle cx="15" cy="12" r="1.6"/>
+          <circle cx="10" cy="17" r="1.6"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Advanced mode</strong>
+          <span id="more-advanced-note">A larger widget with files, details, and IDE tools</span>
+        </span>
+      </button>
+      <div id="more-tools" hidden>
+        <button type="button" data-tool="files">
+          <span class="more-copy"><strong>Files</strong><span>Attach files and list project paths</span></span>
+        </button>
+        <button type="button" data-tool="changes">
+          <span class="more-copy"><strong>Changes</strong><span>Added, modified, and deleted files</span></span>
+        </button>
+        <button type="button" data-tool="terminal">
+          <span class="more-copy"><strong>Terminal</strong><span>Commands from this session</span></span>
+        </button>
+        <button type="button" data-tool="details">
+          <span class="more-copy"><strong>Details</strong><span>Status, route, and instructions</span></span>
+        </button>
+        <button type="button" data-tool="look">
+          <span class="more-copy"><strong>Look</strong><span>Color, opacity, and the typing outline</span></span>
+        </button>
+      </div>
       <button id="more-change-ide" type="button" aria-expanded="false">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 4.5v15"/>
@@ -330,24 +426,6 @@
     </section>
 
     <div id="delivery" hidden>
-      <label class="slider" for="opacity">Background opacity <span id="opacity-value">50%</span></label>
-      <input id="opacity" type="range" min="10" max="100" step="5" value="50">
-      <label class="switch trace-row">
-        <span class="switch-label">Typing outline</span>
-        <span class="switch-track" aria-hidden="true"></span>
-        <input id="trace-toggle" type="checkbox" role="switch" aria-label="Typing outline" checked>
-      </label>
-      <div class="swatches" role="radiogroup" aria-label="Color">
-        <button type="button" class="swatch" role="radio" data-color="#ffffff" aria-label="White" aria-checked="true"></button>
-        <button type="button" class="swatch" role="radio" data-color="#4d9fff" aria-label="Blue" aria-checked="false"></button>
-        <button type="button" class="swatch" role="radio" data-color="#3ddc97" aria-label="Green" aria-checked="false"></button>
-        <button type="button" class="swatch" role="radio" data-color="#ff8a3d" aria-label="Orange" aria-checked="false"></button>
-        <button type="button" class="swatch" role="radio" data-color="#ff5d8f" aria-label="Rose" aria-checked="false"></button>
-        <button type="button" class="swatch" role="radio" data-color="#b07bff" aria-label="Violet" aria-checked="false"></button>
-        <button type="button" class="swatch" role="radio" data-color="#ffe14a" aria-label="Yellow" aria-checked="false"></button>
-        <button type="button" class="swatch" role="radio" data-color="#ff4d4d" aria-label="Red" aria-checked="false"></button>
-        <button type="button" class="swatch" role="radio" data-color="#3ee0d2" aria-label="Cyan" aria-checked="false"></button>
-      </div>
       <label for="ide">IDE</label>
       <select id="ide" class="native" tabindex="-1" aria-hidden="true"></select>
       <div class="choices" data-for="ide" role="radiogroup" aria-label="IDE"></div>
@@ -371,12 +449,6 @@
       <label class="check"><input id="remember-key" type="checkbox"> Remember the key in your user profile</label>
       <button id="save-key" type="button">Save key</button>
       <p id="key-note" class="note"></p>
-      <label for="instructions">Additional instructions</label>
-      <textarea id="instructions" rows="2"></textarea>
-      <label for="files">Files inside the project, one relative path per line</label>
-      <textarea id="files" rows="2" spellcheck="false" placeholder="src/app.ts"></textarea>
-      <label class="check"><input id="include-path" type="checkbox"> Include the project path in the prompt text</label>
-      <label class="check"><input id="include-stack" type="checkbox"> Include stack markers found in the project root</label>
       <label class="check" id="sandbox-row"><input id="unsandboxed" type="checkbox"> Allow this Cursor agent to run outside the sandbox</label>
       <label class="check" id="experimental-row"><input id="experimental" type="checkbox"> Ask the IDE to submit (experimental, not verified)</label>
       <div class="actions">

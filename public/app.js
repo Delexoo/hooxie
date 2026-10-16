@@ -1,8 +1,16 @@
 const token = document.querySelector('meta[name="z-token"]').content;
+const ADVANCED_KEY = "hooxie-advanced";
+const SHELL_WIDTH = 440;
+const ADVANCED_SHELL = 560;
+const ADVANCED_TOOLS = ["files", "changes", "terminal", "details", "look"];
+let advanced = localStorage.getItem(ADVANCED_KEY) === "1";
+let advancedTool = ADVANCED_TOOLS.includes(localStorage.getItem("hooxie-advanced-tool") || "")
+  ? localStorage.getItem("hooxie-advanced-tool")
+  : "files";
 fetch("/api/widget/frame", {
   method: "POST",
   headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-  body: JSON.stringify({ width: 448, height: 480 }),
+  body: JSON.stringify({ width: frameWidth(), height: 480 }),
 }).catch(() => undefined);
 const statusEl = document.querySelector("#status");
 const ideEl = document.querySelector("#ide");
@@ -39,8 +47,6 @@ const pillEl = document.querySelector("#pill");
 queueMicrotask(() => scheduleFit());
 const attachmentsEl = document.querySelector("#attachments");
 
-const SHELL_WIDTH = 440;
-const FRAME_WIDTH = SHELL_WIDTH + 8;
 const STORAGE_KEY = "hooxie-target";
 const LOOK_KEY = "hooxie-look";
 const BUTTON_COLORS = ["#ffffff", "#4d9fff", "#3ddc97", "#ff8a3d", "#ff5d8f", "#b07bff", "#ffe14a", "#ff4d4d", "#3ee0d2"];
@@ -256,6 +262,7 @@ for (const swatch of swatchEls) {
   });
 }
 restoreLook();
+applyAdvanced();
 projectPathEl.addEventListener("click", browseFolder);
 viewScreenEl.checked = localStorage.getItem("hooxie-screen") === "1";
 viewScreenEl.addEventListener("change", () => {
@@ -302,6 +309,24 @@ dashboardToggle.addEventListener("click", () => {
       showNotice(error.message);
     });
 });
+document.querySelector("#more-advanced").addEventListener("click", () => {
+  advanced = !advanced;
+  applyAdvanced();
+});
+document.querySelector("#more-tools").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-tool]");
+  if (!button) return;
+  selectAdvancedTool(button.dataset.tool);
+  closeMore();
+});
+document.querySelector("#advanced-tools").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-tool]");
+  if (!button) return;
+  selectAdvancedTool(button.dataset.tool);
+});
+document.querySelector("#advanced-add").addEventListener("click", () => imagesEl.click());
+document.querySelector("#advanced-folder").addEventListener("click", () => folderEl.click());
+document.querySelector("#advanced-project").addEventListener("click", () => { browseFolder().catch(() => undefined); });
 document.querySelector("#more-open-ide").addEventListener("click", openIde);
 document.querySelector("#more-change-ide").addEventListener("click", () => {
   showChangeIde().catch((error) => showNotice(error.message));
@@ -441,6 +466,23 @@ shellEl.addEventListener("drop", (event) => {
 document.querySelector("#drag").addEventListener("pointerdown", (event) => {
   if (event.button !== 0) return;
   startDrag(event);
+});
+document.querySelector("#drag").addEventListener("keydown", (event) => {
+  const step = event.shiftKey ? 24 : 12;
+  const move = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[event.key];
+  if (!move) return;
+  event.preventDefault();
+  fetch("/api/widget/move", {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ dx: move[0], dy: move[1] }),
+  }).catch(() => showNotice("Hooxie could not move. Try again, or email support@delexo.store."));
+});
+document.querySelector("#trouble-retry")?.addEventListener("click", () => {
+  const trouble = document.querySelector("#trouble");
+  if (trouble) trouble.hidden = true;
+  promptEl.focus();
+  scheduleFit();
 });
 
 new ResizeObserver(() => scheduleFit()).observe(shellEl);
@@ -1180,6 +1222,7 @@ function renderRoute() {
   }
   sendBlocked = !cursorReady || !project || !route || !route.available || (visual && !route.capabilities.images);
   syncAction();
+  renderAdvanced();
   renderTarget();
   rememberTarget();
 }
@@ -1313,32 +1356,54 @@ function renderThread() {
       const bubble = document.createElement("div");
       const editing = index === editingIndex;
       bubble.className = editing ? "bubble is-editing" : "bubble";
+      const edit = () => openMessageEditor(index);
       if (!editing) {
         bubble.title = "Edit message";
         bubble.addEventListener("click", (event) => {
-          if (event.target.closest("img")) return;
+          if (event.target.closest(".bubble-pic, .bubble-text")) return;
           if (window.getSelection()?.toString()) return;
-          openMessageEditor(index);
+          edit();
         });
       }
       if (message.previews?.length) {
         const row = document.createElement("div");
         row.className = "bubble-images";
-        for (const preview of message.previews) {
+        message.previews.forEach((preview, pictureIndex) => {
           const src = typeof preview === "string" ? preview : preview.url;
-          const name = typeof preview === "string" ? "Image" : preview.name || "Image";
+          const name = typeof preview === "string" ? "Attached picture" : preview.name || "Attached picture";
+          const alt = message.previews.length > 1 ? `Attached picture ${pictureIndex + 1}` : "Attached picture";
           const img = document.createElement("img");
           img.src = src;
-          img.alt = name;
-          img.addEventListener("click", () => openViewer({ kind: "image", name, url: src }));
-          row.append(img);
-        }
+          img.alt = alt;
+          const open = document.createElement("button");
+          open.type = "button";
+          open.className = "bubble-pic";
+          open.append(img);
+          open.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openViewer({ kind: "image", name, url: src });
+          });
+          row.append(open);
+        });
         bubble.append(row);
       }
       if (editing) bubble.append(messageEditor(index));
       else {
         const text = document.createElement("p");
+        text.className = "bubble-text";
+        text.tabIndex = 0;
+        text.setAttribute("role", "button");
+        text.setAttribute("aria-label", "Edit message");
         text.textContent = message.text;
+        text.addEventListener("click", () => {
+          if (window.getSelection()?.toString()) return;
+          edit();
+        });
+        text.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          edit();
+        });
         bubble.append(text);
       }
       threadEl.append(bubble);
@@ -1708,6 +1773,17 @@ function showNotice(message) {
   const setupNote = document.querySelector("#setup-note");
   const setup = document.querySelector("#setup");
   if (setupNote && setup && !setup.hidden) setupNote.textContent = message;
+  const trouble = document.querySelector("#trouble");
+  const troubleText = document.querySelector("#trouble-text");
+  if (!trouble || !troubleText) return;
+  const failed = /could not|did not|failed|went wrong|try again|support@delexo/i.test(message || "");
+  if (!message || !failed) {
+    trouble.hidden = true;
+    return;
+  }
+  troubleText.textContent = message;
+  trouble.hidden = false;
+  scheduleFit();
 }
 
 async function toggleVoice() {
@@ -1954,6 +2030,7 @@ function show(delivery) {
     }
   }
   renderActivity();
+  renderAdvanced();
   if (terminal(delivery.status)) clearBusy();
   else syncAction();
   if (terminal(delivery.status) && delivery.status !== "failed" && inflightImageIds.length) {
@@ -2240,6 +2317,7 @@ function renderActivity() {
     }
     panel.append(row);
   }
+  renderAdvanced();
 }
 
 async function stopAgent() {
@@ -2309,6 +2387,125 @@ async function browseFolder() {
   } catch (error) {
     detailEl.textContent = error.message;
   }
+}
+
+function frameWidth() {
+  return (advanced ? ADVANCED_SHELL : SHELL_WIDTH) + 8;
+}
+
+function applyAdvanced() {
+  document.querySelector("#advanced").hidden = !advanced;
+  document.querySelector("#more-tools").hidden = !advanced;
+  const button = document.querySelector("#more-advanced");
+  const note = document.querySelector("#more-advanced-note");
+  button.setAttribute("aria-pressed", String(advanced));
+  note.textContent = advanced
+    ? "On. Files, changes, terminal, details, and look stay on the widget."
+    : "A larger widget with files, details, and IDE tools";
+  localStorage.setItem(ADVANCED_KEY, advanced ? "1" : "0");
+  if (advanced) selectAdvancedTool(advancedTool);
+  scheduleFit(true);
+}
+
+function selectAdvancedTool(name) {
+  advancedTool = ADVANCED_TOOLS.includes(name) ? name : "files";
+  localStorage.setItem("hooxie-advanced-tool", advancedTool);
+  for (const button of document.querySelectorAll("[data-tool]")) {
+    const on = button.dataset.tool === advancedTool;
+    if (button.getAttribute("role") === "tab") button.setAttribute("aria-selected", String(on));
+    else button.setAttribute("aria-current", on ? "true" : "false");
+  }
+  for (const pane of document.querySelectorAll("#advanced-body [data-pane]")) {
+    pane.hidden = pane.dataset.pane !== advancedTool;
+  }
+  renderAdvanced();
+  scheduleFit();
+}
+
+function renderAdvanced() {
+  if (!advanced) return;
+  renderAdvancedFiles();
+  renderAdvancedChanges();
+  renderAdvancedTerminal();
+  renderAdvancedDetails();
+}
+
+function renderAdvancedFiles() {
+  const list = document.querySelector("#advanced-attached");
+  list.replaceChildren();
+  if (!attachments.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No files attached.";
+    list.append(empty);
+    return;
+  }
+  for (const item of attachments) {
+    const row = document.createElement("div");
+    row.className = "advanced-row";
+    const name = document.createElement("button");
+    name.type = "button";
+    name.className = "advanced-name";
+    const baseName = item.name.split(/[/\\]/).pop() || item.name;
+    name.textContent = baseName;
+    name.title = item.name;
+    name.addEventListener("click", () => openViewer(item));
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "advanced-remove";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", () => removeAttachment(item.id));
+    row.append(name, remove);
+    list.append(row);
+  }
+}
+
+function renderAdvancedChanges() {
+  const list = document.querySelector("#advanced-changes");
+  list.replaceChildren();
+  if (!sessionFiles.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No file changes from this session.";
+    list.append(empty);
+    return;
+  }
+  for (const item of sessionFiles) {
+    const row = document.createElement("p");
+    const kind = item.kind === "added" ? "Added" : item.kind === "deleted" ? "Deleted" : "Modified";
+    row.textContent = `${kind} ${item.path}`;
+    row.title = item.path;
+    list.append(row);
+  }
+}
+
+function renderAdvancedTerminal() {
+  const list = document.querySelector("#advanced-terminal");
+  list.replaceChildren();
+  const running = sessionTerminals.filter((item) => item.status === "running");
+  if (!running.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No terminal from this session.";
+    list.append(empty);
+    return;
+  }
+  for (const item of running) {
+    const row = document.createElement("p");
+    row.textContent = item.command;
+    row.title = item.command;
+    list.append(row);
+  }
+}
+
+function renderAdvancedDetails() {
+  const status = document.querySelector("#advanced-status");
+  const routeLine = document.querySelector("#advanced-route");
+  const projectLine = document.querySelector("#advanced-project");
+  const label = LABELS[statusName] || statusName;
+  const detail = detailEl.textContent.trim();
+  status.textContent = detail ? `${label}. ${detail}` : label;
+  const selected = routeEl.selectedOptions[0];
+  routeLine.textContent = selected && selected.value ? selected.textContent : "No delivery route yet.";
+  const project = projectEl.value.trim();
+  projectLine.textContent = project || "No project folder yet.";
 }
 
 function closeMore() {
@@ -2634,7 +2831,7 @@ async function fitWindow(instant = false) {
   }
   fitFlight = true;
   try {
-    const width = FRAME_WIDTH;
+    const width = frameWidth();
     const height = measureFrame();
     const next = `${width}x${height}`;
     if (next === fittedFrame && !instant) return;
@@ -2748,6 +2945,7 @@ function setStatus(stateName, detail) {
   statusEl.textContent = LABELS[stateName] || stateName;
   if (detail) detailEl.textContent = detail;
   renderTarget();
+  renderAdvanced();
   if (finished) playChime();
 }
 
@@ -3120,7 +3318,7 @@ function openViewer(item) {
     body.classList.add("is-image");
     const img = document.createElement("img");
     img.src = item.url;
-    img.alt = item.name;
+    img.alt = "Attached picture";
     body.append(img);
   } else if (isHtmlFile(item)) {
     body.classList.add("is-page");
@@ -3221,6 +3419,7 @@ function renderAttachments() {
     attachmentsEl.append(note);
   }
   if (attachments.length) attachmentsEl.scrollIntoView({ block: "nearest" });
+  renderAdvanced();
   syncFold();
   scheduleFit();
 }
@@ -3278,6 +3477,6 @@ async function api(pathname, init = {}) {
     },
   });
   const body = await response.json();
-  if (!response.ok) throw new Error(body.error || "Request failed.");
+  if (!response.ok) throw new Error(body.error || "That request did not go through. Try again, or email support@delexo.store.");
   return body;
 }

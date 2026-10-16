@@ -9,3 +9,12 @@ README, or similar place people will actually see.
 Cursor is a trademark of Anysphere. Hooxie is not affiliated with Cursor
 except as a companion overlay that talks to the Cursor app and official SDK
 on the user's machine.
+
+Images
+site/icon.png, site/apple-touch-icon.png, site/favicon.ico, and site/wallpaper.svg
+are original Hooxie artwork by Delexo.
+
+Fonts
+Manrope, by Mikhail Sharanda, is used under the SIL Open Font License 1.1.
+https://openfontlicense.org
+https://github.com/sharanda/manrope

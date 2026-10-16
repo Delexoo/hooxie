@@ -88,7 +88,7 @@ export function readGitStatus(cwd: string): Promise<Map<string, string>> {
           resolve(new Map());
           return;
         }
-        resolve(parsePorcelain(typeof stdout === "string" ? stdout : stdout.toString("utf8")));
+        resolve(parsePorcelain(String(stdout)));
       },
     );
   });

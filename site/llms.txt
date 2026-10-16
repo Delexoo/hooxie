@@ -1,0 +1,10 @@
+# Hooxie
+
+Hooxie is a Windows overlay by Delexo for developers who already use a coding agent. It stays on the screen and can stay off a screen share. It costs $5.99 once for the computer that buys it.
+
+- [Home](https://hooxie.com/)
+- [Documentation](https://hooxie.com/docs)
+- [Help](https://hooxie.com/help)
+- [Release notes](https://hooxie.com/releases)
+- [Contact](https://hooxie.com/contact)
+- [Legal](https://hooxie.com/legal)
