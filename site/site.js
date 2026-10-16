@@ -3,10 +3,10 @@ const LOCAL = document.querySelector('meta[name="hooxie-local"]')?.content === "
 const TOKEN = document.querySelector('meta[name="z-token"]')?.content || "";
 const COPY = {
   en: {
-    "nav.general": "General", "nav.onboarding": "IDE", "nav.keybinds": "Keybinds", "nav.profile": "Profile", "nav.language": "Language", "nav.billing": "Billing", "nav.support": "Support", "nav.releases": "Release notes", "nav.help": "Help center", "nav.contact": "Contact support", "nav.toggle": "Toggle Hooxie",
-    "general.title": "General", "general.intro": "Hooxie version, whether a screen share can see the widget, the color theme, and the microphone.", "general.upload": "Upload a sound",
-    "ide.title": "IDE", "ide.note": "Pick an IDE. The widget uses that one. Switch it any time.", "ide.browse": "Browse", "ide.clear": "Clear", "ide.connect": "Connect Cursor", "ide.save": "Save key", "ide.open": "Open IDE",
-    "keybinds.title": "Keybinds", "keybinds.note": "These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in General.",
+    "nav.general": "Settings", "nav.onboarding": "Connections", "nav.keybinds": "Keybinds", "nav.profile": "Profile", "nav.language": "Language", "nav.billing": "Billing", "nav.support": "Support", "nav.releases": "Release notes", "nav.help": "Help center", "nav.contact": "Contact support", "nav.toggle": "Toggle Hooxie",
+    "general.title": "Settings", "general.intro": "Appearance, audio, and sounds for this computer.", "general.upload": "Upload a sound",
+    "ide.title": "Connections", "ide.note": "Pick an IDE. The widget uses that one. Switch it any time.", "ide.browse": "Browse", "ide.clear": "Clear", "ide.connect": "Connect Cursor", "ide.save": "Save key", "ide.open": "Open IDE",
+    "keybinds.title": "Keybinds", "keybinds.note": "These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in Settings.",
     "profile.title": "Profile", "profile.note": "Connect the email Stripe should use for this computer.", "profile.connect": "Connect account",
     "language.title": "Language", "language.note": "The dashboard language on this computer.",
     "billing.title": "Billing", "billing.note": "One purchase covers this computer. Copying the app or its files does not license another device.", "billing.plan": "This computer", "billing.once": "once", "billing.lead": "Included with Hooxie:", "billing.item1": "The widget, voice, and screen context", "billing.item2": "Undetectable mode on this computer", "billing.item3": "A license that stays on this device", "billing.subscribe": "Buy for this computer", "billing.paid": "Already paid", "billing.receipt": "Paid $5.99 once for the Hooxie license on this computer.", "billing.promo": "Promotional code",
@@ -17,10 +17,10 @@ const COPY = {
     "status.shown": "Hooxie is on screen.", "status.hidden": "Hooxie is hidden. Ctrl+\\ shows it again.", "status.desktop": "Toggle Hooxie from the desktop app.",
   },
   es: {
-    "nav.general": "General", "nav.onboarding": "IDE", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.support": "Soporte", "nav.releases": "Notas de versión", "nav.help": "Centro de ayuda", "nav.contact": "Contacto", "nav.toggle": "Mostrar u ocultar",
-    "general.title": "General", "general.intro": "Versión de Hooxie, si una pantalla compartida puede ver el widget, el color y el micrófono.", "general.upload": "Subir un sonido",
-    "ide.title": "IDE", "ide.note": "Elige un IDE. El widget usa ese. Puedes cambiarlo cuando quieras.", "ide.browse": "Examinar", "ide.clear": "Borrar", "ide.connect": "Conectar Cursor", "ide.save": "Guardar clave", "ide.open": "Abrir IDE",
-    "keybinds.title": "Atajos", "keybinds.note": "Estos atajos funcionan mientras Hooxie está abierto. Las flechas no mueven el widget hasta que actives las teclas de flecha en General.",
+    "nav.general": "Ajustes", "nav.onboarding": "Conexiones", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.support": "Soporte", "nav.releases": "Notas de versión", "nav.help": "Centro de ayuda", "nav.contact": "Contacto", "nav.toggle": "Mostrar u ocultar",
+    "general.title": "Ajustes", "general.intro": "Apariencia, audio y sonidos de este equipo.", "general.upload": "Subir un sonido",
+    "ide.title": "Conexiones", "ide.note": "Elige un IDE. El widget usa ese. Puedes cambiarlo cuando quieras.", "ide.browse": "Examinar", "ide.clear": "Borrar", "ide.connect": "Conectar Cursor", "ide.save": "Guardar clave", "ide.open": "Abrir IDE",
+    "keybinds.title": "Atajos", "keybinds.note": "Estos atajos funcionan mientras Hooxie está abierto. Las flechas no mueven el widget hasta que actives las teclas de flecha en Ajustes.",
     "profile.title": "Perfil", "profile.note": "Conecta el correo que Stripe debe usar para este equipo.", "profile.connect": "Conectar cuenta",
     "language.title": "Idioma", "language.note": "El idioma del panel en este equipo.",
     "billing.title": "Facturación", "billing.note": "Una compra cubre este equipo. Copiar la aplicación o sus archivos no licencia otro dispositivo.", "billing.plan": "Este equipo", "billing.once": "una vez", "billing.lead": "Incluido con Hooxie:", "billing.item1": "El widget, la voz y el contexto de pantalla", "billing.item2": "Modo indetectable en este equipo", "billing.item3": "Una licencia que se queda en este dispositivo", "billing.subscribe": "Comprar para este equipo", "billing.paid": "Ya está pagado", "billing.receipt": "Pagado $5.99 una vez por la licencia de Hooxie en este equipo.", "billing.promo": "Código promocional",
@@ -31,10 +31,10 @@ const COPY = {
     "status.shown": "Hooxie está en pantalla.", "status.hidden": "Hooxie está oculto. Ctrl+\\ lo muestra de nuevo.", "status.desktop": "Muestra u oculta Hooxie desde la aplicación.",
   },
   fr: {
-    "nav.general": "Général", "nav.onboarding": "IDE", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.support": "Assistance", "nav.releases": "Notes de version", "nav.help": "Centre d'aide", "nav.contact": "Contact", "nav.toggle": "Afficher ou masquer",
-    "general.title": "Général", "general.intro": "Version de Hooxie, visibilité pendant un partage d'écran, couleur et microphone.", "general.upload": "Importer un son",
-    "ide.title": "IDE", "ide.note": "Choisissez un IDE. Le widget utilise celui-là. Vous pouvez en changer à tout moment.", "ide.browse": "Parcourir", "ide.clear": "Effacer", "ide.connect": "Connecter Cursor", "ide.save": "Enregistrer la clé", "ide.open": "Ouvrir l'IDE",
-    "keybinds.title": "Raccourcis", "keybinds.note": "Ces raccourcis marchent tant que Hooxie est ouvert. Les flèches ne déplacent le widget qu'après avoir activé les touches fléchées dans Général.",
+    "nav.general": "Réglages", "nav.onboarding": "Connexions", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.support": "Assistance", "nav.releases": "Notes de version", "nav.help": "Centre d'aide", "nav.contact": "Contact", "nav.toggle": "Afficher ou masquer",
+    "general.title": "Réglages", "general.intro": "Apparence, audio et sons de cet ordinateur.", "general.upload": "Importer un son",
+    "ide.title": "Connexions", "ide.note": "Choisissez un IDE. Le widget utilise celui-là. Vous pouvez en changer à tout moment.", "ide.browse": "Parcourir", "ide.clear": "Effacer", "ide.connect": "Connecter Cursor", "ide.save": "Enregistrer la clé", "ide.open": "Ouvrir l'IDE",
+    "keybinds.title": "Raccourcis", "keybinds.note": "Ces raccourcis marchent tant que Hooxie est ouvert. Les flèches ne déplacent le widget qu'après avoir activé les touches fléchées dans Réglages.",
     "profile.title": "Profil", "profile.note": "Indiquez l'e-mail que Stripe doit utiliser pour cet ordinateur.", "profile.connect": "Connecter le compte",
     "language.title": "Langue", "language.note": "La langue du tableau de bord sur cet ordinateur.",
     "billing.title": "Facturation", "billing.note": "Un achat couvre cet ordinateur. Copier l'application ou ses fichiers ne donne pas de licence à un autre appareil.", "billing.plan": "Cet ordinateur", "billing.once": "une fois", "billing.lead": "Inclus avec Hooxie :", "billing.item1": "Le widget, la voix et le contexte d'écran", "billing.item2": "Le mode invisible sur cet ordinateur", "billing.item3": "Une licence qui reste sur cet appareil", "billing.subscribe": "Acheter pour cet ordinateur", "billing.paid": "Déjà payé", "billing.receipt": "Payé 5,99 $ une fois pour la licence Hooxie sur cet ordinateur.", "billing.promo": "Code promotionnel",
@@ -45,10 +45,10 @@ const COPY = {
     "status.shown": "Hooxie est à l'écran.", "status.hidden": "Hooxie est masqué. Ctrl+\\ le réaffiche.", "status.desktop": "Affichez ou masquez Hooxie depuis l'application.",
   },
   de: {
-    "nav.general": "Allgemein", "nav.onboarding": "IDE", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.support": "Support", "nav.releases": "Versionshinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt", "nav.toggle": "Ein- oder ausblenden",
-    "general.title": "Allgemein", "general.intro": "Hooxie-Version, Sichtbarkeit bei der Bildschirmfreigabe, Farbe und Mikrofon.", "general.upload": "Ton hochladen",
-    "ide.title": "IDE", "ide.note": "Wähle eine IDE. Das Widget nutzt genau diese. Du kannst sie jederzeit wechseln.", "ide.browse": "Durchsuchen", "ide.clear": "Leeren", "ide.connect": "Cursor verbinden", "ide.save": "Schlüssel sichern", "ide.open": "IDE öffnen",
-    "keybinds.title": "Tasten", "keybinds.note": "Diese Kürzel gelten, solange Hooxie läuft. Pfeiltasten bewegen das Widget erst, wenn du sie unter Allgemein einschaltest.",
+    "nav.general": "Einstellungen", "nav.onboarding": "Verbindungen", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.support": "Support", "nav.releases": "Versionshinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt", "nav.toggle": "Ein- oder ausblenden",
+    "general.title": "Einstellungen", "general.intro": "Darstellung, Audio und Töne auf diesem Computer.", "general.upload": "Ton hochladen",
+    "ide.title": "Verbindungen", "ide.note": "Wähle eine IDE. Das Widget nutzt genau diese. Du kannst sie jederzeit wechseln.", "ide.browse": "Durchsuchen", "ide.clear": "Leeren", "ide.connect": "Cursor verbinden", "ide.save": "Schlüssel sichern", "ide.open": "IDE öffnen",
+    "keybinds.title": "Tasten", "keybinds.note": "Diese Kürzel gelten, solange Hooxie läuft. Pfeiltasten bewegen das Widget erst, wenn du sie unter Einstellungen einschaltest.",
     "profile.title": "Profil", "profile.note": "Verbinde die E-Mail, die Stripe für diesen Computer nutzen soll.", "profile.connect": "Konto verbinden",
     "language.title": "Sprache", "language.note": "Die Sprache dieses Fensters auf diesem Computer.",
     "billing.title": "Abrechnung", "billing.note": "Ein Kauf gilt für diesen Computer. Das Kopieren der App oder ihrer Dateien lizenziert kein anderes Gerät.", "billing.plan": "Dieser Computer", "billing.once": "einmal", "billing.lead": "In Hooxie enthalten:", "billing.item1": "Widget, Sprache und Bildschirmkontext", "billing.item2": "Unsichtbarer Modus auf diesem Computer", "billing.item3": "Eine Lizenz, die auf diesem Gerät bleibt", "billing.subscribe": "Für diesen Computer kaufen", "billing.paid": "Bereits bezahlt", "billing.receipt": "5,99 $ einmal für die Hooxie-Lizenz auf diesem Computer bezahlt.", "billing.promo": "Aktionscode",
@@ -59,10 +59,10 @@ const COPY = {
     "status.shown": "Hooxie ist auf dem Bildschirm.", "status.hidden": "Hooxie ist ausgeblendet. Strg+\\ zeigt es wieder.", "status.desktop": "Blende Hooxie in der App ein oder aus.",
   },
   pt: {
-    "nav.general": "Geral", "nav.onboarding": "IDE", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.support": "Suporte", "nav.releases": "Notas da versão", "nav.help": "Central de ajuda", "nav.contact": "Contato", "nav.toggle": "Mostrar ou ocultar",
-    "general.title": "Geral", "general.intro": "Versão do Hooxie, se um compartilhamento de tela vê o widget, a cor e o microfone.", "general.upload": "Enviar um som",
-    "ide.title": "IDE", "ide.note": "Escolha um IDE. O widget usa esse. Você pode trocar quando quiser.", "ide.browse": "Procurar", "ide.clear": "Limpar", "ide.connect": "Conectar o Cursor", "ide.save": "Salvar chave", "ide.open": "Abrir o IDE",
-    "keybinds.title": "Atalhos", "keybinds.note": "Estes atalhos funcionam enquanto o Hooxie está aberto. As setas só movem o widget depois que você liga as teclas de seta em Geral.",
+    "nav.general": "Ajustes", "nav.onboarding": "Conexões", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.support": "Suporte", "nav.releases": "Notas da versão", "nav.help": "Central de ajuda", "nav.contact": "Contato", "nav.toggle": "Mostrar ou ocultar",
+    "general.title": "Ajustes", "general.intro": "Aparência, áudio e sons deste computador.", "general.upload": "Enviar um som",
+    "ide.title": "Conexões", "ide.note": "Escolha um IDE. O widget usa esse. Você pode trocar quando quiser.", "ide.browse": "Procurar", "ide.clear": "Limpar", "ide.connect": "Conectar o Cursor", "ide.save": "Salvar chave", "ide.open": "Abrir o IDE",
+    "keybinds.title": "Atalhos", "keybinds.note": "Estes atalhos funcionam enquanto o Hooxie está aberto. As setas só movem o widget depois que você liga as teclas de seta em Ajustes.",
     "profile.title": "Perfil", "profile.note": "Conecte o e-mail que o Stripe deve usar neste computador.", "profile.connect": "Conectar conta",
     "language.title": "Idioma", "language.note": "O idioma do painel neste computador.",
     "billing.title": "Cobrança", "billing.note": "Uma compra cobre este computador. Copiar o aplicativo ou os arquivos não licencia outro dispositivo.", "billing.plan": "Este computador", "billing.once": "uma vez", "billing.lead": "Incluído no Hooxie:", "billing.item1": "O widget, a voz e o contexto da tela", "billing.item2": "Modo indetectável neste computador", "billing.item3": "Uma licença que fica neste dispositivo", "billing.subscribe": "Comprar para este computador", "billing.paid": "Já pago", "billing.receipt": "Pago US$ 5,99 uma vez pela licença do Hooxie neste computador.", "billing.promo": "Código promocional",
@@ -73,10 +73,10 @@ const COPY = {
     "status.shown": "O Hooxie está na tela.", "status.hidden": "O Hooxie está oculto. Ctrl+\\ mostra de novo.", "status.desktop": "Mostre ou oculte o Hooxie no aplicativo.",
   },
   ja: {
-    "nav.general": "一般", "nav.onboarding": "IDE", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.support": "サポート", "nav.releases": "リリースノート", "nav.help": "ヘルプ", "nav.contact": "連絡", "nav.toggle": "表示の切り替え",
-    "general.title": "一般", "general.intro": "Hooxie のバージョン、画面共有での見え方、色、マイク。", "general.upload": "音をアップロード",
-    "ide.title": "IDE", "ide.note": "IDE を選びます。ウィジェットはその IDE を使います。いつでも切り替えられます。", "ide.browse": "参照", "ide.clear": "クリア", "ide.connect": "Cursor を接続", "ide.save": "キーを保存", "ide.open": "IDE を開く",
-    "keybinds.title": "キー", "keybinds.note": "Hooxie の実行中に使えるショートカットです。矢印キーは、一般で矢印キーをオンにするまでウィジェットを動かしません。",
+    "nav.general": "設定", "nav.onboarding": "接続", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.support": "サポート", "nav.releases": "リリースノート", "nav.help": "ヘルプ", "nav.contact": "連絡", "nav.toggle": "表示の切り替え",
+    "general.title": "設定", "general.intro": "このパソコンの外観、音声、効果音。", "general.upload": "音をアップロード",
+    "ide.title": "接続", "ide.note": "IDE を選びます。ウィジェットはその IDE を使います。いつでも切り替えられます。", "ide.browse": "参照", "ide.clear": "クリア", "ide.connect": "Cursor を接続", "ide.save": "キーを保存", "ide.open": "IDE を開く",
+    "keybinds.title": "キー", "keybinds.note": "Hooxie の実行中に使えるショートカットです。矢印キーは、設定で矢印キーをオンにするまでウィジェットを動かしません。",
     "profile.title": "プロフィール", "profile.note": "このパソコンの支払いに使うメールを接続します。", "profile.connect": "アカウントを接続",
     "language.title": "言語", "language.note": "このパソコンのダッシュボードの言語。",
     "billing.title": "料金", "billing.note": "1回の購入でこのパソコンを使えます。アプリやファイルをコピーしても、別の端末のライセンスにはなりません。", "billing.plan": "このパソコン", "billing.once": "1回", "billing.lead": "Hooxie に含まれるもの:", "billing.item1": "ウィジェット、音声、画面の内容", "billing.item2": "このパソコンでの検知されないモード", "billing.item3": "この端末に残るライセンス", "billing.subscribe": "このパソコン用に購入", "billing.paid": "支払い済み", "billing.receipt": "このパソコンの Hooxie ライセンスとして $5.99 を一度支払いました。", "billing.promo": "プロモーションコード",
@@ -87,10 +87,10 @@ const COPY = {
     "status.shown": "Hooxie は画面に出ています。", "status.hidden": "Hooxie は隠れています。Ctrl+\\ で戻ります。", "status.desktop": "アプリから Hooxie の表示を切り替えます。",
   },
   zh: {
-    "nav.general": "通用", "nav.onboarding": "IDE", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.support": "支持", "nav.releases": "更新说明", "nav.help": "帮助中心", "nav.contact": "联系支持", "nav.toggle": "显示或隐藏",
-    "general.title": "通用", "general.intro": "Hooxie 的版本、屏幕共享是否能看到小组件、颜色和麦克风。", "general.upload": "上传声音",
-    "ide.title": "IDE", "ide.note": "选择一个 IDE。小组件会使用它。随时可以更换。", "ide.browse": "浏览", "ide.clear": "清除", "ide.connect": "连接 Cursor", "ide.save": "保存密钥", "ide.open": "打开 IDE",
-    "keybinds.title": "快捷键", "keybinds.note": "这些快捷键在 Hooxie 运行时可用。在“通用”里打开方向键之前，方向键不会移动小组件。",
+    "nav.general": "设置", "nav.onboarding": "连接", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.support": "支持", "nav.releases": "更新说明", "nav.help": "帮助中心", "nav.contact": "联系支持", "nav.toggle": "显示或隐藏",
+    "general.title": "设置", "general.intro": "这台电脑的外观、音频和声音。", "general.upload": "上传声音",
+    "ide.title": "连接", "ide.note": "选择一个 IDE。小组件会使用它。随时可以更换。", "ide.browse": "浏览", "ide.clear": "清除", "ide.connect": "连接 Cursor", "ide.save": "保存密钥", "ide.open": "打开 IDE",
+    "keybinds.title": "快捷键", "keybinds.note": "这些快捷键在 Hooxie 运行时可用。在“设置”里打开方向键之前，方向键不会移动小组件。",
     "profile.title": "账户", "profile.note": "填写这台电脑付款时 Stripe 要使用的邮箱。", "profile.connect": "连接账户",
     "language.title": "语言", "language.note": "这台电脑上的仪表盘语言。",
     "billing.title": "账单", "billing.note": "一次购买只覆盖这台电脑。复制应用或文件不能给另一台设备授权。", "billing.plan": "这台电脑", "billing.once": "一次", "billing.lead": "Hooxie 包含：", "billing.item1": "小组件、语音和屏幕内容", "billing.item2": "这台电脑上的不可检测模式", "billing.item3": "留在这台设备上的许可证", "billing.subscribe": "为这台电脑购买", "billing.paid": "已购买", "billing.receipt": "已为这台电脑的 Hooxie 许可证支付一次 $5.99。", "billing.promo": "优惠码",
@@ -547,12 +547,14 @@ function bootDashboard() {
 
   function paintBilling() {
     const button = document.querySelector("#subscribe");
-    const promoField = document.querySelector(".promo-field");
+    const promo = document.querySelector("#promo");
+    const promoLine = document.querySelector(".promo-line");
     const price = document.querySelector(".plan-price");
     if (!button) return;
     button.textContent = t(paid ? "billing.paid" : "billing.subscribe");
     button.disabled = paid;
-    if (promoField) promoField.hidden = paid;
+    if (promo) promo.hidden = paid;
+    if (promoLine) promoLine.hidden = paid;
     if (price) price.hidden = false;
     const receipt = document.querySelector("#receipt");
     if (receipt) receipt.hidden = !paid;
@@ -1292,6 +1294,11 @@ function bootDashboard() {
       save({ project: "", files: "", deliveryReady: true });
       loadRoutes();
     });
+    document.querySelector("#unlink-ides").addEventListener("click", () => {
+      switchIde("").catch((error) => explainFailure(status, error));
+    });
+    renderServices();
+    document.querySelector("#save-contact")?.addEventListener("click", saveContactCard);
     document.querySelector("#dash-open-ide").addEventListener("click", async () => {
       try {
         const body = await request("/api/open", { installationId: settings.installationId, projectPath: settings.project || "" });
@@ -1336,6 +1343,149 @@ function bootDashboard() {
         if (settings.cursorConnected === true) delete note.dataset.hold;
       }
     });
+  }
+
+  const SERVICES = [
+    { id: "github", name: "GitHub", hint: "owner/repo", placeholder: "owner/repo" },
+    { id: "supabase", name: "Supabase", hint: "Project URL", placeholder: "https://project.supabase.co" },
+    { id: "vercel", name: "Vercel", hint: "Site URL", placeholder: "https://example.com" },
+    { id: "cloudflare", name: "Cloudflare", hint: "Hostname", placeholder: "example.com" },
+    { id: "resend", name: "Resend", hint: "Sending domain. The check uses the Resend status page.", placeholder: "mail.example.com" },
+    { id: "stripe", name: "Stripe", hint: "Connect to read the Stripe status page.", link: true },
+    { id: "openai", name: "OpenAI", hint: "Connect to read the OpenAI status page.", link: true },
+  ];
+
+  function readLinks() {
+    try {
+      const stored = JSON.parse(localStorage.getItem("hooxie-connections") || "{}");
+      return stored && typeof stored === "object" ? stored : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writeLink(id, value) {
+    const links = readLinks();
+    if (value) links[id] = value;
+    else delete links[id];
+    localStorage.setItem("hooxie-connections", JSON.stringify(links));
+  }
+
+  function renderServices() {
+    const list = document.querySelector("#service-list");
+    if (!list) return;
+    const links = readLinks();
+    list.replaceChildren(...SERVICES.map((service) => {
+      const card = document.createElement("article");
+      card.className = "service-card";
+      const head = document.createElement("div");
+      head.className = "service-head";
+      const title = document.createElement("strong");
+      title.textContent = service.name;
+      const status = document.createElement("span");
+      status.className = "service-status";
+      status.dataset.serviceStatus = service.id;
+      const linked = Boolean(links[service.id]);
+      status.textContent = linked ? "Not checked" : "Not connected";
+      status.dataset.state = linked ? "idle" : "not-connected";
+      head.append(title, status);
+      const hint = document.createElement("p");
+      hint.className = "note";
+      hint.textContent = service.hint;
+      const detail = document.createElement("p");
+      detail.className = "note";
+      detail.dataset.serviceDetail = service.id;
+      const row = document.createElement("div");
+      row.className = "field";
+      if (service.link) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = linked ? "ghost" : "btn";
+        button.textContent = linked ? "Disconnect" : "Connect";
+        button.addEventListener("click", () => {
+          writeLink(service.id, linked ? "" : "linked");
+          renderServices();
+        });
+        row.append(button);
+      } else {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.spellcheck = false;
+        input.placeholder = service.placeholder;
+        input.value = links[service.id] || "";
+        input.setAttribute("aria-label", service.name);
+        const save = document.createElement("button");
+        save.type = "button";
+        save.className = "btn";
+        save.textContent = "Link";
+        save.addEventListener("click", () => {
+          writeLink(service.id, input.value.trim());
+          renderServices();
+        });
+        row.append(input, save);
+      }
+      const check = document.createElement("button");
+      check.type = "button";
+      check.className = "ghost";
+      check.textContent = "Check";
+      check.addEventListener("click", () => checkService(service.id, check));
+      row.append(check);
+      card.append(head, hint, detail, row);
+      return card;
+    }));
+  }
+
+  async function checkService(id, button) {
+    const links = readLinks();
+    const ref = links[id] || "";
+    const status = document.querySelector(`[data-service-status="${id}"]`);
+    const detail = document.querySelector(`[data-service-detail="${id}"]`);
+    if (!ref) {
+      if (status) {
+        status.textContent = "Not connected";
+        status.dataset.state = "not-connected";
+      }
+      if (detail) detail.textContent = "";
+      return;
+    }
+    button.disabled = true;
+    if (status) status.textContent = "Checking";
+    try {
+      const path = LOCAL && TOKEN ? "/api/connections/check" : "/api/connection";
+      const result = await request(path, { service: id, ref });
+      const labels = { online: "Online", offline: "Offline", problem: "Something is wrong", "not-connected": "Not connected" };
+      if (status) {
+        status.textContent = labels[result.status] || "Something is wrong";
+        status.dataset.state = result.status || "problem";
+      }
+      if (detail) detail.textContent = result.detail || "";
+    } catch (error) {
+      if (status) {
+        status.textContent = "Offline";
+        status.dataset.state = "offline";
+      }
+      if (detail) detail.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function saveContactCard() {
+    const card = [
+      "BEGIN:VCARD",
+      "VERSION:3.0",
+      "FN:Delexo",
+      "ORG:Hooxie",
+      "TITLE:Hooxie support",
+      "EMAIL:support@delexo.store",
+      "URL:https://hooxie.com",
+      "END:VCARD",
+    ].join("\r\n");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([card], { type: "text/vcard" }));
+    link.download = "delexo.vcf";
+    link.click();
+    URL.revokeObjectURL(link.href);
   }
 }
 

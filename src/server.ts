@@ -13,6 +13,7 @@ import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
 import { accountConnected, openIdeDownload, openLoginUrl, openOnboardingHelp, openStripeCheckout, publicConnectError } from "./cursor-account.ts";
 import { readDeviceId, readStoredLicense, saveLicense } from "./license.ts";
 import { describeSetup, onboardingStep } from "./setup.ts";
+import { checkConnection } from "./connections.ts";
 import { readCursorUsage } from "./cursor-usage.ts";
 import { readCursorReady } from "./cursor-ready.ts";
 import { detectInstallations } from "./detect.ts";
@@ -469,6 +470,13 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       });
       await saveSettings(configDir, settings);
       sendJson(res, 200, await setupPayload());
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/connections/check") {
+      const body = asRecord(await readJson(req, 2000));
+      const service = stringField(body, "service") || "";
+      const ref = (stringField(body, "ref") || "").slice(0, 200);
+      sendJson(res, 200, await checkConnection(service, ref));
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/ide/disconnect") {

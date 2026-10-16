@@ -45,7 +45,7 @@ The overlay opens at the top of the screen. The local page is `http://127.0.0.1:
 - Preset prompts can be used, viewed, edited, or deleted from a slim list
 - `Ctrl+\` slides the pill off the nearest edge and fades it out. Pressing it again brings the pill back
 - Hide from standard capture with Detectable off (`Ctrl+Shift+\`)
-- The dashboard opens inside Hooxie. It is white, with a grey sidebar, and Toggle Hooxie stays at the bottom
+- The dashboard opens inside Hooxie. Settings covers appearance, audio, and sounds. Connections links an IDE and can check GitHub, Supabase, Vercel, Cloudflare, Resend, Stripe, and OpenAI. Toggle Hooxie stays at the bottom of the sidebar
 - Hooxie is $5.99 once for this computer. It does not replace a Cursor plan. A license from another computer does not unlock this one
 
 ## Release notes
