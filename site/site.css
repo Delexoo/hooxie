@@ -167,13 +167,28 @@ main {
   padding: 0 0 1rem;
 }
 
+.hero-pin {
+  position: relative;
+  padding-bottom: calc((100svh - min(40rem, 68vh)) / 2);
+}
+
 .hero {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  min-height: 100svh;
-  padding: 17.5rem 1.25rem 2.5rem;
+  justify-content: center;
+  height: 100svh;
+  padding: 4.5rem 1.25rem 2rem;
+  background: var(--bg);
   text-align: center;
+}
+
+.hero-pin .desk {
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
 }
 
 .hero-copy {
@@ -1111,10 +1126,13 @@ footer > p a:hover { text-decoration: underline; }
   .menu-screen, .menu-screen a, .menu-bars, .menu-bars::before, .menu-bars::after { transition: none; }
   .voice-pill .pill-send.is-live { animation: none; }
   .voice-pill textarea { transition: none; }
+  .hero { position: relative; height: auto; min-height: 100svh; }
+  .hero-pin { padding-bottom: 0; }
 }
 
 @media (max-width: 760px) {
-  .hero { min-height: 0; padding: 15rem 1rem 1.5rem; }
+  .hero { height: 100svh; padding: 4.5rem 1rem 1.5rem; }
+  .hero-pin { padding-bottom: max(0px, calc((100svh - (100% - 1.5rem) * 2 / 3) / 2)); }
   .hero-copy { width: 100%; margin-top: 0; }
   .hero h1 { font-size: clamp(2.15rem, 11vw, 3.1rem); }
   .desk,
@@ -1123,7 +1141,7 @@ footer > p a:hover { text-decoration: underline; }
     height: auto;
     aspect-ratio: 3 / 2;
   }
-  .hero .desk { margin-top: 1.6rem; }
+  .hero-pin .desk { width: calc(100% - 1.5rem); }
   .monitor { padding: 0.4rem; border-radius: 1.15rem; }
   .screen { border-radius: 0.85rem; }
   .pill {

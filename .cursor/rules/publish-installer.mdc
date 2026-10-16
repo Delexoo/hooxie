@@ -1,0 +1,20 @@
+---
+description: On every commit, update, or redeploy, publish the latest Windows installer to hooxie.com and the GitHub release
+alwaysApply: true
+---
+
+# Latest installer on the site and GitHub
+
+Whenever you commit, push, update a release, or redeploy Hooxie, ship the installer built from that same source. Do this before you tell the user the update is published. Do not wait to be asked.
+
+1. Rebuild with `npm run pack:win`. The setup file is `dist-setup/Hooxie-Setup-<version>.exe`. The version comes from `installer/hooxie.iss`.
+2. Copy that file onto the website download: `site/download/Hooxie-Setup.exe`. Copy it after packaging. The package script removes that file from the installer stage so the setup does not contain itself.
+3. Commit `site/download/Hooxie-Setup.exe` with the source changes. Never commit `.env`.
+4. Push `main` to `https://github.com/Delexoo/hooxie`. `gh` is not signed in. Use `GITHUB_TOKEN` from `E:\MasterVault\hooxie\.env` and do not print the token. If git reports dubious ownership, pass `-c safe.directory=E:/MasterVault/hooxie` on the command. Do not change git config.
+5. Replace the asset `Hooxie-Setup-<version>.exe` on the existing GitHub release tag `v<version>` so `https://github.com/Delexoo/hooxie/releases/download/v<version>/Hooxie-Setup-<version>.exe` is this build.
+6. Redeploy the `site` folder to the Vercel project `hooxie` (production `https://hooxie.com`) with `VERCEL_TOKEN` from the same `.env`. Do not print the token. `site/.vercel` stays uncommitted.
+7. Check both downloads and stop only when each `Content-Length` equals the local setup file:
+   - `https://hooxie.com/download/Hooxie-Setup.exe`
+   - `https://github.com/Delexoo/hooxie/releases/download/v<version>/Hooxie-Setup-<version>.exe`
+
+The repo homepage stays `https://hooxie.com`. The repo description stays `Hooxie • #1 Widget for Developers.`
