@@ -2,6 +2,21 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.3",
+      "date": "2026-10-16",
+      "title": "No outline on the prompt",
+      "tag": "v0.2.3",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.3",
+      "sections": [
+        {
+          "heading": "Widget",
+          "fixes": [
+            "The prompt no longer draws a blue outline while you type."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.2",
       "date": "2026-10-16",
       "title": "Faster launch and a slimmer preset list",

@@ -1700,12 +1700,8 @@ html[data-widget="light"] #prompt::placeholder { color: rgb(17 17 17 / 45%); }
   #prompt::placeholder { transition: none; }
   #prompt-ghost span { animation: none; opacity: 1; }
 }
-#prompt:focus { outline: none; }
-#prompt:focus-visible {
-  outline: 2px solid #8eb6e8;
-  outline-offset: 3px;
-  border-radius: 8px;
-}
+#prompt:focus,
+#prompt:focus-visible { outline: none; }
 
 #add {
   position: relative;
