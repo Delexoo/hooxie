@@ -2,7 +2,11 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/home", "destination": "/", "permanent": false }
+    { "source": "/home", "destination": "/", "permanent": false },
+    { "source": "/terms", "destination": "/legal#terms", "permanent": false },
+    { "source": "/privacy", "destination": "/legal#privacy", "permanent": false },
+    { "source": "/refund", "destination": "/legal#refunds", "permanent": false },
+    { "source": "/license", "destination": "/legal#license", "permanent": false }
   ],
   "headers": [
     {

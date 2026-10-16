@@ -143,6 +143,17 @@
           <span id="more-open-ide-note">Open the project in the connected IDE</span>
         </span>
       </button>
+      <button id="more-change-ide" type="button" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 4.5v15"/>
+          <path d="M6 5.5h11l-2.2 3.3L17 12H6"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Change IDE</strong>
+          <span id="more-change-ide-note">Switch the IDE this widget uses</span>
+        </span>
+      </button>
+      <div id="more-ides" hidden></div>
       <button id="more-hide" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/>
@@ -181,6 +192,17 @@
         <span class="more-copy">
           <strong>Move Hooxie</strong>
           <span>Follows the pointer until you click</span>
+        </span>
+      </button>
+      <button id="more-home" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 5h14"/>
+          <path d="M12 19V8"/>
+          <path d="m8.5 11.5 3.5-3.5 3.5 3.5"/>
+        </svg>
+        <span class="more-copy">
+          <strong>Recenter</strong>
+          <span>Back to the top center</span>
         </span>
       </button>
       <button id="more-ghost" type="button" aria-pressed="false">
@@ -237,13 +259,15 @@
         </div>
       </div>
       <div id="setup-guide">
-        <div id="setup-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Onboarding progress">
+        <div id="setup-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="IDE setup">
           <span id="setup-meter-fill"></span>
         </div>
       </div>
       <div id="setup-connect">
         <p class="note" id="setup-note">Choose the IDE this widget should use.</p>
-        <div id="setup-ides"></div>
+        <label for="setup-ide">IDE</label>
+        <select id="setup-ide" aria-label="IDE"></select>
+        <p id="setup-ide-note" class="note"></p>
       </div>
       <div id="setup-license" hidden>
         <strong>Hooxie for this computer</strong>

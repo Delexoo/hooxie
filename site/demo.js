@@ -59,7 +59,6 @@ if (screen && preview && pill && form && input && showBtn) {
   let taken = false;
   let listening = false;
   let ringOn = false;
-  let index = 0;
 
   const wait = (ms) => new Promise((resolve) => {
     const id = window.setTimeout(resolve, ms);
@@ -75,8 +74,13 @@ if (screen && preview && pill && form && input && showBtn) {
   };
 
   const placeCaret = () => {
+    const style = getComputedStyle(input);
+    measure.style.font = style.font;
+    measure.style.letterSpacing = style.letterSpacing;
     measure.textContent = input.value;
-    caret.style.transform = `translateX(${measure.offsetWidth}px)`;
+    const text = measure.getBoundingClientRect().width;
+    const max = Math.max(0, input.clientWidth - 2);
+    caret.style.transform = `translateX(${Math.min(text, max)}px)`;
   };
 
   const fitRing = () => {
@@ -179,40 +183,44 @@ if (screen && preview && pill && form && input && showBtn) {
     });
   };
 
-  const play = async () => {
-    if (taken || playing) return;
-    playing = true;
-    const prompt = prompts[index % prompts.length];
-    preview.innerHTML = "";
-    input.value = "";
-    caret.hidden = false;
-    placeCaret();
-    syncWidget();
-    for (const letter of prompt.text) {
-      if (!playing) return;
-      input.value += letter;
-      placeCaret();
-      syncWidget();
-      await wait(letter === " " ? 110 : 64);
+  const story = document.querySelector("#demo-story");
+  let shown = false;
+  const prompt = prompts[0];
+  const renderScroll = () => {
+    if (!story || taken || document.activeElement === input) return;
+    const distance = Math.max(1, story.offsetHeight - window.innerHeight);
+    const scrolled = Math.min(distance, Math.max(0, -story.getBoundingClientRect().top));
+    const progress = scrolled / distance;
+    const typeEnd = 0.62;
+    const revealAt = 0.74;
+    if (progress < revealAt) {
+      if (shown) {
+        preview.innerHTML = "";
+        shown = false;
+      }
+      const count = Math.round(Math.min(1, progress / typeEnd) * prompt.text.length);
+      const next = prompt.text.slice(0, count);
+      const typing = count > 0 && count < prompt.text.length;
+      const caretHidden = count === 0 || count === prompt.text.length;
+      if (input.value !== next) {
+        input.value = next;
+        placeCaret();
+      }
+      if (caret.hidden !== caretHidden) caret.hidden = caretHidden;
+      if (playing !== typing) {
+        playing = typing;
+        syncWidget();
+      }
+      return;
     }
-    if (!playing) return;
-    await wait(420);
-    if (!playing) return;
-    build(prompt.text, prompt);
-    await wait(3200);
-    if (!playing) return;
-    const current = preview.querySelector(".mini-site");
-    if (current) current.classList.add("is-out");
-    caret.hidden = true;
-    await wait(420);
-    if (!playing) return;
-    preview.innerHTML = "";
-    input.value = "";
     playing = false;
+    if (input.value !== prompt.text) input.value = prompt.text;
+    caret.hidden = true;
     syncWidget();
-    index += 1;
-    await wait(360);
-    if (!taken) play();
+    if (!shown) {
+      build(prompt.text, prompt);
+      shown = true;
+    }
   };
 
   form.addEventListener("submit", (event) => {
@@ -226,12 +234,23 @@ if (screen && preview && pill && form && input && showBtn) {
     build(text);
   });
 
+  input.addEventListener("pointerdown", () => {
+    stop();
+  });
+
+  input.addEventListener("keydown", () => {
+    stop();
+  });
+
   input.addEventListener("input", () => {
     stop();
     syncWidget();
   });
 
-  input.addEventListener("focus", () => syncWidget());
+  input.addEventListener("focus", () => {
+    stop();
+    syncWidget();
+  });
   input.addEventListener("blur", () => syncWidget());
 
   sendBtn.addEventListener("click", () => {
@@ -315,7 +334,9 @@ if (screen && preview && pill && form && input && showBtn) {
     const offsetX = event.clientX - box.left;
     const offsetY = event.clientY - box.top;
     pill.style.left = `${box.left - screenBox.left}px`;
+    pill.style.right = "auto";
     pill.style.top = `${box.top - screenBox.top}px`;
+    pill.style.margin = "0";
     pill.style.transform = "none";
     drag.setPointerCapture(event.pointerId);
     const move = (ev) => {
@@ -342,9 +363,8 @@ if (screen && preview && pill && form && input && showBtn) {
     build(prompts[0].text, prompts[0]);
     syncWidget();
   } else {
-    wait(600).then(() => {
-      if (!taken && !input.value) play();
-    });
+    window.addEventListener("scroll", renderScroll, { passive: true });
+    renderScroll();
   }
 
   fitRing();

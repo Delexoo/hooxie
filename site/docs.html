@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation · Hooxie</title>
+  <meta name="description" content="How the Hooxie widget works: the pill, prompts, presets, voice, files, the screen, and shortcuts.">
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <header>
+    <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-label">Menu</span>
+      <span class="menu-bars" aria-hidden="true"></span>
+    </button>
+    <nav class="menu-screen" id="site-menu" aria-label="Pages">
+      <a href="/#download">Download</a>
+      <a href="/#features">Features</a>
+      <a href="/#faq">FAQ</a>
+      <a href="/help">Help</a>
+      <a href="/docs">Docs</a>
+      <a href="/legal">Legal</a>
+      <a href="/ides">IDEs</a>
+    </nav>
+  </header>
+  <main class="docs-page">
+    <h1>Documentation</h1>
+    <p class="lede">The widget stays on the screen while you work. This is what you can do with it.</p>
+    <div class="docs">
+      <nav class="docs-nav" aria-label="On this page">
+        <a href="#pill">The pill</a>
+        <a href="#prompts">Prompts</a>
+        <a href="#presets">Presets</a>
+        <a href="#files">Files and screen</a>
+        <a href="#voice">Voice</a>
+        <a href="#sounds">Sounds</a>
+        <a href="#hide">Hide and move</a>
+        <a href="#usage">Usage</a>
+        <a href="#project">The project</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#shortcuts">Shortcuts</a>
+      </nav>
+      <article>
+        <ul class="docs-features">
+          <li><a href="#pill"><strong>The pill</strong><span>The prompt stays. The rest folds away.</span></a></li>
+          <li><a href="#presets"><strong>Presets</strong><span>Save a prompt. Send it again.</span></a></li>
+          <li><a href="#files"><strong>Screen</strong><span>Attach what is on the display.</span></a></li>
+          <li><a href="#voice"><strong>Voice</strong><span>Say Hooxie, then the prompt.</span></a></li>
+          <li><a href="#prompts"><strong>Queue</strong><span>The next prompt waits its turn.</span></a></li>
+          <li><a href="#usage"><strong>Usage</strong><span>See what is left this month.</span></a></li>
+          <li><a href="#hide"><strong>Undetectable</strong><span>Off a normal screen share.</span></a></li>
+          <li><a href="#shortcuts"><strong>Shortcuts</strong><span>Hide, move, clear, and ask.</span></a></li>
+        </ul>
+
+        <h2 id="pill">The pill</h2>
+        <p>Hooxie opens as a pill at the top center of the screen. The prompt stays on that bar. Add a file on the left. Send, or start voice, on the right. Presets, more, usage, the dashboard, and the drag handle sit beside it.</p>
+        <p>View the screen, the project path, attachments, and the conversation open when you type, attach a file, already have a conversation, are listening, or the agent is working. Clear the prompt and they fold away.</p>
+        <p>When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward. Drag the bottom of the conversation to make it taller.</p>
+
+        <h2 id="prompts">Prompts</h2>
+        <p>Type and press Enter, or use the send button. Set the project folder first. That folder is the workspace the agent uses. Each prompt starts a new session for that folder. It does not continue a chat you already have open in the IDE.</p>
+        <p>While the agent is working, the round button becomes a square and stops the run. A prompt you type during that run is queued. Queued messages are numbered cards. The first one sends next, and each card can be removed. The field says “Queue a follow-up” while one is in progress.</p>
+        <p>Under the conversation you can clear the chat, copy the reply, or send the last prompt again. Clear chat is also in More, and on Ctrl+R.</p>
+
+        <h2 id="presets">Presets</h2>
+        <p>Open Presets, give the prompt a name, and save it. You can keep forty. Use current prompt copies whatever is in the field. Use puts a saved prompt back in the field so you can send it again. Delete removes one.</p>
+
+        <h2 id="files">Files and the screen</h2>
+        <p>The plus button adds files. Right-click it, or drop a folder, to attach a folder. Click a preview to read the file before you send. Close leaves the preview.</p>
+        <p>View the screen attaches a screenshot of the current display to the next prompt. Ctrl+Enter asks about the screen even when that switch is off. If you were dictating, the spoken text is the prompt.</p>
+        <p>When the session changes files, the widget lists them as added, modified, or deleted. A running terminal from that session shows its command.</p>
+        <p>In the dashboard, under IDE, you can add standing instructions, and list files inside the project, one relative path per line. Two switches can also put the project path, or stack markers found in the project root, into the prompt text.</p>
+
+        <h2 id="voice">Voice</h2>
+        <p>With an empty prompt, the round button is the microphone. Click it to start, click again to stop. Words appear as you speak. When the field has text, that button is send.</p>
+        <p>Turn Voice activation on in the dashboard and say “Say Hooxie” or “Hey Hooxie.” The open sound means you can speak. A short pause sends the prompt. A long silence with no words ends the listen. Windows speech recognition has to be installed for this.</p>
+        <p>Choose the microphone and speaker in the dashboard, or turn voice prompting off there. The microphone uses the Windows communications device until you pick another.</p>
+
+        <h2 id="sounds">Sounds</h2>
+        <p>Three sounds belong to the widget. Opening plays when the typing outline appears. Closing plays when that outline turns off, including when you click out of the prompt or stop voice. Done plays when the agent finishes.</p>
+        <p>In the dashboard, each one is a waveform with its name and a play button. Pick a sound for each, turn one off, or upload your own. They play on the speaker you chose.</p>
+        <p>The typing outline is a light blue, blue, and purple line around the pill while you type or talk. Turn it off in General if you want the pill quiet. Hold Escape for three quarters of a second to clear the prompt and let the widget go. While you hold it, the outline color closes around the border.</p>
+
+        <h2 id="hide">Hide and move</h2>
+        <p>Ctrl+\ slides the pill off the nearest edge and fades it out. Press it again, click the tray icon, or press Ctrl+Alt+H, and it glides back. Pressing the shortcut during the slide reverses it. More also has Hide Hooxie, and Recenter, which returns the pill to the top center.</p>
+        <p>Drag the dotted handle to place the pill. Move Hooxie in More follows the pointer until you click. Turn on Arrow keys in General, and Ctrl plus an arrow moves it up, down, left, or right. Until that switch is on, those shortcuts stay with your other apps.</p>
+        <p>Undetectable hides Hooxie from a normal screen share or recording. You still see it. Turn it on from More, from Detectable in the dashboard, or with Ctrl+Shift+\, which starts or stops a session.</p>
+
+        <h2 id="usage">Usage</h2>
+        <p>The ring on the pill is the included usage for the connected Cursor account. While it is loading, the ring eases around the circle, then fills to the percentage. Open it for the plan, included amount, auto, API, bonus, credits, and when it resets.</p>
+        <p>That number is the agent account’s usage. The $5.99 Hooxie license does not replace that plan, and it does not add to it.</p>
+
+        <h2 id="project">The project</h2>
+        <p>Pick an IDE in setup or in the dashboard. The widget uses that one, and you can switch it. If it is not installed, that choice opens the download and stays off. The <a href="/ides">IDE list</a> has the downloads. Setup is two steps: the IDE, then the license. The prompt stays hidden until an IDE is connected and this computer is licensed.</p>
+        <p>Hooxie is $5.99 once for this computer. Sharing the app or the license file does not unlock another computer. If this computer is already paid for, Hooxie finds that payment and continues.</p>
+        <p>The project path on the pill is the folder Hooxie may use. Browse to it, or pick a recent workspace. More can open that folder in the connected IDE. Change IDE in that same menu switches which IDE the widget uses.</p>
+        <p>How the prompt is delivered depends on the IDE:</p>
+        <ul>
+          <li><strong>Cursor agent.</strong> With Cursor connected, Hooxie sends the prompt to that agent. Sign in from the browser, or paste an API key. Allow the agent to run outside the sandbox only if you turn that on.</li>
+          <li><strong>IDE chat input.</strong> The companion places the text in the IDE’s chat field. That placement is not the agent accepting the prompt, and agent progress stays unavailable. Ask the IDE to submit is experimental and not verified.</li>
+          <li><strong>Clipboard.</strong> Hooxie copies the prompt. You paste it and submit it in the IDE.</li>
+        </ul>
+        <p>A route that cannot carry images will say so. Take the screenshot off, or remove the picture, before you send.</p>
+
+        <h2 id="dashboard">Dashboard</h2>
+        <p>The dashboard opens inside Hooxie. It is a white window with a grey sidebar. Dark is available, and the pill has its own light or dark look. White stays the primary color. Button color and background opacity are on General.</p>
+        <p>General holds the version, Detectable, the session, audio, the microphone, the speaker, voice activation, the typing outline, and arrow keys. IDE holds the connection, the project, the installation, the delivery route, instructions, and the file list. Keybinds lists the shortcuts. Language translates the dashboard. Billing is the one-time purchase for this computer, including a promotional code. Support links to these notes, Help, and contact.</p>
+        <p>Toggle Hooxie stays at the bottom of the sidebar and hides or shows the pill. Collapse the sidebar when you want only the icons.</p>
+
+        <h2 id="shortcuts">Shortcuts</h2>
+        <ul class="doc-keys">
+          <li><span>Hide or show Hooxie</span><kbd>Ctrl+\</kbd></li>
+          <li><span>Show Hooxie from anywhere</span><kbd>Ctrl+Alt+H</kbd></li>
+          <li><span>Ask about the screen</span><kbd>Ctrl+Enter</kbd></li>
+          <li><span>Clear the conversation</span><kbd>Ctrl+R</kbd></li>
+          <li><span>Start or stop a session</span><kbd>Ctrl+Shift+\</kbd></li>
+          <li><span>Clear the prompt and let go</span><kbd>Hold Escape</kbd></li>
+          <li><span>Move, after Arrow keys is on</span><kbd>Ctrl+arrows</kbd></li>
+        </ul>
+        <p>Shorter answers for setup and billing are in <a href="/help">Help</a>. The license, privacy, and refunds are on <a href="/legal">Legal</a>.</p>
+      </article>
+    </div>
+  </main>
+  <footer>
+    <nav class="footer-product" aria-label="Product">
+      <p>Product</p>
+      <div class="footer-links">
+        <a href="/#download">Download</a>
+        <a href="/help">Help</a>
+        <a href="/docs">Documentation</a>
+        <a href="/ides">IDEs</a>
+        <a href="/releases">Releases</a>
+        <a href="/contact">Contact</a>
+        <a href="/legal">Legal</a>
+      </div>
+    </nav>
+    <p class="fine">A Delexo product. Credit @delexo if you show or remix it.</p>
+  </footer>
+  <script src="/menu.js"></script>
+</body>
+</html>

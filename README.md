@@ -23,7 +23,7 @@ npm install
 powershell -File scripts/package-windows.ps1
 ```
 
-The installer is written to `dist/Hooxie-Setup-0.2.0.exe`. It installs Hooxie under `Program Files\Delexo\Hooxie`, shows the license, and can add a Start Menu shortcut, a desktop shortcut, and a sign-in startup entry. The current download is on the [0.2.0 release](https://github.com/Delexoo/hooxie/releases/download/v0.2.0/Hooxie-Setup-0.2.0.exe). Node.js 22.13 or newer is required. The desktop shell is included, so a separate .NET install is not.
+The installer is written to `dist-setup/Hooxie-Setup-0.2.0.exe`. It installs Hooxie under `Program Files\Delexo\Hooxie`, shows the license, and can add a Start Menu shortcut, a desktop shortcut, and a sign-in startup entry. The current download is on the [0.2.0 release](https://github.com/Delexoo/hooxie/releases/download/v0.2.0/Hooxie-Setup-0.2.0.exe) and at [hooxie.com/download/Hooxie-Setup.exe](https://hooxie.com/download/Hooxie-Setup.exe). Node.js 22.13 or newer is required. The desktop shell is included, so a separate .NET install is not.
 
 ### From source
 
@@ -41,8 +41,10 @@ The overlay opens at the top of the screen. The local page is `http://127.0.0.1:
 - Grows the prompt and moves the other controls under it when a line runs out of room
 - Says “Hooxie” once to start voice. The outline opens and closes with its own sounds
 - Hold Escape for 0.75 seconds to clear the prompt. The outline color closes around the border
-- More options can open the connected IDE on the current project
+- More options can open the connected IDE on the current project, or Recenter the pill at the top of the screen
+- `Ctrl+\` slides the pill off the nearest edge and fades it out. Pressing it again brings the pill back
 - Hide from standard capture with Detectable off (`Ctrl+Shift+\`)
+- The dashboard opens inside Hooxie. It is white, with a grey sidebar, and Toggle Hooxie stays at the bottom
 - Hooxie is $5.99 once for this computer. It does not replace a Cursor plan. A license from another computer does not unlock this one
 
 ## Release notes

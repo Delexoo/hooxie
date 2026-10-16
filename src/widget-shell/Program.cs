@@ -26,6 +26,7 @@ internal sealed class ShellForm : Form
 {
     private readonly WebView2 view = new() { Dock = DockStyle.Fill };
     private readonly System.Windows.Forms.Timer anim = new() { Interval = 12 };
+    private readonly System.Windows.Forms.Timer reveal = new() { Interval = 8 };
     private readonly System.Windows.Forms.Timer pin = new() { Interval = 200 };
     private bool userMoved;
     private bool animating;
@@ -44,6 +45,15 @@ internal sealed class ShellForm : Form
     private long animStart;
     private Rectangle animFrom;
     private Rectangle animTo;
+    private bool widgetShown = true;
+    private bool revealAnimating;
+    private bool revealHiding;
+    private bool revealTiming;
+    private long revealStart;
+    private Rectangle revealFrom;
+    private Rectangle revealTo;
+    private Rectangle revealHome;
+    private const int RevealMs = 280;
     private int lastCssWidth = 448;
     private int lastCssHeight = 236;
 
@@ -61,6 +71,7 @@ internal sealed class ShellForm : Form
         Controls.Add(view);
         view.DefaultBackgroundColor = Color.Transparent;
         anim.Tick += (_, _) => StepAnim();
+        reveal.Tick += (_, _) => StepReveal();
         pin.Tick += (_, _) => PinTopmost();
         follow.Tick += (_, _) => StepFollow();
         Shown += (_, _) =>
@@ -108,6 +119,12 @@ internal sealed class ShellForm : Form
         base.OnDpiChanged(e);
         anim.Stop();
         animating = false;
+        StopReveal();
+        if (!widgetShown)
+        {
+            Hide();
+            if (IsHandleCreated) ShowWindow(Handle, SW_HIDE);
+        }
         ApplyBounds(TargetBounds(lastCssWidth, lastCssHeight));
         if (dashboard != null && !dashboard.IsDisposed) PlaceDashboard(dashboard);
     }
@@ -125,6 +142,8 @@ internal sealed class ShellForm : Form
             tray.Visible = false;
             tray.Dispose();
         }
+        reveal.Stop();
+        EndRevealTiming();
         shellClosing = true;
         StopVoice();
         audioIo.Dispose();
@@ -210,14 +229,65 @@ internal sealed class ShellForm : Form
 
     private void HideWidget()
     {
-        follow.Stop();
-        Hide();
-        if (IsHandleCreated) ShowWindow(Handle, SW_HIDE);
+        if (IsDisposed) return;
+        if (!widgetShown && (!revealAnimating || revealHiding))
+        {
+            EnsureTray();
+            tray!.Visible = true;
+            return;
+        }
+        widgetShown = false;
         EnsureTray();
         tray!.Visible = true;
+        follow.Stop();
+        if (!AnimationsEnabled())
+        {
+            revealHome = Bounds;
+            ParkHidden();
+            return;
+        }
+        if (!revealAnimating) revealHome = Bounds;
+        BeginSlide(Offscreen(revealHome), hiding: true);
     }
 
     private void ShowWidget()
+    {
+        if (IsDisposed) return;
+        if (widgetShown && !revealAnimating)
+        {
+            PresentInstant();
+            return;
+        }
+        widgetShown = true;
+        if (tray != null) tray.Visible = false;
+        follow.Stop();
+        if (!AnimationsEnabled())
+        {
+            StopReveal();
+            PresentInstant();
+            return;
+        }
+        if (!revealAnimating)
+        {
+            revealHome = Bounds;
+            var off = Offscreen(revealHome);
+            Location = new Point(off.X, off.Y);
+            PresentWindow();
+        }
+        BeginSlide(revealHome, hiding: false);
+    }
+
+    private void PresentInstant()
+    {
+        StopReveal();
+        widgetShown = true;
+        SettlePage();
+        PresentWindow();
+        Activate();
+        if (tray != null) tray.Visible = false;
+    }
+
+    private void PresentWindow()
     {
         if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
         Show();
@@ -228,10 +298,141 @@ internal sealed class ShellForm : Form
             ShowWindow(Handle, SW_SHOWNORMAL);
             SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         }
+        PinTopmost();
+        if (excludeCapture) ApplyCaptureAffinity();
+    }
+
+    private void BeginSlide(Rectangle to, bool hiding)
+    {
+        if (animating)
+        {
+            anim.Stop();
+            animating = false;
+        }
+        revealFrom = new Rectangle(Left, Top, Width, Height);
+        revealTo = to;
+        revealHiding = hiding;
+        revealStart = Environment.TickCount64;
+        FadePage(hiding ? 0 : 1, easeIn: hiding);
+        if (!revealTiming)
+        {
+            timeBeginPeriod(1);
+            revealTiming = true;
+        }
+        if (!revealAnimating)
+        {
+            revealAnimating = true;
+            reveal.Start();
+        }
+    }
+
+    private bool revealStepping;
+
+    private void StepReveal()
+    {
+        if (revealStepping) return;
+        revealStepping = true;
+        try
+        {
+            var t = Math.Clamp((Environment.TickCount64 - revealStart) / (double)RevealMs, 0, 1);
+            var eased = revealHiding ? t * t * t : 1 - Math.Pow(1 - t, 3);
+            if (t >= 1)
+            {
+                reveal.Stop();
+                BeginInvoke(new Action(() =>
+                {
+                    if (revealHiding) ParkHidden();
+                    else FinishShown();
+                }));
+                return;
+            }
+            var x = Lerp(revealFrom.X, revealTo.X, eased);
+            var y = Lerp(revealFrom.Y, revealTo.Y, eased);
+            if (IsHandleCreated && (x != Left || y != Top))
+                SetWindowPos(Handle, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+        finally
+        {
+            revealStepping = false;
+        }
+    }
+
+    private void FinishShown()
+    {
+        StopReveal();
+        Bounds = revealTo;
+        SettlePage();
         Activate();
         PinTopmost();
         if (excludeCapture) ApplyCaptureAffinity();
-        if (tray != null) tray.Visible = false;
+    }
+
+    private void ParkHidden()
+    {
+        StopReveal();
+        Hide();
+        if (IsHandleCreated) ShowWindow(Handle, SW_HIDE);
+        if (revealHome.Width > 0) Bounds = revealHome;
+        if (IsHandleCreated) ShowWindow(Handle, SW_HIDE);
+    }
+
+    private void StopReveal()
+    {
+        reveal.Stop();
+        revealAnimating = false;
+        EndRevealTiming();
+    }
+
+    private void EndRevealTiming()
+    {
+        if (!revealTiming) return;
+        timeEndPeriod(1);
+        revealTiming = false;
+    }
+
+    private Rectangle Offscreen(Rectangle home)
+    {
+        var screen = Screen.FromRectangle(home).WorkingArea;
+        var cx = home.X + home.Width / 2.0;
+        var cy = home.Y + home.Height / 2.0;
+        var distLeft = cx - screen.Left;
+        var distRight = screen.Right - cx;
+        var distTop = cy - screen.Top;
+        var distBottom = screen.Bottom - cy;
+        var min = Math.Min(Math.Min(distLeft, distRight), Math.Min(distTop, distBottom));
+        var gap = Math.Max(8, ScaleDelta(12));
+        var x = home.X;
+        var y = home.Y;
+        if (min == distLeft) x = screen.Left - home.Width - gap;
+        else if (min == distRight) x = screen.Right + gap;
+        else if (min == distTop) y = screen.Top - home.Height - gap;
+        else y = screen.Bottom + gap;
+        return new Rectangle(x, y, home.Width, home.Height);
+    }
+
+    private void FadePage(double target, bool easeIn)
+    {
+        var core = view.CoreWebView2;
+        if (core == null) return;
+        var curve = easeIn ? "cubic-bezier(0.32,0,0.67,0)" : "cubic-bezier(0.33,1,0.68,1)";
+        var opacity = target.ToString("0.###", CultureInfo.InvariantCulture);
+        core.ExecuteScriptAsync(
+            "(()=>{const e=document.documentElement;const from=getComputedStyle(e).opacity;" +
+            "e.style.transition='none';e.style.opacity=from;void e.offsetWidth;" +
+            "e.style.transition='opacity " + RevealMs + "ms " + curve + "';e.style.opacity='" + opacity + "';})()");
+    }
+
+    private void SettlePage()
+    {
+        var core = view.CoreWebView2;
+        if (core == null) return;
+        core.ExecuteScriptAsync("document.documentElement.style.transition='none';document.documentElement.style.opacity='1';");
+    }
+
+    private static bool AnimationsEnabled()
+    {
+        var enabled = 1;
+        return !SystemParametersInfo(0x1042, 0, ref enabled, 0) || enabled != 0;
     }
 
     private bool WidgetOnScreen()
@@ -288,6 +489,29 @@ internal sealed class ShellForm : Form
         return applied;
     }
 
+    private void ResetPosition()
+    {
+        follow.Stop();
+        userMoved = false;
+        var target = TargetBounds(lastCssWidth, lastCssHeight);
+        if (revealAnimating)
+        {
+            revealHome = target;
+            revealTo = revealHiding ? Offscreen(target) : target;
+            Emit(new { ok = true });
+            return;
+        }
+        if (!widgetShown)
+        {
+            revealHome = target;
+            Bounds = target;
+            if (IsHandleCreated) ShowWindow(Handle, SW_HIDE);
+            Emit(new { ok = true });
+            return;
+        }
+        Fit(lastCssWidth, lastCssHeight);
+    }
+
     private void StartFollow()
     {
         if (!GetCursorPos(out var cursor)) return;
@@ -316,7 +540,7 @@ internal sealed class ShellForm : Form
 
     private void MoveToCursor()
     {
-        if (!GetCursorPos(out var cursor)) return;
+        if (revealAnimating || !GetCursorPos(out var cursor)) return;
         var area = Screen.FromPoint(new Point(cursor.X, cursor.Y)).WorkingArea;
         var x = ClampStart(cursor.X - followGrab.X, area.Left, area.Right, Width);
         var y = ClampStart(cursor.Y - followGrab.Y, area.Top, area.Bottom, Height);
@@ -373,6 +597,39 @@ internal sealed class ShellForm : Form
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri) { UseShellExecute = true });
     }
 
+    private static void OpenExternal(string uri)
+    {
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed)) return;
+        if (parsed.Scheme != Uri.UriSchemeHttps && parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeMailto) return;
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri) { UseShellExecute = true });
+    }
+
+    private void KeepDashboardHere(CoreWebView2 core)
+    {
+        core.NewWindowRequested += (_, args) =>
+        {
+            args.Handled = true;
+            OpenExternal(args.Uri);
+        };
+        core.NavigationStarting += (_, args) =>
+        {
+            if (IsDashboardNavigation(args.Uri)) return;
+            args.Cancel = true;
+            OpenExternal(args.Uri);
+        };
+    }
+
+    private bool IsDashboardNavigation(string uri)
+    {
+        if (string.IsNullOrWhiteSpace(uri)) return true;
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed)) return true;
+        if (parsed.Scheme.Equals("about", StringComparison.OrdinalIgnoreCase)) return true;
+        if (!Uri.TryCreate(pageUrl, UriKind.Absolute, out var home)) return false;
+        if (!parsed.Host.Equals(home.Host, StringComparison.OrdinalIgnoreCase) || parsed.Port != home.Port) return false;
+        var path = parsed.AbsolutePath.TrimEnd('/');
+        return path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static void KeepCursorLinksOutside(CoreWebView2 core)
     {
         core.NewWindowRequested += (_, args) =>
@@ -404,11 +661,11 @@ internal sealed class ShellForm : Form
             Icon = (Icon)AppIcon().Clone(),
             StartPosition = FormStartPosition.CenterScreen,
             ClientSize = new Size(1120, 760),
-            BackColor = Color.FromArgb(236, 236, 238),
+            BackColor = Color.White,
             ShowInTaskbar = true,
         };
         var page = new WebView2 { Dock = DockStyle.Fill };
-        page.DefaultBackgroundColor = Color.FromArgb(236, 236, 238);
+        page.DefaultBackgroundColor = Color.White;
         window.Controls.Add(page);
         dashboardView = page;
         dashboard = window;
@@ -504,7 +761,7 @@ internal sealed class ShellForm : Form
                 settings.IsZoomControlEnabled = false;
                 settings.IsPinchZoomEnabled = false;
                 page.ZoomFactor = 1;
-                KeepCursorLinksOutside(page.CoreWebView2);
+                KeepDashboardHere(page.CoreWebView2);
             }
             if (page.CoreWebView2 == null) return;
             var target = pageUrl.TrimEnd('/') + "/dashboard";
@@ -623,11 +880,14 @@ internal sealed class ShellForm : Form
                     case "visible":
                         var shown = root.TryGetProperty("shown", out var shownEl) && shownEl.ValueKind == JsonValueKind.True;
                         Invoke(() => { if (shown) ShowWidget(); else HideWidget(); });
-                        Emit(new { ok = true, shown = Visible });
+                        Emit(new { ok = true, shown = widgetShown });
                         break;
                     case "follow":
                         BeginInvoke(StartFollow);
                         Emit(new { ok = true });
+                        break;
+                    case "home":
+                        BeginInvoke(ResetPosition);
                         break;
                     case "arrows":
                         var arrowsOn = root.TryGetProperty("enabled", out var arrowsEl) && arrowsEl.ValueKind == JsonValueKind.True;
@@ -684,6 +944,13 @@ internal sealed class ShellForm : Form
     private void Fit(int width, int height, bool instant = false)
     {
         var target = TargetBounds(width, height);
+        if (revealAnimating)
+        {
+            revealHome = target;
+            revealTo = revealHiding ? Offscreen(target) : target;
+            Emit(new { ok = true });
+            return;
+        }
         var same = target.X == Left && target.Y == Top && target.Width == Width && target.Height == Height;
         if (same)
         {
@@ -748,8 +1015,11 @@ internal sealed class ShellForm : Form
         var topInset = ScaleDelta(32);
         var width = Math.Min(ScaleCss(lastCssWidth), Math.Max(ScaleDelta(200), area.Width - margin * 2));
         var height = Math.Min(ScaleCss(lastCssHeight), Math.Max(ScaleDelta(48), area.Height - margin * 2));
-        var top = userMoved ? Top : area.Top + topInset;
-        var center = Left + Width / 2.0;
+        var anchorX = revealAnimating ? revealHome.X : Left;
+        var anchorY = revealAnimating ? revealHome.Y : Top;
+        var anchorW = revealAnimating ? revealHome.Width : Width;
+        var top = userMoved ? anchorY : area.Top + topInset;
+        var center = anchorX + anchorW / 2.0;
         var left = userMoved
             ? (int)Math.Round(center - width / 2.0)
             : area.Left + Math.Max(0, (area.Width - width) / 2);
@@ -878,6 +1148,7 @@ internal sealed class ShellForm : Form
 
     private void Shift(int dx, int dy)
     {
+        if (revealAnimating) return;
         userMoved = true;
         follow.Stop();
         var proposedX = Left + dx;
@@ -927,7 +1198,7 @@ internal sealed class ShellForm : Form
         }
         if (id == 3)
         {
-            if (!Visible) ShowWidget();
+            if (!widgetShown) ShowWidget();
             NotifyHotkey("ask");
             return;
         }
@@ -938,7 +1209,7 @@ internal sealed class ShellForm : Form
         }
         if (id == 5)
         {
-            if (!Visible) ShowWidget();
+            if (!widgetShown) ShowWidget();
             NotifyHotkey("session");
             return;
         }
@@ -966,7 +1237,7 @@ internal sealed class ShellForm : Form
     private void ToggleVisibility()
     {
         if (IsDisposed) return;
-        if (WidgetOnScreen()) HideWidget();
+        if (widgetShown) HideWidget();
         else ShowWidget();
     }
 
@@ -1407,6 +1678,15 @@ internal sealed class ShellForm : Form
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SystemParametersInfo(uint action, uint param, ref int value, uint winIni);
+
+    [System.Runtime.InteropServices.DllImport("winmm.dll")]
+    private static extern uint timeBeginPeriod(uint period);
+
+    [System.Runtime.InteropServices.DllImport("winmm.dll")]
+    private static extern uint timeEndPeriod(uint period);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool IsWindowVisible(IntPtr hWnd);

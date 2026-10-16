@@ -5,34 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hooxie</title>
   <meta name="description" content="Hooxie is a Windows overlay for your coding agent. It stays on your screen and off a screen share.">
-  <link rel="icon" href="/favicon.ico?v=3" sizes="any">
-  <link rel="icon" href="/icon.png?v=3" type="image/png">
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body class="home">
   <header>
-    <a class="brand" href="/">Hooxie</a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+    <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-label">Menu</span>
       <span class="menu-bars" aria-hidden="true"></span>
-      <span class="sr">Menu</span>
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
+      <a href="/docs">Docs</a>
+      <a href="/legal">Legal</a>
       <a href="/ides">IDEs</a>
-      <a href="/dashboard">Dashboard</a>
     </nav>
   </header>
   <main>
     <div class="hero-pin">
     <section class="hero">
       <div class="hero-copy">
-        <h1><span>#1 Widget</span><span>for Developers</span></h1>
-        <p id="download"><a class="button" href="/download/Hooxie-Setup.exe">Download</a></p>
+        <h1><span>#1 Widget</span><span>for Developers.</span></h1>
+        <div id="download" class="split-widget">
+          <div class="split-track">
+            <a class="split-download" href="/download/Hooxie-Setup.exe"><span>Download</span></a>
+            <a class="split-learn" href="#features">Learn more</a>
+          </div>
+        </div>
       </div>
     </section>
+    <div class="demo-story" id="demo-story">
+      <div class="demo-sticky">
       <div class="desk">
         <div class="monitor">
           <div class="screen" id="demo-screen">
@@ -104,13 +112,14 @@
                 <p class="pill-pop-title">Dashboard</p>
                 <p class="pill-note">License on this computer.</p>
                 <button type="button" id="demo-voice" aria-pressed="true">Voice on</button>
-                <a href="/dashboard">Open dashboard</a>
               </div>
             </div>
             <button class="demo-show" id="demo-show" type="button" hidden>Show Hooxie</button>
           </div>
         </div>
       </div>
+      </div>
+    </div>
     </div>
 
     <section class="band" id="features">
@@ -122,11 +131,15 @@
         </article>
         <article>
           <h3>Close</h3>
-          <p>Drag it. Ctrl+\ hides it.</p>
+          <p>Ctrl+\ hides it.</p>
         </article>
         <article>
           <h3>Preset prompts</h3>
           <p>Save one. Send it again.</p>
+        </article>
+        <article>
+          <h3>Track AI usage</h3>
+          <p>See what's left this month.</p>
         </article>
       </div>
     </section>
@@ -189,31 +202,21 @@
     </section>
   </main>
   <footer>
-    <div class="footer-grid">
-      <div>
-        <p>Product</p>
-        <a href="#download">Download</a>
+    <nav class="footer-product" aria-label="Product">
+      <p>Product</p>
+      <div class="footer-links">
+        <a href="/#download">Download</a>
         <a href="/help">Help</a>
+        <a href="/docs">Documentation</a>
         <a href="/ides">IDEs</a>
         <a href="/releases">Releases</a>
-      </div>
-      <div>
-        <p>Account</p>
-        <a href="/dashboard">Dashboard</a>
         <a href="/contact">Contact</a>
+        <a href="/legal">Legal</a>
       </div>
-      <div>
-        <p>Legal</p>
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/refund">Refunds</a>
-        <a href="/license">License</a>
-      </div>
-    </div>
-    <p class="fine">A Delexo product.</p>
+    </nav>
   </footer>
   <script>
-    for (const link of document.querySelectorAll("a.button")) {
+    for (const link of document.querySelectorAll("a.button, a.split-download")) {
       link.addEventListener("click", () => {
         link.classList.remove("is-expand");
         void link.offsetWidth;
@@ -224,6 +227,42 @@
       button.addEventListener("click", () => {
         const open = button.getAttribute("aria-expanded") !== "true";
         button.setAttribute("aria-expanded", String(open));
+      });
+    }
+    const learn = document.querySelector(".split-learn");
+    if (learn) {
+      let frame = 0;
+      let expected = window.scrollY;
+      const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - ((-2 * t + 2) ** 3) / 2);
+      learn.addEventListener("click", (event) => {
+        const target = document.querySelector("#features");
+        if (!target) return;
+        event.preventDefault();
+        if (frame) cancelAnimationFrame(frame);
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          target.scrollIntoView();
+          return;
+        }
+        const start = window.scrollY;
+        const distance = target.getBoundingClientRect().top;
+        const duration = Math.min(4800, Math.max(700, Math.abs(distance) * 1.15));
+        const began = performance.now();
+        expected = start;
+        const step = (now) => {
+          if (Math.abs(window.scrollY - expected) > 3) {
+            frame = 0;
+            return;
+          }
+          const t = Math.min(1, (now - began) / duration);
+          expected = start + distance * ease(t);
+          window.scrollTo(0, expected);
+          if (t < 1) frame = requestAnimationFrame(step);
+          else {
+            frame = 0;
+            history.replaceState(null, "", "#features");
+          }
+        };
+        frame = requestAnimationFrame(step);
       });
     }
   </script>

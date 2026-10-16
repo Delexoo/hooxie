@@ -5,7 +5,7 @@ if (-not (Test-Path $issc)) { $issc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe
 if (-not (Test-Path $issc)) { $issc = Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe" }
 if (-not (Test-Path $issc)) { throw "Inno Setup 6 was not found. Install it from https://jrsoftware.org/isinfo.php" }
 
-$stage = Join-Path $root "dist-setup\build"
+$stage = Join-Path $root "dist-setup\stage"
 $dist = Join-Path $root "dist-setup"
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 if (Test-Path $stage) {

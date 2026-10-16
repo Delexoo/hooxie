@@ -44,7 +44,7 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 Name: "startonlogon"; Description: "Start Hooxie when I sign in to Windows"; GroupDescription: "Shortcuts:"; Flags: unchecked
 
 [Files]
-Source: "..\dist-setup\build\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist-setup\stage\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Hooxie"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Hooxie.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\shell\HooxieShell.exe"; Comment: "Hooxie overlay by Delexo"

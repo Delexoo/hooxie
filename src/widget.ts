@@ -23,6 +23,7 @@ export interface WidgetControl {
   yieldFocus(): Promise<void>;
   setShown(shown: boolean): Promise<boolean>;
   follow(): Promise<void>;
+  home(): Promise<void>;
   setUndetectable(enabled: boolean): Promise<boolean>;
   setMoveKeys(enabled: boolean): Promise<boolean>;
   toggleDashboard(): Promise<boolean>;
@@ -121,6 +122,11 @@ export function createWidgetController(): WidgetControl {
       if (!host) return;
       const response = await host.call({ cmd: "follow" }, 4000);
       if (!response.ok) throw new Error(response.error || "Hooxie could not be moved.");
+    },
+    async home() {
+      if (!host) return;
+      const response = await host.call({ cmd: "home" }, 4000);
+      if (!response.ok) throw new Error(response.error || "Hooxie could not move back.");
     },
     async setUndetectable(enabled) {
       if (!host) return false;

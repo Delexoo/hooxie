@@ -1,0 +1,17 @@
+---
+description: Record every Hooxie change in the brain log for commit and release notes
+alwaysApply: true
+---
+
+# Brain log
+
+`brain/log.json` is the source for commit messages and release notes. The current version is `MyAppVersion` in `installer/hooxie.iss`.
+
+After every change a person would notice, and after every fix that belongs in a commit, add one sentence to the current version before you finish. Say what changed. Do not log formatting, reverted work, or a change that is already written there.
+
+- If that version has no entry, add one with today's date as `YYYY-MM-DD` and a short title.
+- If it exists, append the note. Leave older notes as they are.
+- Use Widget, Dashboard, Setup, Voice, or Chat. Add a heading only when none of those fit.
+- One note is one change.
+- Run `npm run notes` so `site/releases.json` and `site/releases.html` match the log.
+- Do not commit or publish only because the log changed.

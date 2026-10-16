@@ -4,90 +4,144 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Release notes · Hooxie</title>
-  <link rel="icon" href="/favicon.ico?v=3" sizes="any">
-  <link rel="icon" href="/icon.png?v=3" type="image/png">
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
   <header>
-    <a class="brand" href="/">Hooxie</a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+    <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-label">Menu</span>
       <span class="menu-bars" aria-hidden="true"></span>
-      <span class="sr">Menu</span>
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
+      <a href="/docs">Docs</a>
+      <a href="/legal">Legal</a>
       <a href="/ides">IDEs</a>
-      <a href="/dashboard">Dashboard</a>
     </nav>
   </header>
   <main>
-<h1>Release notes</h1>
-      <p>These notes are the same list Hooxie posts to <a href="https://github.com/Delexoo/hooxie/releases">GitHub releases</a>.</p>
-      
-      <section id="v0.2.0">
-        <h2>0.2.0 · 15 October 2026</h2>
-        <p><a href="https://github.com/Delexoo/hooxie/releases/tag/v0.2.0">GitHub release v0.2.0</a></p>
-        <h3>Widget</h3>
-        <ul>
-          <li>The prompt stays on the bar, with upload on the left and send or voice on the right. Presets, more, usage, dashboard, and drag sit beside it.</li>
-          <li>View the screen, the project path, attachments, and the conversation open when you type, attach a file, already have a conversation, are listening, or the agent is working. Clearing the prompt folds them away.</li>
-          <li>When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward.</li>
-          <li>The widget opens a little lower on the screen. The scrollbar is only on the conversation.</li>
-          <li>More options can open the connected IDE on the current project.</li>
-          <li>Hooxie Setup 0.2.0 installs the app for Windows. The product site is hooxie.com.</li>
-          <li>While Cursor usage is loading, the ring eases around the circle, then fills to the percentage.</li>
-        </ul>
-        <h3>Setup</h3>
-        <ul>
-          <li>Setup is two steps: choose an IDE, then the license. Back and Next move between them, and a progress bar shows how far along you are.</li>
-          <li>Each IDE has a plain Download link and a switch. On means the widget uses that IDE. Only one IDE can be on. An IDE that is not installed stays off.</li>
-          <li>Setup can be dragged, minimized, and closed. Help opens the onboarding section of the website.</li>
-          <li>Hooxie is $5.99 once for this computer. Sharing the app or the license file does not unlock another computer.</li>
-          <li>If this computer is already paid for, Hooxie finds that payment and continues.</li>
-        </ul>
-        <h3>Voice</h3>
-        <ul>
-          <li>Saying “Hooxie” starts one voice session.</li>
-          <li>The open sound plays when the typing outline appears. The close sound plays when that outline turns off, including when you click out of the prompt or stop voice.</li>
-          <li>Holding Escape for three quarters of a second clears the prompt and lets the widget go. While you hold it, the outline color closes around the border. When the hold finishes, the outline stays closed.</li>
-          <li>The blue-to-peach outline travels around the widget.</li>
-          <li>Placeholder questions type on one letter at a time.</li>
-        </ul>
-        <h3>Chat</h3>
-        <ul>
-          <li>Conversation text is smaller and more compact.</li>
-          <li>Queued messages are numbered cards. The first one sends next, and each card can be removed.</li>
-        </ul>
-      </section>
-      <section id="v0.1.0">
-        <h2>0.1.0 · 12 October 2026</h2>
-        <p><a href="https://github.com/Delexoo/hooxie/releases/tag/v0.1.0">GitHub release v0.1.0</a></p>
-        <h3>First build</h3>
-        <ul>
-          <li>The widget sits at the top of the screen and sends a prompt to a Cursor agent for the folder you choose.</li>
-          <li>One button is the microphone when the prompt is empty, send when there is text, and a square stop while the agent is working.</li>
-          <li>You can attach files, a folder, or a screenshot of the current screen.</li>
-          <li>Detectable can be turned off so a normal screen share or recording does not show Hooxie.</li>
-          <li>Keybinds hide or show the widget, ask about the screen, clear the chat, start a session, and move the pill.</li>
-        </ul>
-      </section>
+    <h1>Release notes</h1>
+    <p class="lede">The same list as the <a href="https://github.com/Delexoo/hooxie/releases">GitHub releases</a>.</p>
+    <div class="release-log">
+      <!-- brain:notes -->
+      <article class="release" id="v0.2.0">
+        <div class="release-mark" aria-hidden="true"></div>
+        <div class="release-body">
+          <header class="release-meta">
+            <a class="release-tag" href="https://github.com/Delexoo/hooxie/releases/tag/v0.2.0">v0.2.0</a>
+            <span class="release-latest">Latest</span>
+            <time datetime="2026-10-16">16 Oct 2026</time>
+          </header>
+          <div class="release-card">
+            <h2>Type fold, voice outline, and a license for this computer</h2>
+            <h3>Widget</h3>
+            <ul>
+              <li>The prompt stays on the bar, with upload on the left and send or voice on the right. Presets, more, usage, dashboard, and drag sit beside it.</li>
+              <li>View the screen, the project path, attachments, and the conversation open when you type, attach a file, already have a conversation, are listening, or the agent is working. Clearing the prompt folds them away.</li>
+              <li>When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward.</li>
+              <li>The widget opens a little lower on the screen. The scrollbar is only on the conversation.</li>
+              <li>More options can open the connected IDE on the current project.</li>
+              <li>More options includes Change IDE, which switches the IDE the widget uses.</li>
+              <li>Hooxie Setup 0.2.0 installs the app for Windows. The product site is hooxie.com.</li>
+              <li>While Cursor usage is loading, the ring eases around the circle, then fills to the percentage. That spin and fill take a little longer.</li>
+              <li>Ctrl+\ slides the pill off the nearest edge of the screen and fades it out. Showing it glides back. Pressing the shortcut again during the slide reverses it.</li>
+              <li>More options includes Recenter, which moves the pill back to the top center.</li>
+              <li>The app and installer icon is a sharper rounded pill.</li>
+              <li>The installer icon is a rounded squircle, so the setup file no longer shows a square tile.</li>
+              <li>Clear chat, Copy reply, and Send again have more padding, so the labels no longer sit on the rounded ends.</li>
+            </ul>
+            <h3>Dashboard</h3>
+            <ul>
+              <li>The search button and its search field are gone.</li>
+              <li>The website menu no longer opens a separate dashboard. The dashboard is the window inside Hooxie.</li>
+              <li>The window is white, with a grey sidebar and black text. Dark is still available.</li>
+              <li>Toggle Hooxie stays at the bottom of the sidebar.</li>
+              <li>Buttons and language choices are pills. A collapsed sidebar uses circles.</li>
+              <li>English, Spanish, French, German, Portuguese, Japanese, and Chinese translate the navigation, help, and the one-time $5.99 purchase. Switching back to English restores the original words.</li>
+              <li>Opening a section eases in, and collapsing the sidebar glides.</li>
+              <li>Opening the dashboard no longer stops on a missing catalog or revision.</li>
+              <li>The microphone and speaker lists stay open when you click them.</li>
+              <li>Opening, closing, and done each have a sound list, shown as a waveform with the name and a play preview.</li>
+              <li>Dashboard motion fades in, and buttons grow slightly on hover and click.</li>
+              <li>Dashboard pages sit in the center of the window.</li>
+              <li>The dashboard stays on its own pages. Help, notes, contact, and downloads no longer open another site in that window.</li>
+            </ul>
+            <h3>Setup</h3>
+            <ul>
+              <li>Setup is two steps: choose an IDE, then the license. Back and Next move between them, and a progress bar shows how far along you are.</li>
+              <li>Each IDE has a plain Download link and a switch. On means the widget uses that IDE. Only one IDE can be on. An IDE that is not installed stays off.</li>
+              <li>Setup can be dragged, minimized, and closed. Help opens the onboarding section of the website.</li>
+              <li>Hooxie is $5.99 once for this computer. Sharing the app or the license file does not unlock another computer.</li>
+              <li>If this computer is already paid for, Hooxie finds that payment and continues.</li>
+            </ul>
+            <h3>Voice</h3>
+            <ul>
+              <li>Saying “Hooxie” starts one voice session.</li>
+              <li>The open sound plays when the typing outline appears. The close sound plays when that outline turns off, including when you click out of the prompt or stop voice.</li>
+              <li>Holding Escape for three quarters of a second clears the prompt and lets the widget go. While you hold it, the outline color closes around the border. When the hold finishes, the outline stays closed.</li>
+              <li>The blue-to-peach outline travels around the widget.</li>
+              <li>Placeholder questions type on one letter at a time.</li>
+            </ul>
+            <h3>Chat</h3>
+            <ul>
+              <li>Conversation text is smaller and more compact.</li>
+              <li>Queued messages are numbered cards. The first one sends next, and each card can be removed.</li>
+            </ul>
+            <h3>Site</h3>
+            <ul>
+              <li>The footer spreads Download, Help, IDEs, Releases, Contact, and Legal under Product.</li>
+              <li>Documentation covers the widget: the pill, prompts, presets, voice, files, the screen, usage, and shortcuts.</li>
+              <li>The home title and the Download and Learn more control sit in the center of the screen.</li>
+              <li>The home title stays locked while the demo computer scrolls up over it.</li>
+              <li>On a phone, the demo computer fills the screen while the prompt types, and the caret stays in the field.</li>
+              <li>Clicking the demo prompt lets you type in it, and scrolling no longer replaces what you wrote.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+      <article class="release" id="v0.1.0">
+        <div class="release-mark" aria-hidden="true"></div>
+        <div class="release-body">
+          <header class="release-meta">
+            <a class="release-tag" href="https://github.com/Delexoo/hooxie/releases/tag/v0.1.0">v0.1.0</a>
+            <time datetime="2026-10-12">12 Oct 2026</time>
+          </header>
+          <div class="release-card">
+            <h2>First public build</h2>
+            <h3>First build</h3>
+            <ul>
+              <li>The widget sits at the top of the screen and sends a prompt to a Cursor agent for the folder you choose.</li>
+              <li>One button is the microphone when the prompt is empty, send when there is text, and a square stop while the agent is working.</li>
+              <li>You can attach files, a folder, or a screenshot of the current screen.</li>
+              <li>Detectable can be turned off so a normal screen share or recording does not show Hooxie.</li>
+              <li>Keybinds hide or show the widget, ask about the screen, clear the chat, start a session, and move the pill.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+      <!-- /brain:notes -->
+    </div>
   </main>
   <footer>
-    <p>
-      <a href="/help">Help</a>
-      <a href="/contact">Contact</a>
-      <a href="/releases">Releases</a>
-      <a href="/ides">IDEs</a>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/refund">Refunds</a>
-      <a href="/license">License</a>
-    </p>
-    <p>A Delexo product. Credit @delexo if you show or remix it.</p>
+    <nav class="footer-product" aria-label="Product">
+      <p>Product</p>
+      <div class="footer-links">
+        <a href="/#download">Download</a>
+        <a href="/help">Help</a>
+        <a href="/docs">Documentation</a>
+        <a href="/ides">IDEs</a>
+        <a href="/releases">Releases</a>
+        <a href="/contact">Contact</a>
+        <a href="/legal">Legal</a>
+      </div>
+    </nav>
+    <p class="fine">A Delexo product. Credit @delexo if you show or remix it.</p>
   </footer>
   <script src="/menu.js"></script>
 </body>

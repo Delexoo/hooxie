@@ -260,7 +260,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
   }
 
   async function presentCheckout(checkoutUrl: string, present: string | undefined): Promise<void> {
-    if (present !== "widget") return;
+    if (present !== "widget" && present !== "dashboard") return;
     try {
       if (options.openUrl) options.openUrl(checkoutUrl);
       else openStripeCheckout(checkoutUrl);
@@ -686,6 +686,12 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       sendJson(res, 200, { ok: true });
       return;
     }
+    if (req.method === "POST" && url.pathname === "/api/widget/home") {
+      if (!options.widget) throw new DeliveryError(400, "Recentering Hooxie is available in the desktop widget.");
+      await options.widget.home();
+      sendJson(res, 200, { ok: true });
+      return;
+    }
     if (req.method === "POST" && url.pathname === "/api/widget/arrows") {
       if (!options.widget) throw new DeliveryError(400, "Arrow keys are available in the desktop widget.");
       const body = asRecord(await readJson(req, 4000));
@@ -776,6 +782,10 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       const body = asRecord(await readJson(req, 8000));
       const email = validEmail(stringField(body, "email"));
       const promo = stringField(body, "promo");
+      if (await licensedForDevice()) {
+        sendJson(res, 200, { paid: true });
+        return;
+      }
       const origin = `http://127.0.0.1:${port}`;
       if (!deviceId) throw new DeliveryError(400, "This computer could not be identified.");
       const successUrl = `${origin}/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`;
@@ -1191,6 +1201,8 @@ interface HooxieSettings {
   deliveryReady: boolean;
   trace: boolean;
   chime: string;
+  openSound: string;
+  closeSound: string;
   chimeCustom: boolean;
   arrows: boolean;
   ide: string;
@@ -1233,6 +1245,8 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
     deliveryReady: false,
     trace: true,
     chime: "blushing",
+    openSound: "notification",
+    closeSound: "pluck-off",
     chimeCustom: false,
     arrows: false,
     ide: "",
@@ -1247,7 +1261,7 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
     experimental: false,
     connectedIde: "",
     onboardingStep: "",
-    dashboardMode: "dark",
+    dashboardMode: "light",
     widgetMode: "dark",
   };
   const saved = await readOptional(path.join(configDir, "hooxie-settings.json"));
@@ -1277,6 +1291,8 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
     deliveryReady: input.deliveryReady === true,
     trace: input.trace !== false,
     chime: CHIMES.has(input.chime) ? input.chime : "blushing",
+    openSound: CHIMES.has(input.openSound) ? input.openSound : "notification",
+    closeSound: CHIMES.has(input.closeSound) ? input.closeSound : "pluck-off",
     chimeCustom: input.chimeCustom === true,
     arrows: input.arrows === true,
     ide: clipText(input.ide, 40),
@@ -1291,7 +1307,7 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
     experimental: input.experimental === true,
     connectedIde: isIde(input.connectedIde) ? input.connectedIde : "",
     onboardingStep: onboardingStep(input.onboardingStep),
-    dashboardMode: input.dashboardMode === "light" ? "light" : "dark",
+    dashboardMode: input.dashboardMode === "dark" ? "dark" : "light",
     widgetMode: input.widgetMode === "light" ? "light" : "dark",
   };
 }

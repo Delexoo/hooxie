@@ -4,38 +4,38 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Help · Hooxie</title>
-  <link rel="icon" href="/favicon.ico?v=3" sizes="any">
-  <link rel="icon" href="/icon.png?v=3" type="image/png">
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
   <header>
-    <a class="brand" href="/">Hooxie</a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+    <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-label">Menu</span>
       <span class="menu-bars" aria-hidden="true"></span>
-      <span class="sr">Menu</span>
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
+      <a href="/docs">Docs</a>
+      <a href="/legal">Legal</a>
       <a href="/ides">IDEs</a>
-      <a href="/dashboard">Dashboard</a>
     </nav>
   </header>
   <main>
 <h1>Help center</h1>
-      <h2 id="onboarding">Onboarding</h2>
-      <p>The widget stays on setup until both chapters are finished. A progress bar at the top fills as you get closer. Back and Next move one chapter at a time.</p>
-      <h3>Chapter 1 · IDE</h3>
-      <p>Turn on the IDE this widget should use. Only one switch can be on. On means Hooxie sends prompts to that IDE. Off means it is disconnected. If an IDE is not on this computer, Download opens its site. The link is plain text. A switch stays off until that IDE is installed.</p>
-      <h3>Chapter 2 · License</h3>
+      <p>The full guide to the widget is in <a href="/docs">Documentation</a>. This page is the short version for setup.</p>
+      <h2 id="onboarding">IDE</h2>
+      <p>Pick an IDE from the list. The widget uses that IDE, and you can switch it any time. If it is not on this computer, that choice opens its download and stays off until it is installed.</p>
+      <h3>License</h3>
       <p>Hooxie is $5.99 once for this computer. The license belongs to this device. Sharing the app, or copying its license file, does not unlock another computer. Purchase opens checkout in the browser. The widget unlocks when payment for this computer is confirmed.</p>
       <h3>Move through setup</h3>
       <p>Help in the widget opens this section. Drag the top bar to move setup. Minimize collapses it to that bar. Close hides Hooxie, and Ctrl+\ shows it again. The prompt, voice, and the rest of the widget stay hidden until an IDE is on and this computer is licensed.</p>
       <h2>Before Hooxie can send</h2>
-      <p>Hooxie needs an IDE on this computer. <a href="/ides">Download an IDE</a> from the first chapter if none is installed, then turn its switch on. The agent also needs a sign-in. The rest of the widget stays hidden until that IDE is connected and this computer is licensed.</p>
+      <p>Hooxie needs an IDE on this computer. <a href="/ides">Download an IDE</a> if none is installed, then choose it in the list. The agent also needs a sign-in. The rest of the widget stays hidden until that IDE is connected and this computer is licensed.</p>
       <p>Sign in to the agent and keep its plan active. The $5.99 Hooxie license does not replace that plan.</p>
       <p>Press connect on the pill or in the dashboard. Sign-in opens in the browser and links the account. A pasted API key also works if you already have one.</p>
       <h2>Open the widget</h2>
@@ -56,17 +56,19 @@
       <p>Hooxie is $5.99 once for this computer. Buy it from the License chapter in setup, or from the dashboard. A promotional code goes in the field on that page. Refunds are described on the refund page.</p>
   </main>
   <footer>
-    <p>
-      <a href="/help">Help</a>
-      <a href="/contact">Contact</a>
-      <a href="/releases">Releases</a>
-      <a href="/ides">IDEs</a>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/refund">Refunds</a>
-      <a href="/license">License</a>
-    </p>
-    <p>A Delexo product. Credit @delexo if you show or remix it.</p>
+    <nav class="footer-product" aria-label="Product">
+      <p>Product</p>
+      <div class="footer-links">
+        <a href="/#download">Download</a>
+        <a href="/help">Help</a>
+        <a href="/docs">Documentation</a>
+        <a href="/ides">IDEs</a>
+        <a href="/releases">Releases</a>
+        <a href="/contact">Contact</a>
+        <a href="/legal">Legal</a>
+      </div>
+    </nav>
+    <p class="fine">A Delexo product. Credit @delexo if you show or remix it.</p>
   </footer>
   <script src="/menu.js"></script>
 </body>

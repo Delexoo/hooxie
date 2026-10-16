@@ -3,7 +3,7 @@
   "updates": [
     {
       "version": "0.2.0",
-      "date": "2026-10-15",
+      "date": "2026-10-16",
       "title": "Type fold, voice outline, and a license for this computer",
       "sections": [
         {
@@ -14,8 +14,32 @@
             "When a line is about to run out of room, those controls move under the field. More typing wraps, and the field grows downward.",
             "The widget opens a little lower on the screen. The scrollbar is only on the conversation.",
             "More options can open the connected IDE on the current project.",
+            "More options includes Change IDE, which switches the IDE the widget uses.",
             "Hooxie Setup 0.2.0 installs the app for Windows. The product site is hooxie.com.",
-            "While Cursor usage is loading, the ring eases around the circle, then fills to the percentage."
+            "While Cursor usage is loading, the ring eases around the circle, then fills to the percentage. That spin and fill take a little longer.",
+            "Ctrl+\\ slides the pill off the nearest edge of the screen and fades it out. Showing it glides back. Pressing the shortcut again during the slide reverses it.",
+            "More options includes Recenter, which moves the pill back to the top center.",
+            "The app and installer icon is a sharper rounded pill.",
+            "The installer icon is a rounded squircle, so the setup file no longer shows a square tile.",
+            "Clear chat, Copy reply, and Send again have more padding, so the labels no longer sit on the rounded ends."
+          ]
+        },
+        {
+          "heading": "Dashboard",
+          "notes": [
+            "The search button and its search field are gone.",
+            "The website menu no longer opens a separate dashboard. The dashboard is the window inside Hooxie.",
+            "The window is white, with a grey sidebar and black text. Dark is still available.",
+            "Toggle Hooxie stays at the bottom of the sidebar.",
+            "Buttons and language choices are pills. A collapsed sidebar uses circles.",
+            "English, Spanish, French, German, Portuguese, Japanese, and Chinese translate the navigation, help, and the one-time $5.99 purchase. Switching back to English restores the original words.",
+            "Opening a section eases in, and collapsing the sidebar glides.",
+            "Opening the dashboard no longer stops on a missing catalog or revision.",
+            "The microphone and speaker lists stay open when you click them.",
+            "Opening, closing, and done each have a sound list, shown as a waveform with the name and a play preview.",
+            "Dashboard motion fades in, and buttons grow slightly on hover and click.",
+            "Dashboard pages sit in the center of the window.",
+            "The dashboard stays on its own pages. Help, notes, contact, and downloads no longer open another site in that window."
           ]
         },
         {
@@ -43,6 +67,17 @@
           "notes": [
             "Conversation text is smaller and more compact.",
             "Queued messages are numbered cards. The first one sends next, and each card can be removed."
+          ]
+        },
+        {
+          "heading": "Site",
+          "notes": [
+            "The footer spreads Download, Help, IDEs, Releases, Contact, and Legal under Product.",
+            "Documentation covers the widget: the pill, prompts, presets, voice, files, the screen, usage, and shortcuts.",
+            "The home title and the Download and Learn more control sit in the center of the screen.",
+            "The home title stays locked while the demo computer scrolls up over it.",
+            "On a phone, the demo computer fills the screen while the prompt types, and the caret stays in the field.",
+            "Clicking the demo prompt lets you type in it, and scrolling no longer replaces what you wrote."
           ]
         }
       ]

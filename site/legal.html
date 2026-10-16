@@ -3,28 +3,91 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>License agreement · Hooxie</title>
-  <link rel="icon" href="/favicon.ico?v=3" sizes="any">
-  <link rel="icon" href="/icon.png?v=3" type="image/png">
+  <title>Legal · Hooxie</title>
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
   <header>
-    <a class="brand" href="/">Hooxie</a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+    <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-label">Menu</span>
       <span class="menu-bars" aria-hidden="true"></span>
-      <span class="sr">Menu</span>
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
+      <a href="/docs">Docs</a>
+      <a href="/legal">Legal</a>
       <a href="/ides">IDEs</a>
-      <a href="/dashboard">Dashboard</a>
     </nav>
   </header>
   <main>
+    <h1>Legal</h1>
+    <div class="legal-switch" role="tablist" aria-label="Legal documents">
+      <button type="button" role="tab" id="tab-terms" data-legal="terms" aria-selected="true" aria-controls="terms">Terms</button>
+      <button type="button" role="tab" id="tab-privacy" data-legal="privacy" aria-selected="false" aria-controls="privacy">Privacy</button>
+      <button type="button" role="tab" id="tab-refunds" data-legal="refunds" aria-selected="false" aria-controls="refunds">Refunds</button>
+      <button type="button" role="tab" id="tab-license" data-legal="license" aria-selected="false" aria-controls="license">License</button>
+    </div>
+    <section class="legal-panel" id="terms">
+<h1>Terms of service</h1>
+      <p>Effective 15 October 2026.</p>
+      <p>These terms cover the Hooxie website and, together with the <a href="#license">License Agreement</a>, the Hooxie widget. Hooxie is a Delexo product (<a href="https://hooxie.com">hooxie.com</a>, @delexo). By using either, you agree to these terms and to that agreement. If they conflict, the License Agreement controls, except that the <a href="#privacy">privacy policy</a> controls on privacy practices and the <a href="#refunds">refund policy</a> controls on refund timing and amount.</p>
+      <h2>The service</h2>
+      <p>Hooxie is a Windows desktop widget that sends a prompt to a coding agent, including a Cursor agent when you provide a key and choose a folder. You choose the folder. You are responsible for what the agent reads, edits, and runs there.</p>
+      <h2>Pro</h2>
+      <p>Hooxie is $5.99 once for this computer, billed by Stripe. There is no renewal. A promotional code, if you have one, is entered at checkout and applies only as that code allows. Taxes may be added by Stripe. Sharing the app or the license file does not unlock another computer.</p>
+      <h2>Your account</h2>
+      <p>The email you enter is the address for receipts. Keep your Cursor key and your computer access to yourself. You will not use Hooxie to break the law, to attack systems you do not have permission to use, or to hide activity that violates someone else's rules when you are not allowed to do that.</p>
+      <h2>Screen share</h2>
+      <p>Undetectable mode asks Windows to leave Hooxie out of standard screen capture. It is not a promise that every tool, person, or future Windows change will fail to see the window.</p>
+      <h2>Stopping</h2>
+      <p>The license stays on the computer that bought it. The refund page explains the refund window.</p>
+      <h2>The software</h2>
+      <p>Hooxie is provided as it is. Prompts and files you attach are sent to the agent service you configure. We do not promise uninterrupted access, a particular model result, or that an agent edit is correct. To the extent the law allows, Hooxie's liability for a claim is limited to the amount you paid for this computer's license.</p>
+      <h2>Changes</h2>
+      <p>These terms can be updated by posting a new version on this page. Continued use after the new date means you accept the update.</p>
+      <h2>Contact</h2>
+      <p>Questions: <a href="mailto:support@delexo.store">support@delexo.store</a>.</p>
+    </section>
+    <section class="legal-panel" id="privacy" hidden>
+<h1>Privacy policy</h1>
+      <p>Effective 16 October 2026.</p>
+      <p>This page says what Hooxie handles, and what stays on your computer.</p>
+      <h2>On your computer</h2>
+      <p>The widget, your prompts, attached files, voice text, and screen shots are handled locally and then sent to the agent you configured, such as Cursor with your own API key. Hooxie's website does not receive the text of your prompts. Project files are not uploaded to the Hooxie site.</p>
+      <h2>What we receive</h2>
+      <ul>
+        <li>The email address you type for billing, which Stripe stores as the customer email.</li>
+        <li>Whether this computer's one-time payment is complete, the payment amount, and the promotional code Stripe redeems. Card numbers go to Stripe, not to Hooxie.</li>
+        <li>Messages you email to support.</li>
+      </ul>
+      <h2>Payments</h2>
+      <p>Stripe processes the one-time payment. Their privacy policy covers card data, receipts, and fraud checks. Hooxie uses that information to know whether this computer is licensed and to apply a promotional code.</p>
+      <h2>What we do not do</h2>
+      <p>We do not sell your data. We share information only with the services we use to run Hooxie, such as Stripe for payment and the agent you choose, and with the service that delivers a support email. We do not share it any further than those services, except when the law requires a disclosure. We do not use your prompts to train a model. We do not put an advertising tracker on this site.</p>
+      <h2>How long</h2>
+      <p>Stripe keeps billing records for as long as their policy and the law require. A support email is kept long enough to answer it and handle a follow-up. You can ask us to delete a support thread.</p>
+      <h2>Contact</h2>
+      <p>Privacy questions: <a href="mailto:support@delexo.store">support@delexo.store</a>.</p>
+    </section>
+    <section class="legal-panel" id="refunds" hidden>
+<h1>Refund policy</h1>
+      <p>Effective 12 October 2026.</p>
+      <h2>The plan</h2>
+      <p>Hooxie is $5.99 once for the computer that bought it. There is no renewal. A refund request does not, by itself, move that license to another device.</p>
+      <h2>14 days</h2>
+      <p>If the $5.99 charge was a mistake, email <a href="mailto:support@delexo.store">support@delexo.store</a> within 14 days of that charge. Include the email on the Stripe receipt. We refund that charge. There is no renewal.</p>
+      <h2>Promotional codes</h2>
+      <p>A promotional code is entered at checkout and applies only as that code allows. It can change the amount due. The 14-day window applies to the amount Stripe actually charged.</p>
+      <h2>How a refund is sent</h2>
+      <p>Refunds go back through Stripe to the original payment method. Stripe's timing applies, often a few days and sometimes longer for the bank.</p>
+    </section>
+    <section class="legal-panel" id="license" hidden>
 <h1>Hooxie License Agreement</h1>
       <p>Effective 15 October 2026. The installer shows this same agreement before setup finishes.</p>
       <div class="doc-summary">
@@ -40,7 +103,7 @@
         </ul>
       </div>
       <p>This Hooxie License Agreement (the "Agreement") is a binding contract between Delexo ("Delexo," "we," "us," or "our") and the person or entity that downloads, installs, pays for, accesses, or uses Hooxie, the hooxie.com website, or related installers, updates, and services (the "Software"). "You" and "your" mean that person or, if you accept for an organization, that organization and the individual who accepts.</p>
-      <p>Hooxie is a Windows desktop product published by Delexo at <a href="https://hooxie.com">https://hooxie.com</a>. Support: <a href="mailto:support@delexo.store">support@delexo.store</a>. The same text is posted at <a href="/license">https://hooxie.com/license</a>.</p>
+      <p>Hooxie is a Windows desktop product published by Delexo at <a href="https://hooxie.com">https://hooxie.com</a>. Support: <a href="mailto:support@delexo.store">support@delexo.store</a>. The same text is posted at <a href="#license">https://hooxie.com/license</a>.</p>
       <p class="doc-caps">READ THIS AGREEMENT. IT LIMITS WARRANTIES, LIMITS OUR LIABILITY, REQUIRES YOU TO COVER CERTAIN CLAIMS AGAINST US, AND SENDS MOST DISPUTES TO INDIVIDUAL ARBITRATION UNLESS YOU OPT OUT IN TIME. IT ALSO SAYS THAT YOU, NOT DELEXO, ARE RESPONSIBLE FOR WHAT A CODING AGENT READS, CHANGES, AND RUNS, AND FOR ANY USE OF A WINDOW THAT IS LEFT OUT OF A SCREEN CAPTURE.</p>
       <p>If you do not agree, do not download, install, buy, or use the Software. If you already installed it, stop using it and uninstall it.</p>
       <div class="doc-toc">
@@ -225,22 +288,22 @@
       <h2 id="s20">20. Price, Tax, and Promotional Codes</h2>
       <p><strong>20.1.</strong> You agree to pay the total shown at checkout. The ordinary total before tax is 5.99 USD for one Computer. A promotional code or a tax can change what Stripe charges. You authorize Stripe to charge the payment method you submit.</p>
       <p><strong>20.2.</strong> You are responsible for sales, use, value-added, goods-and-services, and similar transaction taxes on the purchase, other than taxes on Delexo's net income. Stripe may calculate and collect those taxes. If a taxing authority later assesses a transaction tax that should have been collected from you, you will pay it.</p>
-      <p><strong>20.3.</strong> A promotional code is discretionary. It may be rejected, limited, or withdrawn. It is not cash, it is not transferable, and it may not be bought or sold. A code that reduces the price to zero creates no payment and no refund balance. A code that only reduces the price is subject to the refund window on the amount actually charged.</p>
+      <p><strong>20.3.</strong> A promotional code is discretionary. It may be rejected, limited, or withdrawn. It is not cash, it is not transferable, and it may not be bought or sold. It applies only as that code allows, and it can change the amount due. The refund window applies to the amount Stripe actually charged.</p>
       <p><strong>20.4.</strong> If a charge is reversed, charged back, or determined to be fraudulent, the paid license for that Computer ends immediately. We may refuse further licenses associated with that payment method, email, or Device identifier. You will reimburse reasonable costs we incur from a bad-faith chargeback of a charge that section 21 did not require us to refund.</p>
       <p><strong>20.5.</strong> We may change the price for a future purchase or for a different Computer. A price change does not alter a charge that has already been completed.</p>
       <p><strong>20.6.</strong> The paid license is a single charge. It does not renew. There is no negative-option enrollment, no free trial that converts into a repeating fee, and no automatic charge later. Laws about automatic renewal and negative-option billing, including the Restore Online Shoppers' Confidence Act, 15 U.S.C. sections 8401 through 8405, and California Business and Professions Code section 17600 and following, are met for this product by the absence of any repeating charge. Nothing in this Agreement signs you up for a subscription.</p>
       <p><strong>20.7.</strong> A quote, a screenshot of a price, or a code shared by someone other than Delexo is not a price we are required to honor.</p>
       <h2 id="s21">21. Refunds</h2>
-      <p><strong>21.1.</strong> The refund page at <a href="/refund">https://hooxie.com/refund</a> is part of this Agreement for how refunds work. If this section and that page disagree about timing or amount, that page controls.</p>
+      <p><strong>21.1.</strong> The refund page at <a href="#refunds">https://hooxie.com/refund</a> is part of this Agreement for how refunds work. If this section and that page disagree about timing or amount, that page controls.</p>
       <p><strong>21.2.</strong> If the 5.99 USD charge, or the reduced charge you actually paid, was a mistake, email <a href="mailto:support@delexo.store">support@delexo.store</a> within 14 days of the charge and include the email on the Stripe receipt. We refund the amount Stripe charged, back through Stripe to the original payment method. Your bank and Stripe control how many days the credit takes. We do not control that timing.</p>
       <p><strong>21.3.</strong> A refund does not transfer the license to another Computer. When a refund is issued, the paid license ends and you must stop using the paid features on that Computer.</p>
       <p><strong>21.4.</strong> A mandatory consumer law may give you a longer or broader withdrawal, repair, or refund right. Section 35 preserves those rights. This section does not take away a right that cannot legally be taken away.</p>
       <p><strong>21.5.</strong> Outside section 21.2 and section 35, fees are non-refundable, including where you changed your mind after the window, where a third-party service such as Cursor did not perform as you hoped, or where Capture exclusion did not defeat a particular tool.</p>
       <h2 id="s22">22. Privacy and Data-Protection Laws</h2>
-      <p><strong>22.1.</strong> The privacy policy at <a href="/privacy">https://hooxie.com/privacy</a> is part of this Agreement. If this section and that policy disagree about a privacy practice, the policy controls.</p>
+      <p><strong>22.1.</strong> The privacy policy at <a href="#privacy">https://hooxie.com/privacy</a> is part of this Agreement. If this section and that policy disagree about a privacy practice, the policy controls.</p>
       <p><strong>22.2.</strong> On your Computer, the widget handles prompts, attached files, voice, and screenshots, and can send them to the Agent you configured. The Website does not receive the text of your prompts. Project files are not uploaded to the Hooxie Website as part of ordinary use.</p>
       <p><strong>22.3.</strong> What we receive is limited: the billing email address, whether the one-time payment for this Computer is complete, the amount, a promotional code Stripe redeems, and messages you send to support. Card numbers go to Stripe, not to us.</p>
-      <p><strong>22.4.</strong> We do not sell personal information. We do not share it for cross-context behavioral advertising. We do not place an advertising tracker on the Website for that purpose. We do not use prompts to train a model.</p>
+      <p><strong>22.4.</strong> We do not sell personal information. We share it only with the services we use to provide Hooxie, such as Stripe for payment and the Agent you configure, and with the service that delivers a support message. We do not share it further than those services, except where section 22.15 requires a disclosure. We do not share it for cross-context behavioral advertising. We do not place an advertising tracker on the Website for that purpose. We do not use prompts to train a model.</p>
       <p><strong>22.5.</strong> Where the EU General Data Protection Regulation or the UK GDPR applies, Delexo is controller only of the billing and support information we actually receive. We are not the controller of Input that stays on your Computer or that you send to an Agent. The legal bases for the information we hold are performance of this Agreement, legitimate interests in licensing, fraud prevention, and support, and compliance with legal duties such as tax and accounting. You may request access, correction, erasure, restriction, or portability, and you may object to processing based on legitimate interests, by emailing <a href="mailto:support@delexo.store">support@delexo.store</a>. You may lodge a complaint with a supervisory authority. You may withdraw consent where processing is based on consent, without affecting processing that already happened lawfully.</p>
       <p><strong>22.6.</strong> Stripe may process payment data in the United States and in other countries under Stripe's terms and its own transfer tools. Prompts are not part of a transfer to us, because we do not receive them.</p>
       <p><strong>22.7.</strong> Where the California Consumer Privacy Act, as amended by the California Privacy Rights Act, applies, the categories we collect are identifiers (an email address), commercial information (amount, promotional code, and whether the Computer is licensed), and the contents of support messages you choose to send. Sources are you and Stripe. Purposes are providing the license, receipts, fraud prevention, refunds, and support. We do not sell or "share" personal information as those words are defined in that law. We do not use or disclose sensitive personal information for purposes that give you a right to limit use beyond what we already avoid. You may request to know, delete, or correct by emailing <a href="mailto:support@delexo.store">support@delexo.store</a>. We will verify using the purchase email. We will not discriminate against you for exercising those rights. You may use an authorized agent if you provide the proof that law requires.</p>
@@ -340,7 +403,7 @@
       <h2 id="s38">38. Governing Law and Courts</h2>
       <p><strong>38.1.</strong> Except where section 35 or section 37 requires something else, this Agreement is governed by the laws of the State of Delaware and by the federal laws of the United States that apply, without regard to conflict-of-law rules that would choose another place's law. The Federal Arbitration Act preempts state law to the extent it applies to section 37. The United Nations Convention on Contracts for the International Sale of Goods does not apply.</p>
       <p><strong>38.2.</strong> Subject to section 37, the state and federal courts located in the State of Delaware are the exclusive venue for a court proceeding arising out of this Agreement, and each party consents to personal jurisdiction and venue there. A consumer may instead sue in the courts of the consumer's place of residence where a mandatory consumer law requires that option. Delexo may seek relief under section 32 in any court that has jurisdiction over the defendant.</p>
-      <p><strong>38.3.</strong> If we post a different home-jurisdiction sentence on <a href="/license">https://hooxie.com/license</a>, that sentence replaces section 38.1 and section 38.2 for acceptances after the post's effective date. It does not change the Federal Arbitration Act's role in section 37.</p>
+      <p><strong>38.3.</strong> If we post a different home-jurisdiction sentence on <a href="#license">https://hooxie.com/license</a>, that sentence replaces section 38.1 and section 38.2 for acceptances after the post's effective date. It does not change the Federal Arbitration Act's role in section 37.</p>
       <h2 id="s39">39. How Long You Have to Bring a Claim</h2>
       <p>To the maximum extent permitted by law, a claim arising out of this Agreement or the Software must be filed within one year after it accrued, or it is permanently barred. A mandatory consumer statute that requires a longer period controls for a consumer to the extent it must. This section does not shorten a period the law says cannot be shortened, including a period for a claim of fraud that the law protects.</p>
       <h2 id="s40">40. When the License Ends</h2>
@@ -348,13 +411,13 @@
       <p><strong>40.2.</strong> We may suspend or end the license if you materially breach this Agreement, if a payment is reversed, or if the law requires us to stop. If the breach can be cured and it is not one of the kinds listed in the next sentence, we will email the purchase address and give you 10 days to cure. We may end the license immediately, without a cure period, if the breach is willful, if it involves fraud or a chargeback, if it bypasses or attacks the license check, if it exposes us or another person to legal risk that a cure period would make worse, or if we are required by law to stop at once.</p>
       <p><strong>40.3.</strong> When the license ends, your right to run the Software stops, and you will delete copies in your possession or control, except a copy you must keep to comply with a legal record-keeping duty. The end of the license does not entitle you to a refund except under section 21 or section 35. Sections that by their nature should continue remain in force, including sections 6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 22, 28, 29, 30, 31, 32, 33, 37, 38, 39, 42, and 43.</p>
       <h2 id="s41">41. Changes to This Agreement</h2>
-      <p><strong>41.1.</strong> We may update this Agreement by posting a new version at <a href="/license">https://hooxie.com/license</a> with a new effective date. If you already have a paid license and the change is material, the new version will say that it is a change, and the page will show the effective date before it applies.</p>
+      <p><strong>41.1.</strong> We may update this Agreement by posting a new version at <a href="#license">https://hooxie.com/license</a> with a new effective date. If you already have a paid license and the change is material, the new version will say that it is a change, and the page will show the effective date before it applies.</p>
       <p><strong>41.2.</strong> If you do not agree to a material change, stop using the Software before the new effective date and email <a href="mailto:support@delexo.store">support@delexo.store</a> with the subject "Reject agreement update" and the purchase email. We will treat that as the end of the license under section 40.1. If a mandatory law gives you an additional right to reject a change, that right also applies. Continued use after the effective date is acceptance of the new version.</p>
       <p><strong>41.3.</strong> A change does not rewrite a charge that was already completed, except where the law requires. The version you accepted at install continues to cover that installed copy until you accept a later version by continued use or by a new install.</p>
       <h2 id="s42">42. Assignment</h2>
       <p>You may not assign or transfer this Agreement or a paid license, including by operation of law, without our prior written consent, except that a company you control may use the licensed Computer in the ordinary way section 6 already allows. Any other attempt to transfer a license, including selling a used Computer with the paid features held out as transferable, does not transfer the license unless we consent. We may assign this Agreement to an affiliate or to a successor of the business that publishes Hooxie. This Agreement binds permitted successors.</p>
       <h2 id="s43">43. General</h2>
-      <p><strong>43.1.</strong> Entire agreement. This Agreement, the privacy policy, the refund policy, and the terms of service at <a href="/terms">https://hooxie.com/terms</a> are the whole agreement between you and Delexo about the Software. They replace earlier oral and written statements on that subject, including statements in a demo, a chat, or an advertisement. If the terms of service conflict with this Agreement, this Agreement controls. If the privacy policy conflicts on a privacy practice, the privacy policy controls. If the refund policy conflicts on the timing or amount of a refund, the refund policy controls.</p>
+      <p><strong>43.1.</strong> Entire agreement. This Agreement, the privacy policy, the refund policy, and the terms of service at <a href="#terms">https://hooxie.com/terms</a> are the whole agreement between you and Delexo about the Software. They replace earlier oral and written statements on that subject, including statements in a demo, a chat, or an advertisement. If the terms of service conflict with this Agreement, this Agreement controls. If the privacy policy conflicts on a privacy practice, the privacy policy controls. If the refund policy conflicts on the timing or amount of a refund, the refund policy controls.</p>
       <p><strong>43.2.</strong> Earlier attribution license. Before the effective date of this Agreement, some copies of the source were offered under the Delexo Attribution License, a permissive license that allowed broad use if Delexo received visible credit. If you already received a copy under that license, that license continues to govern that copy. It does not govern a later version, an installer, the Website, or a paid license obtained under this Agreement, and it does not permit a bypass of the license check on a build that this Agreement covers. This Agreement does not try to revoke a permission that earlier license already gave for a copy already received under it.</p>
       <p><strong>43.3.</strong> Severability. If a provision is held unenforceable, a court or arbitrator will modify it to the smallest extent that makes it enforceable, or will sever it if modification is not possible. The rest of the Agreement stays in effect. Section 37 contains its own rule for the class waiver.</p>
       <p><strong>43.4.</strong> No waiver. A failure or a delay in enforcing a provision is not a waiver. A waiver must be specific and in writing to bind the party giving it. A waiver on one occasion is not a waiver on the next.</p>
@@ -376,20 +439,72 @@ Email: <a href="mailto:support@delexo.store">support@delexo.store</a></p>
       <p>Copyright (c) 2026 Delexo. All rights reserved.</p>
       <h2 id="s47">47. You Have Read This</h2>
       <p class="doc-caps">BY INSTALLING, PAYING FOR, OR USING HOOXIE, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS AGREEMENT, THAT YOU UNDERSTAND THE DISCLAIMER OF WARRANTIES IN SECTION 28, THE LIMIT OF LIABILITY IN SECTION 29, THE RELEASE IN SECTION 30, THE INDEMNITY IN SECTION 31, THE LIMITS ON CAPTURE EXCLUSION IN SECTION 16, AND THE ARBITRATION AGREEMENT AND CLASS WAIVER IN SECTION 37, AND THAT YOU ACCEPT THEM. YOU ALSO ACKNOWLEDGE THAT YOU CAN OPT OUT OF ARBITRATION UNDER SECTION 37.6 WITHIN 30 DAYS, AND THAT YOU HAVE THE CONSUMER RIGHTS SECTION 35 PRESERVES.</p>
+    </section>
   </main>
   <footer>
-    <p>
-      <a href="/help">Help</a>
-      <a href="/contact">Contact</a>
-      <a href="/releases">Releases</a>
-      <a href="/ides">IDEs</a>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/refund">Refunds</a>
-      <a href="/license">License</a>
-    </p>
-    <p>A Delexo product. Credit @delexo if you show or remix it.</p>
+    <nav class="footer-product" aria-label="Product">
+      <p>Product</p>
+      <div class="footer-links">
+        <a href="/#download">Download</a>
+        <a href="/help">Help</a>
+        <a href="/docs">Documentation</a>
+        <a href="/ides">IDEs</a>
+        <a href="/releases">Releases</a>
+        <a href="/contact">Contact</a>
+        <a href="/legal">Legal</a>
+      </div>
+    </nav>
+    <p class="fine">A Delexo product. Credit @delexo if you show or remix it.</p>
   </footer>
   <script src="/menu.js"></script>
+  <script>
+    const tabs = [...document.querySelectorAll("[data-legal]")];
+    const panels = [...document.querySelectorAll(".legal-panel")];
+    const switchEl = document.querySelector(".legal-switch");
+    const ids = ["terms", "privacy", "refunds", "license"];
+    const alias = { refund: "refunds" };
+    const show = (id, animate) => {
+      const next = ids.includes(id) ? id : "terms";
+      const current = panels.find((panel) => !panel.hidden);
+      switchEl.style.setProperty("--legal-i", String(ids.indexOf(next)));
+      if (!switchEl.classList.contains("is-ready")) {
+        requestAnimationFrame(() => switchEl.classList.add("is-ready"));
+      }
+      for (const tab of tabs) tab.setAttribute("aria-selected", String(tab.dataset.legal === next));
+      if (animate && current && current.id === next) return;
+      for (const panel of panels) {
+        panel.hidden = panel.id !== next;
+        panel.classList.remove("is-in");
+      }
+      if (animate) {
+        const panel = document.getElementById(next);
+        void panel.offsetWidth;
+        panel.classList.add("is-in");
+      }
+      if (location.hash !== "#" + next) history.replaceState(null, "", "#" + next);
+    };
+    for (const tab of tabs) tab.addEventListener("click", () => {
+      show(tab.dataset.legal, true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    document.addEventListener("click", (event) => {
+      const link = event.target.closest("a[href^='#']");
+      if (!link) return;
+      const id = alias[link.getAttribute("href").slice(1)] || link.getAttribute("href").slice(1);
+      if (!ids.includes(id)) return;
+      event.preventDefault();
+      show(id, true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    let opened = false;
+    const fromLocation = () => {
+      const query = new URLSearchParams(location.search).get("doc") || "";
+      const hash = location.hash.slice(1);
+      show(alias[hash] || alias[query] || hash || query || "terms", opened);
+      opened = true;
+    };
+    fromLocation();
+    window.addEventListener("hashchange", fromLocation);
+  </script>
 </body>
 </html>

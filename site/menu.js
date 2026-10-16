@@ -7,7 +7,7 @@ if (header && button && menu) {
     button.setAttribute("aria-expanded", String(open));
     header.classList.toggle("is-open", open);
     document.documentElement.classList.toggle("menu-open", open);
-    button.querySelector(".sr").textContent = open ? "Close" : "Menu";
+    button.querySelector(".menu-label").textContent = open ? "Close" : "Menu";
   };
 
   button.addEventListener("click", () => {
@@ -21,8 +21,4 @@ if (header && button && menu) {
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") setOpen(false);
   });
-
-  const onScroll = () => header.classList.toggle("is-solid", window.scrollY > 12);
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
 }

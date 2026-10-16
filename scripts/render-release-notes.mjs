@@ -27,7 +27,7 @@ const end = "<!-- /brain:notes -->";
 if (!html.includes(start) || !html.includes(end)) {
   throw new Error("site/releases.html is missing the brain note markers.");
 }
-const notes = releases.updates.map(renderUpdate).join("\n");
+const notes = releases.updates.map((update, index) => renderUpdate(update, index)).join("\n");
 const next = html.replace(
   new RegExp(`${escapeRegExp(start)}[\\s\\S]*${escapeRegExp(end)}`),
   `${start}\n${notes}\n      ${end}`,
@@ -35,14 +35,22 @@ const next = html.replace(
 fs.writeFileSync(page, next);
 console.log(`Release notes rendered for ${releases.updates.map((update) => update.version).join(", ")}.`);
 
-function renderUpdate(update) {
-  const heading = `${update.version} · ${formatDate(update.date)}`;
-  const sections = update.sections.map((section) => `        <h3>${escapeHtml(section.heading)}</h3>\n${list(section.notes, 8)}`).join("\n");
-  return `      <section id="v${escapeHtml(update.version)}">
-        <h2>${escapeHtml(heading)}</h2>
-        <p><a href="${escapeHtml(update.url)}">GitHub release ${escapeHtml(update.tag)}</a></p>
+function renderUpdate(update, index) {
+  const latest = index === 0 ? `            <span class="release-latest">Latest</span>\n` : "";
+  const sections = update.sections.map((section) => `            <h3>${escapeHtml(section.heading)}</h3>\n${list(section.notes, 12)}`).join("\n");
+  return `      <article class="release" id="v${escapeHtml(update.version)}">
+        <div class="release-mark" aria-hidden="true"></div>
+        <div class="release-body">
+          <header class="release-meta">
+            <a class="release-tag" href="${escapeHtml(update.url)}">${escapeHtml(update.tag)}</a>
+${latest}            <time datetime="${escapeHtml(update.date)}">${escapeHtml(formatDate(update.date))}</time>
+          </header>
+          <div class="release-card">
+            <h2>${escapeHtml(update.title)}</h2>
 ${sections}
-      </section>`;
+          </div>
+        </div>
+      </article>`;
 }
 
 function list(notes, indent) {
@@ -54,7 +62,7 @@ function formatDate(iso) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!match) throw new Error(`Bad release date: ${iso}`);
   return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
-    .toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    .toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 }
 
 function escapeHtml(value) {

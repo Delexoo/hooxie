@@ -115,6 +115,8 @@ let voiceCueOpen = false;
 let voiceCueTimer = 0;
 let voiceWakeAt = 0;
 let chimeId = "blushing";
+let openSound = "notification";
+let closeSound = "pluck-off";
 let chimeAudio = null;
 let arrowsApplied = null;
 let dragDepth = 0;
@@ -301,12 +303,16 @@ dashboardToggle.addEventListener("click", () => {
     });
 });
 document.querySelector("#more-open-ide").addEventListener("click", openIde);
+document.querySelector("#more-change-ide").addEventListener("click", () => {
+  showChangeIde().catch((error) => showNotice(error.message));
+});
 document.querySelector("#more-hide").addEventListener("click", hideHooxie);
 document.querySelector("#more-clear").addEventListener("click", clearChat);
 document.querySelector("#chat-clear").addEventListener("click", clearChat);
 document.querySelector("#chat-copy").addEventListener("click", () => { copyReply().catch(() => undefined); });
 document.querySelector("#chat-again").addEventListener("click", () => { if (lastPrompt && !busy) submit(true); });
 document.querySelector("#more-move").addEventListener("click", moveHooxie);
+document.querySelector("#more-home").addEventListener("click", recenterHooxie);
 document.querySelector("#more-ghost").addEventListener("click", toggleUndetectable);
 document.querySelector("#more-exit").addEventListener("click", exitHooxie);
 const ESC_HOLD_MS = 750;
@@ -781,7 +787,9 @@ async function purchaseLicense() {
 }
 
 function renderSetupIdes(ides, connectedIde, more = []) {
-  const list = document.querySelector("#setup-ides");
+  const select = document.querySelector("#setup-ide");
+  const note = document.querySelector("#setup-ide-note");
+  if (!select) return;
   const rows = [
     ...ides.map((ide) => ({
       id: ide.ide,
@@ -796,80 +804,60 @@ function renderSetupIdes(ides, connectedIde, more = []) {
       connected: false,
     })),
   ];
-  list.replaceChildren(...rows.map((ide) => setupIdeRow(ide)));
+  select.replaceChildren();
+  const blank = document.createElement("option");
+  blank.value = "";
+  blank.textContent = "Choose an IDE";
+  select.append(blank);
+  for (const ide of rows) {
+    const option = document.createElement("option");
+    option.value = ide.id;
+    option.dataset.installed = ide.installed || ide.connected ? "true" : "false";
+    option.textContent = ide.installed || ide.connected ? ide.label : `${ide.label} · download`;
+    select.append(option);
+  }
+  select.value = rows.some((ide) => ide.id === connectedIde) ? connectedIde : "";
+  if (!note) return;
+  const chosen = rows.find((ide) => ide.id === select.value);
+  note.textContent = !chosen
+    ? "The widget uses the IDE you pick."
+    : "The widget uses this IDE.";
 }
 
-function setupIdeRow(ide) {
-  const row = document.createElement("div");
-  row.className = ide.connected ? "setup-ide is-connected" : "setup-ide";
-  row.dataset.ide = ide.id;
-  const copy = document.createElement("div");
-  copy.className = "setup-ide-copy";
-  const name = document.createElement("strong");
-  name.textContent = ide.label;
-  const detail = document.createElement("span");
-  detail.className = "setup-ide-state";
-  detail.textContent = ide.connected ? "In use" : ide.installed ? "Installed" : "Not installed";
-  copy.append(name, detail);
-  const side = document.createElement("div");
-  side.className = "setup-ide-side";
-  const download = document.createElement("button");
-  download.type = "button";
-  download.className = "setup-ide-download";
-  download.textContent = "Download";
-  download.setAttribute("aria-label", `Download ${ide.label}`);
-  download.addEventListener("click", () => {
-    openIdeDownload(ide.id).catch((error) => {
-      detail.textContent = error.message;
-    });
+document.querySelector("#setup-ide")?.addEventListener("change", (event) => {
+  const select = event.currentTarget;
+  const ide = select.value;
+  const installed = select.selectedOptions[0]?.dataset.installed === "true";
+  const previous = setupReport?.connectedIde || "";
+  if (!ide) {
+    if (previous) disconnectIde(previous).catch((error) => showNotice(error.message));
+    return;
+  }
+  if (!installed) {
+    const note = document.querySelector("#setup-ide-note");
+    if (note) note.textContent = "Opening the download. The widget stays on the IDE that is already connected.";
+    select.value = previous;
+    openIdeDownload(ide).catch((error) => showNotice(error.message));
+    return;
+  }
+  connectIde(ide).catch((error) => {
+    const note = document.querySelector("#setup-ide-note");
+    if (note) note.textContent = error.message;
+    select.value = previous;
   });
-  const toggle = document.createElement("label");
-  toggle.className = "switch setup-ide-switch";
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.role = "switch";
-  input.checked = ide.connected;
-  input.disabled = !ide.installed && !ide.connected;
-  input.setAttribute("aria-label", `Use ${ide.label}`);
-  const track = document.createElement("span");
-  track.className = "switch-track";
-  track.setAttribute("aria-hidden", "true");
-  toggle.append(input, track);
-  input.addEventListener("change", () => {
-    const turnOn = input.checked;
-    input.disabled = true;
-    const action = turnOn ? connectIde(ide.id) : disconnectIde(ide.id);
-    action.catch((error) => {
-      detail.textContent = error.message;
-      refreshSetup().catch(() => undefined);
-    });
-  });
-  side.append(download, toggle);
-  row.append(copy, side);
-  return row;
-}
+});
 
 function markConnected(ide) {
-  for (const row of document.querySelectorAll(".setup-ide")) {
-    const on = row.dataset.ide === ide;
-    row.classList.toggle("is-connected", on);
-    const input = row.querySelector(".setup-ide-switch input");
-    if (input) input.checked = on;
-    const detail = row.querySelector(".setup-ide-state");
-    if (!detail) continue;
-    if (on) detail.textContent = "In use";
-    else if (detail.textContent === "In use" || detail.textContent === "Connected") detail.textContent = "Installed";
-  }
+  const select = document.querySelector("#setup-ide");
+  if (select && [...select.options].some((option) => option.value === ide)) select.value = ide;
+  const note = document.querySelector("#setup-ide-note");
+  if (note && ide) note.textContent = "The widget uses this IDE.";
 }
 
 async function disconnectIde(ide) {
   await api("/api/ide/disconnect", { method: "POST", body: JSON.stringify({ ide }) });
-  const row = document.querySelector(`.setup-ide[data-ide="${ide}"]`);
-  row?.classList.remove("is-connected");
-  const input = row?.querySelector(".setup-ide-switch input");
-  if (input) input.checked = false;
-  const detail = row?.querySelector(".setup-ide-state");
-  if (detail && (detail.textContent === "In use" || detail.textContent === "Connected")) detail.textContent = "Installed";
+  const select = document.querySelector("#setup-ide");
+  if (select && select.value === ide) select.value = "";
   await refreshSetup();
 }
 
@@ -914,6 +902,8 @@ function queueSettings(partial) {
       audioEnabled = result.audio !== false;
       voiceActivation = result.voiceActivation === true;
       if (typeof result.chime === "string") chimeId = result.chime;
+      if (typeof result.openSound === "string") openSound = result.openSound;
+      if (typeof result.closeSound === "string") closeSound = result.closeSound;
     } catch {
       /* The page also loads in a normal browser tab. */
     }
@@ -933,6 +923,8 @@ function applyRemoteSettings(body) {
   audioEnabled = nextAudio;
   voiceActivation = nextVoice;
   if (typeof body.chime === "string") chimeId = body.chime;
+  if (typeof body.openSound === "string") openSound = body.openSound;
+  if (typeof body.closeSound === "string") closeSound = body.closeSound;
   applyArrows(body.arrows === true);
   applyLook(false);
   renderUndetectable(body.detectable === false);
@@ -1194,9 +1186,91 @@ function renderRoute() {
 
 function paintOpenIde() {
   const note = document.querySelector("#more-open-ide-note");
-  if (!note) return;
-  const name = ideLabel();
-  note.textContent = projectEl.value.trim() ? `Open this project in ${name}` : `Open ${name}`;
+  const change = document.querySelector("#more-change-ide-note");
+  const name = connectedIdeLabel();
+  if (note) note.textContent = projectEl.value.trim() ? `Open this project in ${name}` : `Open ${name}`;
+  if (change) change.textContent = name ? `Now using ${name}` : "Switch the IDE this widget uses";
+}
+
+function connectedIdeLabel() {
+  const connected = setupReport?.connectedIde;
+  const match = setupReport?.ides?.find((ide) => ide.ide === connected);
+  if (match?.label) return match.label;
+  const selected = ideEl.selectedOptions[0]?.textContent?.trim();
+  return selected || "";
+}
+
+async function showChangeIde() {
+  const list = document.querySelector("#more-ides");
+  const button = document.querySelector("#more-change-ide");
+  if (!list || !button) return;
+  if (!list.hidden) {
+    collapseChangeIde();
+    scheduleFit();
+    return;
+  }
+  if (!setupReport?.ides) {
+    setupReport = await api("/api/setup");
+  }
+  renderMoreIdes(setupReport.ides || [], setupReport.connectedIde || "", setupReport.more || []);
+  list.hidden = false;
+  button.setAttribute("aria-expanded", "true");
+  scheduleFit();
+}
+
+function collapseChangeIde() {
+  const list = document.querySelector("#more-ides");
+  const button = document.querySelector("#more-change-ide");
+  if (list) list.hidden = true;
+  if (button) button.setAttribute("aria-expanded", "false");
+}
+
+function renderMoreIdes(ides, connectedIde, more) {
+  const list = document.querySelector("#more-ides");
+  if (!list) return;
+  const rows = [
+    ...ides.map((ide) => ({
+      id: ide.ide,
+      label: ide.label,
+      installed: ide.installed === true || ide.ide === connectedIde,
+    })),
+    ...more.map((ide) => ({ id: ide.id, label: ide.label, installed: false })),
+  ];
+  list.replaceChildren(...rows.map((ide) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "more-ide";
+    if (ide.id === connectedIde) button.setAttribute("aria-current", "true");
+    const copy = document.createElement("span");
+    copy.className = "more-copy";
+    const name = document.createElement("strong");
+    name.textContent = ide.label;
+    const detail = document.createElement("span");
+    detail.textContent = ide.id === connectedIde ? "In use" : ide.installed ? "Switch to this IDE" : "Download";
+    copy.append(name, detail);
+    button.append(copy);
+    button.addEventListener("click", () => {
+      chooseMoreIde(ide).catch((error) => showNotice(error.message));
+    });
+    return button;
+  }));
+}
+
+async function chooseMoreIde(ide) {
+  if (ide.id && ide.id === setupReport?.connectedIde) {
+    collapseChangeIde();
+    scheduleFit();
+    return;
+  }
+  if (!ide.installed) {
+    const note = document.querySelector("#more-change-ide-note");
+    if (note) note.textContent = "Opening the download. The widget stays on the current IDE.";
+    await openIdeDownload(ide.id);
+    return;
+  }
+  await connectIde(ide.id);
+  paintOpenIde();
+  closeMore();
 }
 
 function listedFiles() {
@@ -2240,6 +2314,7 @@ async function browseFolder() {
 function closeMore() {
   const menu = document.querySelector("#more-menu");
   if (menu.hidden) return;
+  collapseChangeIde();
   menu.hidden = true;
   document.querySelector("#more").setAttribute("aria-expanded", "false");
   scheduleFit();
@@ -2335,6 +2410,15 @@ async function moveHooxie() {
   }
 }
 
+async function recenterHooxie() {
+  closeMore();
+  try {
+    await api("/api/widget/home", { method: "POST", body: "{}" });
+  } catch (error) {
+    detailEl.textContent = error.message;
+  }
+}
+
 async function toggleUndetectable() {
   const next = document.querySelector("#more-ghost").getAttribute("aria-pressed") !== "true";
   try {
@@ -2352,6 +2436,7 @@ function togglePanel(next) {
 function showOnly(which) {
   const menu = document.querySelector("#more-menu");
   const viewer = document.querySelector("#viewer");
+  if (which !== "more") collapseChangeIde();
   menu.hidden = which !== "more";
   document.querySelector("#more").setAttribute("aria-expanded", String(which === "more"));
   if (which !== "viewer") {
@@ -2746,11 +2831,14 @@ async function playThroughWidget(body) {
 }
 
 function playChatSound(kind) {
-  const file = CHIME_FILES[CHAT_SOUNDS[kind]];
-  if (!file) return null;
+  const id = kind === "close" ? closeSound : openSound;
+  if (!id || id === "off") return null;
+  const file = id === "custom" ? "" : CHIME_FILES[id];
+  if (id !== "custom" && !file) return null;
   const token = ++chatPlayToken;
-  playThroughWidget({ file }).then((played) => {
-    if (played || token !== chatPlayToken) return;
+  const body = id === "custom" ? { custom: true } : { file };
+  playThroughWidget(body).then((played) => {
+    if (played || token !== chatPlayToken || !file) return;
     startChatSoundFallback(file, token);
   });
   return null;

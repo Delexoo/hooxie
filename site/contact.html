@@ -4,24 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Contact · Hooxie</title>
-  <link rel="icon" href="/favicon.ico?v=3" sizes="any">
-  <link rel="icon" href="/icon.png?v=3" type="image/png">
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
   <header>
-    <a class="brand" href="/">Hooxie</a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+    <a class="home-btn" href="/" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-5v-6.2H10V21H5a1 1 0 0 1-1-1z"/></svg></a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span class="menu-label">Menu</span>
       <span class="menu-bars" aria-hidden="true"></span>
-      <span class="sr">Menu</span>
     </button>
     <nav class="menu-screen" id="site-menu" aria-label="Pages">
       <a href="/#download">Download</a>
       <a href="/#features">Features</a>
       <a href="/#faq">FAQ</a>
       <a href="/help">Help</a>
+      <a href="/docs">Docs</a>
+      <a href="/legal">Legal</a>
       <a href="/ides">IDEs</a>
-      <a href="/dashboard">Dashboard</a>
     </nav>
   </header>
   <main>
@@ -35,17 +36,19 @@
     </form>
   </main>
   <footer>
-    <p>
-      <a href="/help">Help</a>
-      <a href="/contact">Contact</a>
-      <a href="/releases">Releases</a>
-      <a href="/ides">IDEs</a>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/refund">Refunds</a>
-      <a href="/license">License</a>
-    </p>
-    <p>A Delexo product. Credit @delexo if you show or remix it.</p>
+    <nav class="footer-product" aria-label="Product">
+      <p>Product</p>
+      <div class="footer-links">
+        <a href="/#download">Download</a>
+        <a href="/help">Help</a>
+        <a href="/docs">Documentation</a>
+        <a href="/ides">IDEs</a>
+        <a href="/releases">Releases</a>
+        <a href="/contact">Contact</a>
+        <a href="/legal">Legal</a>
+      </div>
+    </nav>
+    <p class="fine">A Delexo product. Credit @delexo if you show or remix it.</p>
   </footer>
   <script>
     document.querySelector("#contact-form").addEventListener("submit", (event) => {

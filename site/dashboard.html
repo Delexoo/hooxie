@@ -6,8 +6,8 @@
   <meta name="z-token" content="">
   <meta name="hooxie-local" content="0">
   <title>Dashboard · Hooxie</title>
-  <link rel="icon" href="/favicon.ico?v=3" sizes="any">
-  <link rel="icon" href="/icon.png?v=3" type="image/png">
+  <link rel="icon" href="/favicon.ico?v=4" sizes="any">
+  <link rel="icon" href="/icon.png?v=4" type="image/png">
   <link rel="stylesheet" href="/dash.css">
 </head>
 <body data-page="dashboard">
@@ -16,33 +16,22 @@
     <nav class="side" aria-label="Dashboard">
       <div class="side-top">
         <p class="brand">Hooxie</p>
-        <button id="side-search" type="button" aria-label="Search" aria-expanded="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.25"/><path d="m16 16 4 4"/></svg>
-        </button>
         <button id="side-collapse" type="button" aria-label="Collapse sidebar" aria-expanded="true">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14"/></svg>
         </button>
       </div>
-      <input id="side-filter" type="search" placeholder="Search" aria-label="Search the dashboard" hidden>
+      <div class="side-nav">
       <button type="button" data-open="general" title="General">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16"/><path d="M4 16h16"/><circle cx="9" cy="8" r="2.1"/><circle cx="15" cy="16" r="2.1"/></svg>
         <span data-i18n="nav.general">General</span>
       </button>
-      <button type="button" data-open="onboarding" title="Onboarding">
+      <button type="button" data-open="ide" title="IDE">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5v15"/><path d="M6 5.5h11l-2.2 3.3L17 12H6"/></svg>
-        <span data-i18n="nav.onboarding">Onboarding</span>
-      </button>
-      <button type="button" data-open="widget" title="Widget">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="8" width="17" height="8" rx="4"/></svg>
-        <span data-i18n="nav.widget">Widget</span>
+        <span data-i18n="nav.onboarding">IDE</span>
       </button>
       <button type="button" data-open="keybinds" title="Keybinds">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M12 10h.01M17 10h.01M8.5 14h7"/></svg>
         <span data-i18n="nav.keybinds">Keybinds</span>
-      </button>
-      <button type="button" data-open="profile" title="Profile">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3"/><path d="M6.2 19.2c1.1-2.3 3-3.4 5.8-3.4s4.7 1.1 5.8 3.4"/></svg>
-        <span data-i18n="nav.profile">Profile</span>
       </button>
       <button type="button" data-open="language" title="Language">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2 2.3 3 5 3 8s-1 5.7-3 8c-2-2.3-3-5-3-8s1-5.7 3-8z"/></svg>
@@ -52,7 +41,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
         <span data-i18n="nav.billing">Billing</span>
       </button>
-      <p class="side-label">Support</p>
+      <p class="side-label" data-i18n="nav.support">Support</p>
       <button type="button" data-open="releases" data-group="support" title="Release notes">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h6.8L18 8.7V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V6A1.5 1.5 0 0 1 7.5 4.5z"/><path d="M13.5 4.8V9H17.6"/></svg>
         <span data-i18n="nav.releases">Release notes</span>
@@ -65,9 +54,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m5 8 7 5 7-5"/></svg>
         <span data-i18n="nav.contact">Contact support</span>
       </button>
+      </div>
       <button id="toggle-hooxie" class="pin" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14.5H7.2A1.7 1.7 0 0 1 5.5 12.8V7.2A1.7 1.7 0 0 1 7.2 5.5h5.6A1.7 1.7 0 0 1 14.5 7.2V10"/><path d="M13 11.2 19 5.2"/><path d="M14.2 5.2H19v4.8"/></svg>
-        <span>Toggle Hooxie</span>
+        <span data-i18n="nav.toggle">Toggle Hooxie</span>
       </button>
     </nav>
     <main class="main">
@@ -75,7 +65,7 @@
       <section data-section="general">
         <h1 data-i18n="general.title">General</h1>
         <p class="note" data-i18n="general.intro">Hooxie version, whether a screen share can see the widget, the color theme, and the microphone.</p>
-        <p class="note">Hooxie sends prompts through an IDE installed on this computer. If none is installed, the widget links to the <a href="/ides">IDE downloads</a>. After it finds the app and you connect it, the rest of the widget opens. A Cursor account still needs an available plan. Hooxie Pro does not replace that plan.</p>
+        <p class="note">Hooxie sends prompts through an IDE installed on this computer. Choose it in IDE. If it is not installed, that choice opens its download. After it is connected, the rest of the widget opens. A Cursor account still needs an available plan. Hooxie Pro does not replace that plan.</p>
         <div class="rows">
           <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.0</span></div>
           <div class="row">
@@ -83,21 +73,21 @@
             <label class="switch"><input id="detectable" type="checkbox" checked><i></i></label>
           </div>
           <div class="row">
-            <div><strong>Session</strong><span>Ctrl+Shift+\ starts or stops a Cluely session. A session hides Hooxie from capture.</span></div>
+            <div><strong>Session</strong><span>Ctrl+Shift+\ starts or stops a session. A session hides Hooxie from capture.</span></div>
             <span id="session-state">Stopped</span>
           </div>
           <div class="row">
             <div><strong>Dashboard</strong><span>Light or dark for this window. White stays the primary color.</span></div>
             <div class="modes" role="radiogroup" aria-label="Dashboard appearance">
-              <button type="button" data-dashboard-mode="light" aria-checked="true">Light</button>
-              <button type="button" data-dashboard-mode="dark" aria-checked="false">Dark</button>
+              <button type="button" data-dashboard-mode="light" data-i18n="mode.light" aria-checked="true">Light</button>
+              <button type="button" data-dashboard-mode="dark" data-i18n="mode.dark" aria-checked="false">Dark</button>
             </div>
           </div>
           <div class="row">
             <div><strong>Widget</strong><span>Light or dark for the pill. White stays the primary color.</span></div>
             <div class="modes" role="radiogroup" aria-label="Widget appearance">
-              <button type="button" data-widget-mode="light" aria-checked="false">Light</button>
-              <button type="button" data-widget-mode="dark" aria-checked="true">Dark</button>
+              <button type="button" data-widget-mode="light" data-i18n="mode.light" aria-checked="false">Light</button>
+              <button type="button" data-widget-mode="dark" data-i18n="mode.dark" aria-checked="true">Dark</button>
             </div>
           </div>
           <div class="row">
@@ -119,7 +109,7 @@
             </select>
           </div>
           <div class="row">
-            <div><strong>Speaker</strong><span>Done sounds and widget sounds play on this device.</span></div>
+            <div><strong>Speaker</strong><span>Opening, closing, and done sounds play on this device.</span></div>
             <select id="output-device" class="device-select" aria-label="Speaker">
               <option value="">Windows default</option>
             </select>
@@ -138,59 +128,56 @@
             <label class="switch"><input id="arrows" type="checkbox"><i></i></label>
           </div>
         </div>
-        <div class="chime-block">
-          <strong>Done sound</strong>
-          <p class="note">Plays when the agent finishes thinking. Preview a sound, choose one, upload your own, or turn it off.</p>
-          <div id="chime-list" class="chime-list"></div>
+        <div class="sound-board" id="sound-board">
+          <section data-sound="open">
+            <h2>Opening</h2>
+            <p class="note">Plays when the typing outline appears.</p>
+            <div class="sound-list"></div>
+          </section>
+          <section data-sound="close">
+            <h2>Closing</h2>
+            <p class="note">Plays when the typing outline turns off.</p>
+            <div class="sound-list"></div>
+          </section>
+          <section data-sound="done">
+            <h2>Done</h2>
+            <p class="note">Plays when the agent finishes.</p>
+            <div class="sound-list"></div>
+          </section>
           <div class="field">
             <input id="chime-file" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.webm" hidden>
-            <button class="btn" id="chime-upload" type="button">Upload a sound</button>
+            <button class="btn" id="chime-upload" type="button" data-i18n="general.upload">Upload a sound</button>
           </div>
           <p id="chime-note" class="note"></p>
         </div>
       </section>
-      <section data-section="onboarding" hidden>
-        <h1>Onboarding</h1>
-        <p class="note">Go back to the start. Connect an IDE, then buy Hooxie once for this computer. A license file from another device does not unlock this one.</p>
-        <div class="rows">
-          <div class="row">
-            <div><strong>Download</strong><span>Opens the IDE list. It turns off after an IDE is found on this computer.</span></div>
-          </div>
-          <div class="row">
-            <div><strong>Connect</strong><span>Turns on when Hooxie finds an IDE. The connected IDE gets a green hint.</span></div>
-          </div>
-        </div>
-        <div class="field">
-          <button class="btn" id="onboarding-restart" type="button">Start from step 1</button>
-        </div>
-        <p id="onboarding-note" class="note"></p>
-      </section>
-      <section data-section="widget" hidden>
-        <h1>Widget</h1>
-        <p class="note">These are the settings that used to live on the pill. The widget uses them the next time you send.</p>
+      <section data-section="ide" hidden>
+        <h1 data-i18n="ide.title">IDE</h1>
+        <p class="note" data-i18n="ide.note">Pick an IDE. The widget uses that one. Switch it any time.</p>
         <div class="widget-form">
+          <label for="dash-ide">IDE</label>
+          <select id="dash-ide" class="device-select" aria-label="IDE"></select>
+          <p id="ide-note" class="note"></p>
           <label for="dash-project">Project folder</label>
           <div class="field">
             <input id="dash-project" type="text" spellcheck="false" placeholder="C:\work\app" aria-label="Project folder">
-            <button class="btn" id="dash-browse" type="button">Browse</button>
-            <button class="ghost" id="dash-clear" type="button">Clear</button>
+            <button class="btn" id="dash-browse" type="button" data-i18n="ide.browse">Browse</button>
+            <button class="ghost" id="dash-clear" type="button" data-i18n="ide.clear">Clear</button>
           </div>
           <div id="dash-workspaces" class="lang-choices"></div>
-          <label>IDE</label>
-          <div id="dash-ides" class="lang-choices" role="radiogroup" aria-label="IDE"></div>
           <label id="dash-install-label">Installation</label>
           <div id="dash-installs" class="lang-choices" role="radiogroup" aria-label="Installation"></div>
           <label id="dash-route-label">Delivery route</label>
           <div id="dash-routes" class="lang-choices" role="radiogroup" aria-label="Delivery route"></div>
           <p id="dash-route-note" class="note"></p>
           <div class="field">
-            <button class="btn" id="dash-connect" type="button">Connect Cursor</button>
+            <button class="btn" id="dash-connect" type="button" data-i18n="ide.connect">Connect Cursor</button>
           </div>
           <p class="note">One sign-in in the browser links the Cursor account on this computer. Hooxie keeps that connection here.</p>
           <label for="dash-key">Or paste an API key</label>
           <div class="field">
             <input id="dash-key" type="password" autocomplete="off" placeholder="Official Cursor SDK" aria-label="Cursor API key">
-            <button class="btn" id="dash-save-key" type="button">Save key</button>
+            <button class="btn" id="dash-save-key" type="button" data-i18n="ide.save">Save key</button>
           </div>
           <label class="check"><input id="dash-remember-key" type="checkbox"> Remember the key in your user profile</label>
           <p id="dash-key-note" class="note"></p>
@@ -203,35 +190,27 @@
           <label class="check" id="dash-sandbox-row"><input id="dash-unsandboxed" type="checkbox"> Allow this Cursor agent to run outside the sandbox</label>
           <label class="check" id="dash-experimental-row"><input id="dash-experimental" type="checkbox"> Ask the IDE to submit (experimental, not verified)</label>
           <div class="field" style="margin-top:14px">
-            <button class="btn" id="dash-open-ide" type="button">Open IDE</button>
+            <button class="btn" id="dash-open-ide" type="button" data-i18n="ide.open">Open IDE</button>
           </div>
         </div>
       </section>
       <section data-section="keybinds" hidden>
         <h1 data-i18n="keybinds.title">Keybinds</h1>
-        <p class="note">These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in General.</p>
+        <p class="note" data-i18n="keybinds.note">These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in General.</p>
         <div class="rows">
           <div class="row"><div><strong>Toggle visibility of Hooxie</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>\</kbd></div></div>
           <div class="row"><div><strong>Ask Hooxie about your screen or audio</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>Enter</kbd></div></div>
           <div class="row"><div><strong>Clear the current conversation with Hooxie</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>R</kbd></div></div>
-          <div class="row"><div><strong>Start or stop a Cluely session</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>\</kbd></div></div>
+          <div class="row"><div><strong>Start or stop a session</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>\</kbd></div></div>
           <div class="row"><div><strong>Move the widget position up</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>↑</kbd></div></div>
           <div class="row"><div><strong>Move the widget position down</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>↓</kbd></div></div>
           <div class="row"><div><strong>Move the widget position left</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>←</kbd></div></div>
           <div class="row"><div><strong>Move the widget position right</strong></div><div class="keys"><kbd>Ctrl</kbd><kbd>→</kbd></div></div>
         </div>
       </section>
-      <section data-section="profile" hidden>
-        <h1 data-i18n="profile.title">Profile</h1>
-        <p class="note">Connect the email Stripe should use for Hooxie Pro.</p>
-        <div class="field">
-          <input id="email" type="email" autocomplete="email" placeholder="you@email.com" aria-label="Email">
-          <button class="btn" id="connect" type="button" data-i18n="profile.connect">Connect account</button>
-        </div>
-      </section>
       <section data-section="language" hidden>
         <h1 data-i18n="language.title">Language</h1>
-        <p class="note">The dashboard language on this computer.</p>
+        <p class="note" data-i18n="language.note">The dashboard language on this computer.</p>
         <div id="language-choices" class="lang-choices" role="radiogroup" aria-label="Language">
           <button type="button" data-lang="en" aria-checked="true">English</button>
           <button type="button" data-lang="es" aria-checked="false">Español</button>
@@ -244,15 +223,15 @@
       </section>
       <section data-section="billing" hidden>
         <h1 data-i18n="billing.title">Billing</h1>
-        <p class="note">One purchase covers this computer. Copying the app or its files does not license another device.</p>
+        <p class="note" data-i18n="billing.note">One purchase covers this computer. Copying the app or its files does not license another device.</p>
         <article class="plan">
           <p class="plan-name" data-i18n="billing.plan">This computer</p>
-          <p class="plan-price">$5.99 <span>once</span></p>
-          <p class="plan-lead">Included with Hooxie:</p>
+          <p class="plan-price">$5.99 <span data-i18n="billing.once">once</span></p>
+          <p class="plan-lead" data-i18n="billing.lead">Included with Hooxie:</p>
           <ul>
-            <li>The widget, voice, and screen context</li>
-            <li>Undetectable mode on this computer</li>
-            <li>A license that stays on this device</li>
+            <li data-i18n="billing.item1">The widget, voice, and screen context</li>
+            <li data-i18n="billing.item2">Undetectable mode on this computer</li>
+            <li data-i18n="billing.item3">A license that stays on this device</li>
           </ul>
           <button class="btn" id="subscribe" type="button" data-i18n="billing.subscribe">Buy for this computer</button>
         </article>
@@ -261,23 +240,20 @@
         </div>
       </section>
       <section data-section="releases" hidden>
-        <h1>Release notes</h1>
-        <div id="release-notes" class="help-list"></div>
-        <p><a href="/releases">Open the release notes page</a></p>
+        <h1 data-i18n="releases.title">Release notes</h1>
+        <div id="release-notes" class="release-log"></div>
       </section>
       <section data-section="help" hidden>
-        <h1>Help center</h1>
+        <h1 data-i18n="help.title">Help center</h1>
         <div class="help-list">
-          <article><h2>Start Hooxie</h2><p>Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.</p></article>
-          <article><h2>Voice, screen, and files</h2><p>An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.</p></article>
-          <article><h2>Hide from a call</h2><p>Turn Detectable off, or start a session with Ctrl+Shift+\. You still see Hooxie. A normal screen share does not.</p></article>
+          <article><h2 data-i18n="help.s1">Start Hooxie</h2><p data-i18n="help.p1">Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.</p></article>
+          <article><h2 data-i18n="help.s2">Voice, screen, and files</h2><p data-i18n="help.p2">An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.</p></article>
+          <article><h2 data-i18n="help.s3">Hide from a call</h2><p data-i18n="help.p3">Turn Detectable off, or start a session with Ctrl+Shift+\. You still see Hooxie. A normal screen share does not.</p></article>
         </div>
-        <p><a href="/help">Open the help center</a></p>
       </section>
       <section data-section="contact" hidden>
-        <h1>Contact support</h1>
-        <p class="note">Email <a href="mailto:support@delexo.store">support@delexo.store</a> or use the contact page.</p>
-        <p><a href="/contact">Open the contact form</a></p>
+        <h1 data-i18n="contact.title">Contact support</h1>
+        <p class="note" data-i18n="contact.note">Email support@delexo.store.</p>
       </section>
     </main>
   </div>
