@@ -531,6 +531,7 @@ function bootDashboard() {
   mountPickMenu(outputDevice);
   mountPickMenu(document.querySelector("#dash-ide"));
   mountPickMenu(document.querySelector("#key-service"));
+  mountPickMenu(document.querySelector("#service-choice"));
 
   function paint() {
     detectable.checked = settings.detectable !== false;
@@ -787,6 +788,7 @@ function bootDashboard() {
     ...SERVICES.map((service) => [service.id, service.name]),
   ];
   renderKeyChoices();
+  renderServiceChoices();
   wireWidget();
   paintReleaseNotes();
 
@@ -1455,6 +1457,47 @@ function bootDashboard() {
     select.dispatchEvent(new Event("pick-sync"));
   }
 
+  function renderServiceChoices() {
+    const select = document.querySelector("#service-choice");
+    if (!select) return;
+    const current = select.value;
+    select.replaceChildren(...SERVICES.map((service) => {
+      const option = document.createElement("option");
+      option.value = service.id;
+      option.textContent = service.name;
+      return option;
+    }));
+    if ([...select.options].some((item) => item.value === current)) select.value = current;
+    select.dispatchEvent(new Event("pick-sync"));
+  }
+
+  function selectedService() {
+    const id = document.querySelector("#service-choice")?.value;
+    return SERVICES.find((service) => service.id === id) || SERVICES[0];
+  }
+
+  function syncServiceConnect() {
+    const service = selectedService();
+    if (!service) return;
+    const links = readLinks();
+    const linked = Boolean(links[service.id]);
+    const input = document.querySelector("#service-ref");
+    const button = document.querySelector("#service-connect");
+    if (!input || !button) return;
+    if (service.link) {
+      input.hidden = true;
+    } else {
+      input.hidden = false;
+      input.placeholder = service.placeholder || "";
+      if (document.activeElement !== input) {
+        const saved = links[service.id];
+        input.value = saved && saved !== "linked" ? saved : "";
+      }
+    }
+    button.textContent = linked ? "Disconnect" : "Connect";
+    button.className = linked ? "ghost" : "btn";
+  }
+
   function wireWidget() {
     const project = document.querySelector("#dash-project");
     const negative = document.querySelector("#dash-negative");
@@ -1510,6 +1553,22 @@ function bootDashboard() {
     });
     document.querySelector("#unlink-ides").addEventListener("click", () => {
       switchIde("").catch((error) => explainFailure(status, error));
+    });
+    document.querySelector("#service-choice").addEventListener("change", () => syncServiceConnect());
+    document.querySelector("#service-connect").addEventListener("click", () => {
+      const service = selectedService();
+      if (!service) return;
+      const links = readLinks();
+      if (links[service.id]) {
+        writeLink(service.id, "");
+      } else if (service.link) {
+        writeLink(service.id, "linked");
+      } else {
+        const value = document.querySelector("#service-ref").value.trim();
+        if (!value) return;
+        writeLink(service.id, value);
+      }
+      renderServices();
     });
     renderServices();
     document.querySelector("#save-contact")?.addEventListener("click", saveContactCard);
@@ -1581,62 +1640,44 @@ function bootDashboard() {
     const list = document.querySelector("#service-list");
     if (!list) return;
     const links = readLinks();
-    list.replaceChildren(...SERVICES.map((service) => {
+    list.replaceChildren(...SERVICES.filter((service) => links[service.id]).map((service) => {
       const card = document.createElement("article");
       card.className = "service-card";
       const head = document.createElement("div");
       head.className = "service-head";
       const title = document.createElement("strong");
-      title.textContent = service.name;
+      const ref = links[service.id];
+      title.textContent = !ref || ref === "linked" ? service.name : `${service.name} · ${ref}`;
       const status = document.createElement("span");
       status.className = "service-status";
       status.dataset.serviceStatus = service.id;
-      const linked = Boolean(links[service.id]);
-      status.textContent = linked ? "Not checked" : "Not connected";
-      status.dataset.state = linked ? "idle" : "not-connected";
+      status.textContent = "Not checked";
+      status.dataset.state = "idle";
       head.append(title, status);
-      const detail = document.createElement("p");
-      detail.className = "note";
-      detail.dataset.serviceDetail = service.id;
-      detail.hidden = true;
       const row = document.createElement("div");
       row.className = "field";
-      if (service.link) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = linked ? "ghost" : "btn";
-        button.textContent = linked ? "Disconnect" : "Connect";
-        button.addEventListener("click", () => {
-          writeLink(service.id, linked ? "" : "linked");
-          renderServices();
-        });
-        row.append(button);
-      } else {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.spellcheck = false;
-        input.placeholder = service.placeholder;
-        input.value = links[service.id] || "";
-        input.setAttribute("aria-label", service.name);
-        const save = document.createElement("button");
-        save.type = "button";
-        save.className = "btn";
-        save.textContent = "Link";
-        save.addEventListener("click", () => {
-          writeLink(service.id, input.value.trim());
-          renderServices();
-        });
-        row.append(input, save);
-      }
+      const disconnect = document.createElement("button");
+      disconnect.type = "button";
+      disconnect.className = "ghost";
+      disconnect.textContent = "Disconnect";
+      disconnect.addEventListener("click", () => {
+        writeLink(service.id, "");
+        renderServices();
+      });
       const check = document.createElement("button");
       check.type = "button";
       check.className = "ghost";
       check.textContent = "Check";
       check.addEventListener("click", () => checkService(service.id, check));
-      row.append(check);
-      card.append(head, detail, row);
+      row.append(disconnect, check);
+      const detail = document.createElement("p");
+      detail.className = "note";
+      detail.dataset.serviceDetail = service.id;
+      detail.hidden = true;
+      card.append(head, row, detail);
       return card;
     }));
+    syncServiceConnect();
   }
 
   async function checkService(id, button) {

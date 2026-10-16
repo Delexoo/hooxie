@@ -2,6 +2,21 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.8",
+      "date": "2026-10-16",
+      "title": "Connections opens from one list",
+      "tag": "v0.2.8",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.8",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "added": [
+            "Connections is one dropdown. You choose a service, connect or disconnect it, and you can keep more than one."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.7",
       "date": "2026-10-16",
       "title": "Connections stays short",

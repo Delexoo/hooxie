@@ -112,7 +112,7 @@
         </div>
         <h2 class="dash-group">Widget</h2>
         <div class="rows">
-          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.7</span></div>
+          <div class="row"><div><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div><span id="version">0.2.8</span></div>
           <div class="row">
             <div><strong>Session</strong><span>Ctrl+Shift+\ starts or stops a session. A session hides Hooxie from capture.</span></div>
             <span id="session-state">Stopped</span>
@@ -177,8 +177,16 @@
       <section data-section="ide" data-title="ide.title" hidden>
         <p class="note" data-i18n="ide.note">Connect a service, pick an IDE, and choose the project folder.</p>
         <h2 class="dash-group">Connections</h2>
-        <p class="note">Link a service, then check whether it answers. Not connected means it is not linked. Online means it answered. Offline means it could not be reached.</p>
-        <div id="service-list" class="service-list"></div>
+        <p class="note">Choose a service, then connect it. You can connect more than one.</p>
+        <div class="widget-form">
+          <label for="service-choice">Service</label>
+          <select id="service-choice" class="device-select" aria-label="Service"></select>
+          <div class="field">
+            <input id="service-ref" type="text" spellcheck="false" autocomplete="off" aria-label="Connection">
+            <button class="btn" id="service-connect" type="button">Connect</button>
+          </div>
+          <div id="service-list" class="service-list"></div>
+        </div>
         <div class="widget-form">
           <label for="dash-ide">IDE</label>
           <select id="dash-ide" class="device-select" aria-label="IDE"></select>
@@ -288,7 +296,7 @@
           </article>
           <article>
             <h2>Connections</h2>
-            <p>Unlink all IDEs clears the editor Hooxie is using. Connections links GitHub, Supabase, Vercel, Resend, and the other services for the project you are building, then checks whether that connection answers. Advanced holds API keys, a negative prompt, and memory presets.</p>
+            <p>Unlink all IDEs clears the editor Hooxie is using. Connections is one list: choose GitHub, Supabase, Vercel, Resend, or another service, then connect or disconnect it. You can keep more than one. Advanced holds API keys, a negative prompt, and memory presets.</p>
           </article>
         </div>
       </section>

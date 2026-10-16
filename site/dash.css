@@ -841,7 +841,9 @@ html[data-appearance="dark"] .release-latest {
   text-transform: uppercase;
   color: var(--muted);
 }
-.service-list { display: grid; gap: 8px; margin-bottom: 18px; }
+.service-list { display: grid; gap: 8px; }
+.service-list:empty { display: none; }
+#service-ref[hidden] { display: none; }
 .service-card {
   border: 1px solid var(--line);
   border-radius: 16px;
