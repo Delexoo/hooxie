@@ -24,7 +24,7 @@ The bridge extension version is not the Hooxie version. Do not change it for an 
 5. Commit the source, the README, the release notes, and `site/download/Hooxie-Setup.exe` together. Never commit `.env`. `site/.vercel` stays uncommitted.
 6. Push `main` to `https://github.com/Delexoo/hooxie`. `gh` is not signed in. Use `GITHUB_TOKEN` from `E:\MasterVault\hooxie\.env` and do not print the token. If git reports dubious ownership, pass `-c safe.directory=E:/MasterVault/hooxie` on the command. Do not change git config.
 7. Publish GitHub release tag `v<version>` with asset `Hooxie-Setup-<version>.exe` and the body from that version's `brain/log.json` notes. The download is `https://github.com/Delexoo/hooxie/releases/download/v<version>/Hooxie-Setup-<version>.exe`. `node scripts/post-release-notes.mjs` only creates a tag that does not exist yet. If the tag already exists, replace its notes and that asset.
-8. Keep the repo homepage `https://hooxie.com` and the description `Hooxie • #1 Widget for Developers.`
+8. Keep the repo homepage `https://hooxie.com` and the description `A Widget for Developers.`
 9. Redeploy the `site` folder to the Vercel project `hooxie` (production `https://hooxie.com`) with `VERCEL_TOKEN` from the same `.env`. Do not print the token.
 10. Stop only when both downloads return a `Content-Length` equal to the local setup file:
     - `https://hooxie.com/download/Hooxie-Setup.exe`

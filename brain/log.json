@@ -2,6 +2,19 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.5",
+      "date": "2026-10-16",
+      "title": "File name on the preview",
+      "sections": [
+        {
+          "heading": "Widget",
+          "fixes": [
+            "An attached file shows its name in the bottom-left of the preview, and the close button sits in the top-right corner."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.4",
       "date": "2026-10-16",
       "title": "Advanced mode stays a window",
