@@ -2,6 +2,22 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.4",
+      "date": "2026-10-16",
+      "title": "Advanced mode stays a window",
+      "tag": "v0.2.4",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.4",
+      "sections": [
+        {
+          "heading": "Widget",
+          "fixes": [
+            "Advanced mode stays a rounded window, so the files panel is no longer clipped into the pill.",
+            "Hovering the attach button or an attached file greys it."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.3",
       "date": "2026-10-16",
       "title": "No outline on the prompt",

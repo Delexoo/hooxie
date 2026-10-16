@@ -1682,7 +1682,8 @@ function syncFold() {
   const was = !band.hidden;
   band.hidden = !show;
   contextBarEl.hidden = !show;
-  shellEl.classList.toggle("is-open", show || panel !== "none" || !document.querySelector("#more-menu").hidden);
+  const menuOpen = !document.querySelector("#more-menu").hidden;
+  shellEl.classList.toggle("is-open", show || advanced || panel !== "none" || menuOpen);
   if (show && !was) threadEl.scrollTop = threadEl.scrollHeight;
   if (show !== was) scheduleFit(true);
 }
@@ -2479,6 +2480,7 @@ function applyAdvanced() {
     : "A larger widget with files, details, and IDE tools";
   localStorage.setItem(ADVANCED_KEY, advanced ? "1" : "0");
   if (advanced) selectAdvancedTool(advancedTool);
+  syncFold();
   scheduleFit(true);
 }
 
@@ -2874,7 +2876,8 @@ function fitTrace() {
   ring.setAttribute("y", String(edge));
   ring.setAttribute("width", String(ringW));
   ring.setAttribute("height", String(ringH));
-  const ringRadius = shellEl.classList.contains("is-open") ? Math.min(26, ringH / 2) : ringH / 2;
+  const advancedOpen = !document.querySelector("#advanced")?.hidden;
+  const ringRadius = shellEl.classList.contains("is-open") || advancedOpen ? Math.min(26, ringH / 2) : ringH / 2;
   ring.setAttribute("rx", String(ringRadius));
   ring.setAttribute("ry", String(ringRadius));
   placeStealthDots(ring, ringW, ringH, ringRadius);
