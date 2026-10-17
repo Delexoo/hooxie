@@ -2,6 +2,19 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.13",
+      "date": "2026-10-16",
+      "title": "Dashboard type and controls are larger",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "added": [
+            "Type, controls, and the content column are a step larger so the window is easier to read."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.12",
       "date": "2026-10-16",
       "title": "The installer license is easier to read",
