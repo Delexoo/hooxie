@@ -39,6 +39,27 @@ export function replyFromMessage(message: unknown): string {
     .join("");
 }
 
+export function thoughtFromMessage(message: unknown): string {
+  if (!message || typeof message !== "object") return "";
+  const record = message as { type?: string; text?: string };
+  if (record.type !== "thinking" || typeof record.text !== "string") return "";
+  return record.text;
+}
+
+export function clipThought(text: string, max = 110): string {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (!compact) return "";
+  if (compact.length <= max) return compact;
+  return `…${compact.slice(-(max - 1))}`;
+}
+
+export function focusFromTool(message: unknown): string | undefined {
+  const call = readToolCall(message);
+  if (!call) return undefined;
+  if (call.status !== "running") return "";
+  return labelForTool(call);
+}
+
 export function foldActivity(current: RunActivity, message: unknown): RunActivity {
   const call = readToolCall(message);
   if (!call) return current;
@@ -159,6 +180,36 @@ function isFileTool(name: string): boolean {
   return normalized === "edit" || normalized === "write" || normalized === "delete" || normalized.includes("strreplace") || normalized.includes("applyagentdiff");
 }
 
+function labelForTool(call: ToolCall): string {
+  const name = call.name.toLowerCase();
+  if (isShell(call.name)) {
+    const command = commandOf(call.args) || "a command";
+    return clip(`Running ${command}`, 110);
+  }
+  const filePath = pathOf(call.args);
+  if (name === "read" || name.includes("readfile") || name.includes("read_file")) {
+    return clip(filePath ? `Reading ${filePath}` : "Reading a file", 110);
+  }
+  if (name === "grep" || name.includes("search") || name.includes("rg")) {
+    const query = stringField(asRecord(call.args), "pattern") || stringField(asRecord(call.args), "query") || stringField(asRecord(call.args), "regex");
+    return clip(query ? `Searching for ${query}` : filePath ? `Searching ${filePath}` : "Searching the project", 110);
+  }
+  if (name === "glob" || name.includes("glob") || name.includes("find")) {
+    const pattern = stringField(asRecord(call.args), "glob_pattern") || stringField(asRecord(call.args), "pattern") || filePath;
+    return clip(pattern ? `Looking for ${pattern}` : "Looking for files", 110);
+  }
+  if (name === "delete" || name.includes("delete")) {
+    return clip(filePath ? `Deleting ${filePath}` : "Deleting a file", 110);
+  }
+  if (name === "write" || name.includes("write")) {
+    return clip(filePath ? `Writing ${filePath}` : "Writing a file", 110);
+  }
+  if (isFileTool(call.name)) {
+    return clip(filePath ? `Editing ${filePath}` : "Editing a file", 110);
+  }
+  return clip(`Using ${call.name}`, 110);
+}
+
 function commandOf(args: unknown): string {
   const record = asRecord(args);
   const direct = stringField(record, "command") || stringField(record, "cmd");
@@ -197,6 +248,6 @@ function stringField(record: Record<string, unknown>, key: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function clip(value: string): string {
-  return value.replace(/\s+/g, " ").slice(0, 180);
+function clip(value: string, max = 180): string {
+  return value.replace(/\s+/g, " ").slice(0, max);
 }

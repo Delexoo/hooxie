@@ -2,7 +2,19 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { catalogFor } from "./catalog.ts";
-import { changedSince, emptyActivity, foldActivity, joinReply, mergeFileChanges, readGitStatus, replyFromMessage, type RunActivity } from "./run-activity.ts";
+import {
+  changedSince,
+  clipThought,
+  emptyActivity,
+  focusFromTool,
+  foldActivity,
+  joinReply,
+  mergeFileChanges,
+  readGitStatus,
+  replyFromMessage,
+  thoughtFromMessage,
+  type RunActivity,
+} from "./run-activity.ts";
 import type { CompanionHub } from "./companion.ts";
 import { buildPromptText, imageFingerprint, stackMarkers } from "./prompt.ts";
 import { assertImage, assertUploads, readSelectedFile } from "./safety.ts";
@@ -64,6 +76,7 @@ export interface DeliveryUpdate {
   status: DeliveryStatus;
   phase: DeliveryPhase;
   detail: string;
+  thought?: string;
   responseText?: string;
   responseVerified: boolean;
   limitations: string[];
@@ -355,6 +368,7 @@ async function observeRun(
 ): Promise<void> {
   let activity = emptyActivity();
   let reply = "";
+  let thought = "";
   let closed = false;
   const baseline = await readGitStatus(projectPath);
   const publish = () => {
@@ -362,7 +376,8 @@ async function observeRun(
     report({
       status: "agent_working",
       phase: "processing",
-      detail: "The agent run is in progress.",
+      detail: thought || "The agent run is in progress.",
+      thought: thought || undefined,
       responseText: reply || undefined,
       responseVerified: false,
       limitations: adapter.limitations,
@@ -376,6 +391,9 @@ async function observeRun(
       publish();
     }, (text) => {
       reply = text;
+      publish();
+    }, (next) => {
+      thought = next;
       publish();
     });
   }
@@ -455,8 +473,14 @@ async function readRunStream(
   current: () => RunActivity,
   apply: (next: RunActivity) => void,
   speak: (text: string) => void,
+  think: (text: string) => void,
 ): Promise<void> {
   let reply = "";
+  let thoughtBuffer = "";
+  let toolFocus = "";
+  const publishThought = () => {
+    think(toolFocus || clipThought(thoughtBuffer));
+  };
   try {
     for await (const message of run.stream!()) {
       if (closed()) return;
@@ -467,6 +491,20 @@ async function readRunStream(
           reply = nextReply;
           speak(reply);
         }
+      }
+      const thinking = thoughtFromMessage(message);
+      if (thinking) {
+        const nextThought = joinReply(thoughtBuffer, thinking);
+        if (nextThought !== thoughtBuffer) {
+          thoughtBuffer = nextThought;
+          toolFocus = "";
+          publishThought();
+        }
+      }
+      const focus = focusFromTool(message);
+      if (focus !== undefined) {
+        toolFocus = focus;
+        publishThought();
       }
       const next = foldActivity(current(), message);
       if (next !== current()) apply(next);

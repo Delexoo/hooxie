@@ -95,6 +95,7 @@ let stopRequested = false;
 let promptQueue = [];
 let sessionTerminals = [];
 let sessionFiles = [];
+let agentThought = "";
 let activityOpen = "";
 let activityDismissed = new Set();
 let draining = false;
@@ -1407,7 +1408,7 @@ let editingCaret = null;
 let threadPaint = "";
 
 function renderThread() {
-  const paint = `${editingIndex}|${statusName}|${thread.map((message) => [message.role, message.deliveryId || "", message.text, message.previews?.length || 0].join("\u0000")).join("\u0001")}`;
+  const paint = `${editingIndex}|${statusName}|${agentThought}|${thread.map((message) => [message.role, message.deliveryId || "", message.text, message.previews?.length || 0].join("\u0000")).join("\u0001")}`;
   if (paint === threadPaint && threadEl.childElementCount) {
     syncFold();
     syncChatActions();
@@ -1507,6 +1508,13 @@ function renderThread() {
       live.append(dots);
     }
     threadEl.append(live);
+    if (statusName === "agent_working" && agentThought) {
+      const thought = document.createElement("p");
+      thought.className = "live-thought";
+      thought.textContent = agentThought;
+      thought.title = agentThought;
+      threadEl.append(thought);
+    }
   }
   if (editingIndex >= 0) threadEl.scrollTop = scroll;
   else threadEl.scrollTop = threadEl.scrollHeight;
@@ -2085,6 +2093,7 @@ function show(delivery) {
   setStatus(delivery.status, `${delivery.detail} Destination: ${delivery.destination}`);
   retryEl.hidden = !delivery.retryable;
   cancelEl.hidden = !delivery.canCancel;
+  agentThought = delivery.status === "agent_working" && typeof delivery.thought === "string" ? delivery.thought.trim() : "";
   if (Array.isArray(delivery.terminals)) {
     sessionTerminals = delivery.terminals.filter((item) => item && item.status === "running" && typeof item.command === "string");
   }
@@ -2684,6 +2693,7 @@ function clearChat() {
   promptQueue = [];
   sessionTerminals = [];
   sessionFiles = [];
+  agentThought = "";
   activityFiles = [];
   activityTerminals = [];
   activityPaint = "";

@@ -715,11 +715,22 @@ html[data-widget="light"] #setup-ide-menu button span:last-child:not(:first-chil
 
 .reply { display: grid; gap: 2px; }
 
-.who, .live, #project-path {
+.who, .live, .live-thought, #project-path {
   margin: 0;
   color: var(--muted);
   font-size: 11.5px;
   font-weight: 500;
+}
+
+.live-thought {
+  margin-top: 2px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 450;
+  opacity: 0.88;
 }
 
 .thinking {
@@ -760,6 +771,7 @@ html[data-widget="light"] #setup-ide-menu button span:last-child:not(:first-chil
 .bubble,
 .who,
 .live,
+.live-thought,
 #result,
 .note,
 .detail,

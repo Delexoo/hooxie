@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { changedSince, foldActivity, joinReply, mergeFileChanges, parsePorcelain, replyFromMessage } from "../src/run-activity.ts";
+import {
+  changedSince,
+  clipThought,
+  focusFromTool,
+  foldActivity,
+  joinReply,
+  mergeFileChanges,
+  parsePorcelain,
+  replyFromMessage,
+  thoughtFromMessage,
+} from "../src/run-activity.ts";
 
 test("a running shell is a background terminal and a finished one drops off the running list", () => {
   const started = foldActivity({ terminals: [], files: [] }, {
@@ -83,4 +93,29 @@ test("assistant text grows as the run streams", () => {
   assert.equal(joinReply("Hello", "Hello world"), "Hello world");
   assert.equal(joinReply("Hello", " world"), "Hello world");
   assert.equal(replyFromMessage({ type: "thinking", text: "hidden" }), "");
+});
+
+test("thinking text and tool focus become the live thought line", () => {
+  assert.equal(thoughtFromMessage({ type: "thinking", text: "Check the dashboard CSS next." }), "Check the dashboard CSS next.");
+  assert.equal(clipThought("a".repeat(130)).startsWith("…"), true);
+  assert.equal(
+    focusFromTool({
+      type: "tool_call",
+      call_id: "r-1",
+      name: "read",
+      status: "running",
+      args: { path: "public/app.js" },
+    }),
+    "Reading public/app.js",
+  );
+  assert.equal(
+    focusFromTool({
+      type: "tool_call",
+      call_id: "r-1",
+      name: "read",
+      status: "completed",
+      args: { path: "public/app.js" },
+    }),
+    "",
+  );
 });

@@ -6,18 +6,19 @@ if (-not (Test-Path $issc)) { $issc = Join-Path $env:LOCALAPPDATA "Programs\Inno
 if (-not (Test-Path $issc)) { throw "Inno Setup 6 was not found. Install it from https://jrsoftware.org/isinfo.php" }
 
 $dist = Join-Path $root "dist-setup"
-$stageName = "stage"
-$stage = Join-Path $dist $stageName
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
-if (Test-Path $stage) {
-  cmd /c "rmdir /s /q `"$stage`""
+$stageName = $null
+$stage = $null
+foreach ($name in @("stage", "payload", "payload-next")) {
+  $candidate = Join-Path $dist $name
+  if (Test-Path $candidate) { cmd /c "rmdir /s /q `"$candidate`"" }
+  if (-not (Test-Path $candidate)) {
+    $stageName = $name
+    $stage = $candidate
+    break
+  }
 }
-if (Test-Path $stage) {
-  $stageName = "payload"
-  $stage = Join-Path $dist $stageName
-  if (Test-Path $stage) { cmd /c "rmdir /s /q `"$stage`"" }
-}
-if (Test-Path $stage) { throw "Could not clear the installer payload. Close anything using dist-setup and try again." }
+if (-not $stage) { throw "Could not clear the installer payload. Close anything using dist-setup and try again." }
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
 Push-Location (Join-Path $root "src\widget-shell")

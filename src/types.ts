@@ -109,6 +109,7 @@ export interface PublicDelivery {
   retryable: boolean;
   canCancel: boolean;
   unsupported: string[];
+  thought?: string;
   terminals: { id: string; command: string; status: "running" | "done" | "error" }[];
   files: { path: string; kind: "modified" | "added" | "deleted" }[];
 }

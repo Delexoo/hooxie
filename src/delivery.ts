@@ -24,6 +24,7 @@ interface DeliveryRecord {
   committed: boolean;
   retryable: boolean;
   canCancel: boolean;
+  thought?: string;
   terminals: PublicDelivery["terminals"];
   files: PublicDelivery["files"];
   cancel?: () => Promise<void>;
@@ -206,7 +207,12 @@ function applyUpdate(record: DeliveryRecord, update: DeliveryUpdate): void {
   record.limitations = update.limitations;
   record.unsupported = update.unsupported;
   if (typeof update.responseText === "string") record.responseText = update.responseText;
-  if (record.status !== "agent_working") record.canCancel = false;
+  if (typeof update.thought === "string") record.thought = update.thought;
+  else if (update.status !== "agent_working") record.thought = undefined;
+  if (record.status !== "agent_working") {
+    record.canCancel = false;
+    record.thought = undefined;
+  }
 }
 
 function toPublic(record: DeliveryRecord): PublicDelivery {
@@ -227,6 +233,7 @@ function toPublic(record: DeliveryRecord): PublicDelivery {
     committed: record.committed,
     retryable: record.retryable,
     canCancel: record.canCancel,
+    thought: record.thought,
     terminals: record.terminals,
     files: record.files,
   };

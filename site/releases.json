@@ -2,16 +2,22 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
-      "version": "0.2.13",
+      "version": "0.2.14",
       "date": "2026-10-16",
-      "title": "Dashboard type and controls are larger",
-      "tag": "v0.2.13",
-      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.13",
+      "title": "The chat shows what the agent is doing",
+      "tag": "v0.2.14",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.14",
       "sections": [
         {
           "heading": "Dashboard",
           "added": [
             "Type, controls, and the content column are a step larger so the window is easier to read."
+          ]
+        },
+        {
+          "heading": "Chat",
+          "added": [
+            "Under Agent working, a short live line shows what the agent is thinking or doing."
           ]
         }
       ]
