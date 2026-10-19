@@ -78,6 +78,7 @@ let pollTimer = 0;
 let statusName = "ready";
 let fitTimer = 0;
 let fitInstant = false;
+let chatDrag = false;
 let panel = "none";
 let thread = [];
 let renderedReply = "";
@@ -1193,13 +1194,16 @@ function renderWorkspaces() {
 }
 
 let promptConnectionAt = 0;
+let routesFlight = null;
 
 function warmPromptConnection() {
   if (!projectEl.value.trim()) return;
   const now = Date.now();
-  if (now - promptConnectionAt < 8000) return;
+  if (routesFlight || now - promptConnectionAt < 1500) return;
   promptConnectionAt = now;
-  refreshRoutes();
+  routesFlight = refreshRoutes().finally(() => {
+    routesFlight = null;
+  });
 }
 
 async function refreshRoutes() {
@@ -1482,9 +1486,9 @@ function renderThread() {
     const who = document.createElement("p");
     who.className = "who";
     who.textContent = message.ide || "Cursor";
-    const body = document.createElement("p");
+    const body = document.createElement("div");
     body.className = "reply-text";
-    body.textContent = message.text;
+    fillReply(body, message.text);
     block.append(who, body);
     threadEl.append(block);
   });
@@ -1521,6 +1525,33 @@ function renderThread() {
   syncFold();
   syncChatActions();
   return true;
+}
+
+function fillReply(node, text) {
+  node.replaceChildren();
+  for (const part of replyParts(text)) appendReplyPart(node, part);
+}
+
+function appendReplyPart(node, part) {
+  if (part.type === "text") {
+    node.append(part.text);
+    return;
+  }
+  if (part.type === "code" || part.type === "fence") {
+    const code = document.createElement("code");
+    code.textContent = part.text;
+    if (part.type === "code") {
+      node.append(code);
+      return;
+    }
+    const block = document.createElement("pre");
+    block.append(code);
+    node.append(block);
+    return;
+  }
+  const strong = document.createElement("strong");
+  for (const child of part.parts) appendReplyPart(strong, child);
+  node.append(strong);
 }
 
 function messageEditor(index) {
@@ -1702,11 +1733,13 @@ function syncFold() {
   const band = document.querySelector("#chat-band");
   const show = foldNeeded();
   const was = !band.hidden;
+  const collapsed = show && chatCollapsed;
   band.hidden = !show;
-  contextBarEl.hidden = !show;
+  band.classList.toggle("is-collapsed", collapsed);
+  contextBarEl.hidden = !show || collapsed;
   const menuOpen = !document.querySelector("#more-menu").hidden;
-  shellEl.classList.toggle("is-open", show || advanced || panel !== "none" || menuOpen);
-  if (show && !was) threadEl.scrollTop = threadEl.scrollHeight;
+  shellEl.classList.toggle("is-open", (show && !collapsed) || advanced || panel !== "none" || menuOpen);
+  if (show && !was && !collapsed) threadEl.scrollTop = threadEl.scrollHeight;
   if (show !== was) scheduleFit(true);
 }
 
@@ -1994,6 +2027,7 @@ async function submit(retry, options = {}) {
     showSendBlock("Choose a project folder before sending.");
     return;
   }
+  warmPromptConnection();
   const text = (typeof options.text === "string" ? options.text : retry ? lastPrompt : promptEl.value).trim();
   if (!text) return;
   busy = true;
@@ -2085,7 +2119,7 @@ function poll() {
       setStatus("disconnected", error.message);
       clearInterval(pollTimer);
     }
-  }, 800);
+  }, 250);
 }
 
 function show(delivery) {
@@ -2856,6 +2890,10 @@ function savePreset() {
 }
 
 function scheduleFit(instant = false) {
+  if (chatDrag) {
+    queueDragFit();
+    return;
+  }
   if (instant) fitInstant = true;
   clearTimeout(fitTimer);
   fitTimer = setTimeout(() => {
@@ -3019,22 +3057,64 @@ async function fitWindow(instant = false) {
   }
 }
 
-const CHAT_H_MIN = 80;
+const CHAT_H_MIN = 72;
 const CHAT_H_MAX = 640;
+const CHAT_CLOSE = 36;
+let chatCollapsed = localStorage.getItem("hooxie-chat-collapsed") === "1";
+let chatDragFrame = 0;
 
 function clampChatHeight(px) {
   return Math.min(CHAT_H_MAX, Math.max(CHAT_H_MIN, Math.round(px)));
 }
 
+function rememberChatHeight(px) {
+  localStorage.setItem("hooxie-chat-h", String(px));
+  localStorage.removeItem("hooxie-chat-collapsed");
+}
+
 function setChatHeight(px, persist) {
-  const next = clampChatHeight(px);
-  document.querySelector("#chat-band").style.setProperty("--chat-h", `${next}px`);
-  if (persist) localStorage.setItem("hooxie-chat-h", String(next));
-  scheduleFit(true);
+  const band = document.querySelector("#chat-band");
+  if (px <= CHAT_CLOSE) {
+    chatCollapsed = true;
+    if (persist) localStorage.setItem("hooxie-chat-collapsed", "1");
+  } else {
+    chatCollapsed = false;
+    const next = Math.min(CHAT_H_MAX, Math.max(0, Math.round(px)));
+    band.style.setProperty("--chat-h", `${next}px`);
+    if (persist) {
+      if (next >= CHAT_H_MIN) rememberChatHeight(next);
+      else {
+        chatCollapsed = true;
+        localStorage.setItem("hooxie-chat-collapsed", "1");
+      }
+    }
+  }
+  syncFold();
+  if (chatDrag) queueDragFit();
+  else scheduleFit(true);
+}
+
+function queueDragFit() {
+  if (chatDragFrame) return;
+  chatDragFrame = requestAnimationFrame(() => {
+    chatDragFrame = 0;
+    if (!chatDrag) return;
+    const width = frameWidth();
+    const height = measureFrame();
+    const next = `${width}x${height}`;
+    if (next === fittedFrame) return;
+    fittedFrame = next;
+    fetch("/api/widget/frame", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ width, height, instant: true }),
+    }).catch(() => undefined);
+  });
 }
 
 const savedChatHeight = Number(localStorage.getItem("hooxie-chat-h"));
-if (Number.isFinite(savedChatHeight) && savedChatHeight > 0) setChatHeight(savedChatHeight, false);
+if (!chatCollapsed && Number.isFinite(savedChatHeight) && savedChatHeight > 0) setChatHeight(savedChatHeight, false);
+else if (chatCollapsed) syncFold();
 
 const chatResize = document.querySelector("#chat-resize");
 chatResize.addEventListener("pointerdown", (event) => {
@@ -3042,13 +3122,17 @@ chatResize.addEventListener("pointerdown", (event) => {
   event.preventDefault();
   event.stopPropagation();
   chatResize.setPointerCapture(event.pointerId);
+  chatDrag = true;
   const startY = event.screenY;
-  const start = chatEl.getBoundingClientRect().height;
+  const start = chatCollapsed ? 0 : chatEl.getBoundingClientRect().height;
   const move = (ev) => setChatHeight(start + (ev.screenY - startY), false);
   const end = (ev) => {
     chatResize.removeEventListener("pointermove", move);
     chatResize.removeEventListener("pointerup", end);
     chatResize.removeEventListener("pointercancel", end);
+    if (chatDragFrame) cancelAnimationFrame(chatDragFrame);
+    chatDragFrame = 0;
+    chatDrag = false;
     setChatHeight(start + (ev.screenY - startY), true);
   };
   chatResize.addEventListener("pointermove", move);
@@ -3059,7 +3143,12 @@ chatResize.addEventListener("keydown", (event) => {
   const step = event.shiftKey ? 48 : 24;
   if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
   event.preventDefault();
-  const current = chatEl.getBoundingClientRect().height;
+  if (chatCollapsed && event.key === "ArrowDown") {
+    const saved = Number(localStorage.getItem("hooxie-chat-h"));
+    setChatHeight(Number.isFinite(saved) && saved >= CHAT_H_MIN ? saved : 112, true);
+    return;
+  }
+  const current = chatCollapsed ? 0 : chatEl.getBoundingClientRect().height;
   setChatHeight(current + (event.key === "ArrowDown" ? step : -step), true);
 });
 

@@ -1526,8 +1526,26 @@ function bootDashboard() {
     return SERVICES.find((service) => service.id === id) || SERVICES[0];
   }
 
+  let awaitingServiceKey = "";
+
   function serviceLinked(service) {
     return Boolean(service && keyed.has(service.id));
+  }
+
+  function resetServiceConnect(message) {
+    awaitingServiceKey = "";
+    const note = document.querySelector("#service-connect-note");
+    const key = document.querySelector("#service-key");
+    if (key && document.activeElement !== key) key.value = "";
+    if (note) {
+      note.textContent = message || "";
+      if (message) {
+        window.setTimeout(() => {
+          if (note.textContent === message) note.textContent = "";
+        }, 2800);
+      }
+    }
+    syncServiceConnect();
   }
 
   function syncServiceConnect() {
@@ -1535,6 +1553,7 @@ function bootDashboard() {
     if (!service) return;
     const links = readLinks();
     const linked = serviceLinked(service);
+    const awaiting = awaitingServiceKey === service.id && !linked;
     const input = document.querySelector("#service-ref");
     const key = document.querySelector("#service-key");
     const button = document.querySelector("#service-connect");
@@ -1549,8 +1568,8 @@ function bootDashboard() {
         input.value = saved && saved !== "linked" ? saved : "";
       }
     }
-    key.hidden = linked;
-    if (linked && document.activeElement !== key) key.value = "";
+    key.hidden = linked || !awaiting;
+    if (!awaiting && document.activeElement !== key) key.value = "";
     button.textContent = linked ? "Disconnect" : "Connect";
     button.className = linked ? "ghost" : "btn";
   }
@@ -1620,14 +1639,14 @@ function bootDashboard() {
       switchIde("").catch((error) => explainFailure(status, error));
     });
     document.querySelector("#service-choice").addEventListener("change", () => {
+      awaitingServiceKey = "";
       const note = document.querySelector("#service-connect-note");
       if (note) note.textContent = "";
       syncServiceConnect();
     });
     document.querySelector("#service-connect").addEventListener("click", () => {
       connectChosenService().catch((error) => {
-        const note = document.querySelector("#service-connect-note");
-        if (note) note.textContent = error.message;
+        resetServiceConnect(error.message);
       });
     });
     renderServices();
@@ -1700,8 +1719,10 @@ function bootDashboard() {
     const service = selectedService();
     const note = document.querySelector("#service-connect-note");
     const keyInput = document.querySelector("#service-key");
-    if (!service || !note || !keyInput) return;
+    const button = document.querySelector("#service-connect");
+    if (!service || !note || !keyInput || !button) return;
     if (serviceLinked(service)) {
+      awaitingServiceKey = "";
       writeLink(service.id, "");
       keyed.delete(service.id);
       if (LOCAL && TOKEN) await request("/api/key", { service: service.id, forget: true });
@@ -1710,36 +1731,47 @@ function bootDashboard() {
       return;
     }
     const apiKey = keyInput.value.trim();
-    if (apiKey.length < 8) {
-      keyInput.hidden = false;
-      keyInput.focus();
-      note.textContent = "Browser sign-in is not available for this service. Create a key in the browser, paste it, then Connect.";
-      if (LOCAL && TOKEN) {
-        try {
-          await request("/api/connections/open", { service: service.id });
-          note.textContent = "The browser is open. Create a key there, paste it, then Connect.";
-        } catch (error) {
-          note.textContent = error.message;
-        }
+    if (apiKey.length >= 8) {
+      const refInput = document.querySelector("#service-ref");
+      const ref = service.link ? "linked" : (refInput?.value.trim() || "");
+      if (!service.link && !ref) {
+        note.textContent = "Add the connection detail, then Connect.";
+        refInput?.focus();
+        return;
       }
+      if (LOCAL && TOKEN) {
+        await request("/api/key", {
+          apiKey,
+          remember: document.querySelector("#dash-remember-key").checked,
+          service: service.id,
+        });
+      }
+      keyed.add(service.id);
+      writeLink(service.id, ref || "linked");
+      keyInput.value = "";
+      awaitingServiceKey = "";
+      note.textContent = document.querySelector("#dash-remember-key").checked
+        ? "Connected. The key is saved in your user profile."
+        : "Connected for this session.";
+      renderServices();
       return;
     }
-    const refInput = document.querySelector("#service-ref");
-    const ref = service.link ? "linked" : (refInput.value.trim() || "linked");
-    if (LOCAL && TOKEN) {
-      await request("/api/key", {
-        apiKey,
-        remember: document.querySelector("#dash-remember-key").checked,
-        service: service.id,
-      });
+    if (!LOCAL || !TOKEN) {
+      resetServiceConnect("Open Hooxie on this computer to connect a service.");
+      return;
     }
-    keyed.add(service.id);
-    writeLink(service.id, ref);
-    keyInput.value = "";
-    note.textContent = document.querySelector("#dash-remember-key").checked
-      ? "Connected. The key is saved in your user profile."
-      : "Connected for this session.";
-    renderServices();
+    button.disabled = true;
+    try {
+      await request("/api/connections/open", { service: service.id });
+      awaitingServiceKey = service.id;
+      note.textContent = "The browser is open. Create a key there, paste it, then Connect.";
+      syncServiceConnect();
+      keyInput.focus();
+    } catch (error) {
+      resetServiceConnect(error.message);
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function renderServices() {

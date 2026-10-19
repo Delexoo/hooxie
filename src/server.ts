@@ -621,8 +621,9 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
     if (req.method === "GET" && url.pathname === "/api/routes") {
       const ide = url.searchParams.get("ide");
       const projectPath = url.searchParams.get("projectPath") ?? "";
+      const allowUnsandboxed = url.searchParams.get("allowUnsandboxed") === "1";
       if (!isIde(ide)) throw new DeliveryError(400, "Unknown IDE.");
-      sendJson(res, 200, { routes: await service.routes(ide, projectPath) });
+      sendJson(res, 200, { routes: await service.routes(ide, projectPath, { allowUnsandboxed }) });
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/key") {

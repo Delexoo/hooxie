@@ -768,6 +768,32 @@ html[data-widget="light"] #setup-ide-menu button span:last-child:not(:first-chil
   user-select: text;
 }
 
+.reply-text strong {
+  font-weight: 700;
+}
+
+.reply-text code {
+  font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+  font-size: 0.92em;
+  padding: 0 0.28em;
+  border-radius: 4px;
+  background: var(--fill);
+}
+
+.reply-text pre {
+  margin: 6px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--fill);
+  overflow: auto;
+  white-space: pre;
+}
+
+.reply-text pre code {
+  padding: 0;
+  background: none;
+}
+
 .bubble,
 .who,
 .live,
@@ -1440,6 +1466,16 @@ label.slider {
   background: var(--accent);
 }
 #chat-resize:focus-visible { outline: none; }
+#chat-band.is-collapsed {
+  gap: 0;
+  padding-bottom: 2px;
+}
+#chat-band.is-collapsed #context-bar,
+#chat-band.is-collapsed #chat-actions,
+#chat-band.is-collapsed #attachments,
+#chat-band.is-collapsed #chat {
+  display: none;
+}
 #chat-band:not(:has(#thread:not(:empty))) #chat-resize { display: none; }
 #chat:has(#thread:empty) { display: none; }
 #chat-band:not(:has(#thread:not(:empty))):not(:has(#attachments:not(:empty))) {

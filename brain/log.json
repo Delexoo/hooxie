@@ -2,6 +2,24 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.15",
+      "date": "2026-10-18",
+      "title": "Replies show bold and code",
+      "sections": [
+        {
+          "heading": "Chat",
+          "added": [
+            "Agent replies show bold and code instead of the ** and backtick marks.",
+            "Dragging the chat grip up closes the chat into the pill, and dragging it down opens that chat again."
+          ],
+          "fixes": [
+            "Dragging the chat grip resizes the window smoothly.",
+            "A prompt is handed to the Cursor agent sooner."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.14",
       "date": "2026-10-16",
       "title": "The chat shows what the agent is doing",
@@ -9,7 +27,8 @@
         {
           "heading": "Dashboard",
           "added": [
-            "Type, controls, and the content column are a step larger so the window is easier to read."
+            "Type, controls, and the content column are a step larger so the window is easier to read.",
+            "Connect opens a service key page when one exists; if it does not, the list returns to normal."
           ]
         },
         {

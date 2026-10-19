@@ -238,12 +238,9 @@ export function cursorSdkAdapter(): AgentAdapter {
     }
     const pending = warming.get(key);
     warming.delete(key);
-    let agent: HeldAgent;
-    try {
-      agent = pending ? await pending : await open(ctx, projectPath, sandbox);
-    } catch {
-      agent = await open(ctx, projectPath, sandbox);
-    }
+    const opening = (pending ?? open(ctx, projectPath, sandbox)).catch(() => open(ctx, projectPath, sandbox));
+    const dropping = Promise.all([...held.keys()].filter((other) => other !== key).map((other) => drop(other)));
+    const [agent] = await Promise.all([opening, dropping]);
     held.set(key, agent);
     return agent;
   };
@@ -277,7 +274,7 @@ export function cursorSdkAdapter(): AgentAdapter {
       if (!ctx.sdkReady && !ctx.sdk) return { ok: false, reason: "@cursor/sdk is not installed." };
       if (!ctx.apiKey && !ctx.sdkAccount) return { ok: false, reason: "Connect the Cursor account on this computer." };
       if (!ctx.sdk) return { ok: false, reason: "The Cursor SDK client is not loaded." };
-      prime(ctx, path.resolve(ctx.projectPath), !ctx.allowUnsandboxed);
+      prime(ctx, path.resolve(ctx.projectPath), useSandbox(ctx));
       return { ok: true };
     },
     prepare(input, _ctx) {
@@ -299,8 +296,10 @@ export function cursorSdkAdapter(): AgentAdapter {
         const message = prepared.images.length
           ? { text: prepared.text, images: prepared.images }
           : prepared.text;
-        const turnKey = warmKey(ctx, prepared.projectPath, !ctx.allowUnsandboxed);
+        const sandboxFirst = useSandbox(ctx);
+        const turnKey = warmKey(ctx, prepared.projectPath, sandboxFirst);
         turn = waitTurn(turnKey);
+        const claimed = claim(ctx, prepared.projectPath, sandboxFirst);
         await turn.ready;
         const start = async (sandbox: boolean) => {
           const key = warmKey(ctx, prepared.projectPath, sandbox);
@@ -316,8 +315,12 @@ export function cursorSdkAdapter(): AgentAdapter {
         };
         let started: { agent: HeldAgent; run: SdkRun };
         try {
-          started = await start(!ctx.allowUnsandboxed);
+          const next = await claimed;
+          const run = await next.send(message, { force: wedged.has(turnKey) });
+          wedged.delete(turnKey);
+          started = { agent: next, run };
         } catch (error) {
+          await drop(turnKey);
           if (ctx.allowUnsandboxed || !sandboxUnsupported(error)) throw error;
           fellBackFromSandbox = true;
           started = await start(false);
@@ -370,7 +373,12 @@ async function observeRun(
   let reply = "";
   let thought = "";
   let closed = false;
-  const baseline = await readGitStatus(projectPath);
+  let baselineReady = false;
+  let baseline = new Map<string, string>();
+  void readGitStatus(projectPath).then((map) => {
+    baseline = map;
+    baselineReady = true;
+  });
   const publish = () => {
     if (closed) return;
     report({
@@ -398,6 +406,7 @@ async function observeRun(
     });
   }
   const gitTimer = setInterval(() => {
+    if (!baselineReady) return;
     void readGitStatus(projectPath).then((now) => {
       if (closed) return;
       const files = mergeFileChanges(activity.files, changedSince(baseline, now));
@@ -410,6 +419,7 @@ async function observeRun(
     const result = await run.wait();
     closed = true;
     clearInterval(gitTimer);
+    if (!baselineReady) baseline = await readGitStatus(projectPath);
     const now = await readGitStatus(projectPath);
     activity = { terminals: activity.terminals, files: mergeFileChanges(activity.files, changedSince(baseline, now)) };
     if (result.status === "finished") {
@@ -695,6 +705,10 @@ export function clipboardAdapter(): AgentAdapter {
       };
     },
   };
+}
+
+function useSandbox(ctx: AdapterContext): boolean {
+  return !ctx.allowUnsandboxed;
 }
 
 function warmKey(ctx: AdapterContext, projectPath: string, sandbox: boolean): string {
