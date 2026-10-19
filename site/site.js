@@ -510,6 +510,8 @@ function bootDashboard() {
   function show(name) {
     const aliases = { onboarding: "ide", widget: "ide", profile: "billing" };
     const sectionName = aliases[name] || name;
+    const current = sections.find((section) => !section.hidden);
+    if (current?.dataset.section === sectionName) return;
     for (const section of sections) {
       const open = section.dataset.section === sectionName;
       section.hidden = !open;
@@ -528,8 +530,10 @@ function bootDashboard() {
         title.dataset.i18n = key;
         title.textContent = t(key);
       }
-      openSection.prepend(title);
+      if (openSection.firstElementChild !== title) openSection.prepend(title);
     }
+    const main = document.querySelector(".main");
+    if (main) main.scrollTop = 0;
   }
     for (const button of buttons) button.addEventListener("click", () => {
       show(button.dataset.open);
@@ -621,10 +625,10 @@ function bootDashboard() {
     document.documentElement.lang = lang;
     for (const node of document.querySelectorAll("[data-i18n]")) {
       const next = table[node.dataset.i18n];
-      if (!next) continue;
+      if (!next || node.textContent === next) continue;
       node.textContent = next;
       const button = node.closest("button");
-      if (button?.querySelector("[data-i18n]") === node) button.title = next;
+      if (button?.querySelector("[data-i18n]") === node && button.title !== next) button.title = next;
     }
     if (session) session.textContent = settings.session ? t("session.running") : t("session.stopped");
   }
@@ -1391,6 +1395,9 @@ function bootDashboard() {
     const matches = (catalog.installations || []).filter((item) => item.ide === (settings.ide || "cursor"));
     label.hidden = matches.length === 0;
     box.hidden = matches.length === 0;
+    const signature = matches.map((item) => `${item.id}\t${item.label}\t${settings.installationId === item.id ? "1" : "0"}`).join("\n");
+    if (box.dataset.signature === signature) return;
+    box.dataset.signature = signature;
     box.replaceChildren(...matches.map((item) => choiceButton(item.label, settings.installationId === item.id, () => {
       save({ installationId: item.id, deliveryReady: true });
     })));
@@ -1402,9 +1409,13 @@ function bootDashboard() {
     const direct = (settings.ide || "cursor") === "cursor";
     label.hidden = direct || routes.length === 0;
     box.hidden = direct || routes.length === 0;
-    box.replaceChildren(...routes.map((route) => choiceButton(route.label, settings.route === route.id, () => {
-      save({ route: route.id, deliveryReady: true });
-    })));
+    const signature = routes.map((route) => `${route.id}\t${route.label}\t${settings.route === route.id ? "1" : "0"}`).join("\n");
+    if (box.dataset.signature !== signature) {
+      box.dataset.signature = signature;
+      box.replaceChildren(...routes.map((route) => choiceButton(route.label, settings.route === route.id, () => {
+        save({ route: route.id, deliveryReady: true });
+      })));
+    }
     const note = document.querySelector("#dash-route-note");
     const current = routes.find((route) => route.id === settings.route) || routes.find((route) => route.recommended);
     note.textContent = current && current.available === false ? (current.reason || "") : "";
@@ -1423,6 +1434,9 @@ function bootDashboard() {
         }));
       }
     }
+    const signature = buttons.map((button) => `${button.textContent}\t${button.getAttribute("aria-checked")}`).join("\n");
+    if (box.dataset.signature === signature) return;
+    box.dataset.signature = signature;
     box.replaceChildren(...buttons);
   }
 
@@ -1471,6 +1485,9 @@ function bootDashboard() {
     const list = document.querySelector("#memory-list");
     if (!list) return;
     const presets = Array.isArray(settings.memory) ? settings.memory : [];
+    const signature = presets.map((preset) => `${preset.id}\t${preset.name}\t${settings.memoryId === preset.id ? "1" : "0"}`).join("\n");
+    if (list.dataset.signature === signature) return;
+    list.dataset.signature = signature;
     list.replaceChildren(...presets.map((preset) => {
       const row = document.createElement("div");
       row.className = "field";

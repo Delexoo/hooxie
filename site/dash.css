@@ -249,8 +249,6 @@ a { color: inherit; }
 }
 .main > .status,
 .main > section { width: 100%; max-width: 840px; }
-.main > section.is-in { animation: dash-in 0.28s ease; }
-@keyframes dash-in { from { opacity: 0; } to { opacity: 1; } }
 
 .main h1 {
   margin: 0;
@@ -896,7 +894,6 @@ html[data-appearance="dark"] .release-latest { background: #143224; color: #8ee0
   .brand,
   .side-label,
   .modes-thumb, .switch i, .switch i::after, .advanced-toggle::after, .pick-menu-btn::after { transition: none; }
-  .main > section.is-in { animation: none; }
 }
 
 @media (max-width: 880px) {

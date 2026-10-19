@@ -3107,20 +3107,14 @@ function rememberChatHeight(px) {
 
 function setChatHeight(px, persist) {
   const band = document.querySelector("#chat-band");
-  if (px <= CHAT_CLOSE) {
+  if (px < CHAT_H_MIN) {
     chatCollapsed = true;
     if (persist) localStorage.setItem("hooxie-chat-collapsed", "1");
   } else {
     chatCollapsed = false;
-    const next = Math.min(CHAT_H_MAX, Math.max(0, Math.round(px)));
+    const next = Math.min(CHAT_H_MAX, Math.round(px));
     band.style.setProperty("--chat-h", `${next}px`);
-    if (persist) {
-      if (next >= CHAT_H_MIN) rememberChatHeight(next);
-      else {
-        chatCollapsed = true;
-        localStorage.setItem("hooxie-chat-collapsed", "1");
-      }
-    }
+    if (persist) rememberChatHeight(next);
   }
   syncFold();
   if (chatDrag) queueDragFit();
@@ -3157,8 +3151,14 @@ chatResize.addEventListener("pointerdown", (event) => {
   chatResize.setPointerCapture(event.pointerId);
   chatDrag = true;
   const startY = event.screenY;
-  const start = chatCollapsed ? 0 : chatEl.getBoundingClientRect().height;
-  const move = (ev) => setChatHeight(start + (ev.screenY - startY), false);
+  const startCollapsed = chatCollapsed;
+  const start = startCollapsed ? 0 : chatEl.getBoundingClientRect().height;
+  const dragged = (ev) => {
+    const raw = start + (ev.screenY - startY);
+    if (startCollapsed) return raw > CHAT_CLOSE ? Math.max(CHAT_H_MIN, raw) : 0;
+    return raw;
+  };
+  const move = (ev) => setChatHeight(dragged(ev), false);
   const end = (ev) => {
     chatResize.removeEventListener("pointermove", move);
     chatResize.removeEventListener("pointerup", end);
@@ -3166,7 +3166,7 @@ chatResize.addEventListener("pointerdown", (event) => {
     if (chatDragFrame) cancelAnimationFrame(chatDragFrame);
     chatDragFrame = 0;
     chatDrag = false;
-    setChatHeight(start + (ev.screenY - startY), true);
+    setChatHeight(dragged(ev), true);
   };
   chatResize.addEventListener("pointermove", move);
   chatResize.addEventListener("pointerup", end);

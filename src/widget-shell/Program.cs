@@ -212,16 +212,29 @@ internal sealed class ShellForm : Form
         if (m.Msg == WM_WINDOWPOSCHANGING)
         {
             var pos = System.Runtime.InteropServices.Marshal.PtrToStructure<WindowPos>(m.LParam);
-            pos.hwndInsertAfter = HWND_TOPMOST;
-            pos.flags &= ~SWP_NOZORDER;
-            System.Runtime.InteropServices.Marshal.StructureToPtr(pos, m.LParam, false);
+            var reorder = (pos.flags & SWP_NOZORDER) == 0 && pos.hwndInsertAfter != HWND_TOPMOST;
+            if (reorder && !DashboardIsForeground())
+            {
+                pos.hwndInsertAfter = HWND_TOPMOST;
+                System.Runtime.InteropServices.Marshal.StructureToPtr(pos, m.LParam, false);
+            }
         }
         base.WndProc(ref m);
     }
 
+    private bool DashboardIsForeground()
+    {
+        if (dashboard == null || dashboard.IsDisposed || !dashboard.Visible) return false;
+        var foreground = GetForegroundWindow();
+        if (foreground == IntPtr.Zero) return false;
+        if (foreground == dashboard.Handle) return true;
+        return GetAncestor(foreground, GA_ROOT) == dashboard.Handle;
+    }
+
     private void PinTopmost()
     {
-        if (!IsHandleCreated || !Visible) return;
+        if (!IsHandleCreated || !Visible || DashboardIsForeground()) return;
+        if (GetTopWindow(IntPtr.Zero) == Handle) return;
         TopMost = true;
         SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
@@ -1690,6 +1703,7 @@ internal sealed class ShellForm : Form
     }
 
     private static readonly IntPtr HWND_TOPMOST = new(-1);
+    private const uint GA_ROOT = 2;
     private static readonly IntPtr HWND_NOTOPMOST = new(-2);
     private const uint SWP_NOSIZE = 0x0001;
     private const uint SWP_NOMOVE = 0x0002;
@@ -1741,6 +1755,12 @@ internal sealed class ShellForm : Form
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr GetTopWindow(IntPtr hWnd);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetShellWindow();

@@ -2,6 +2,27 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.20",
+      "date": "2026-10-19",
+      "title": "Closing the chat returns to the pill",
+      "tag": "v0.2.20",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.20",
+      "sections": [
+        {
+          "heading": "Widget",
+          "fixes": [
+            "Dragging the chat bar up closes the chat all the way back into the pill."
+          ]
+        },
+        {
+          "heading": "Dashboard",
+          "fixes": [
+            "Clicking in the dashboard no longer flashes or rebuilds the page."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.19",
       "date": "2026-10-19",
       "title": "The agent step shows immediately",
