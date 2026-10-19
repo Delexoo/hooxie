@@ -97,6 +97,7 @@ let promptQueue = [];
 let sessionTerminals = [];
 let sessionFiles = [];
 let agentThought = "";
+let agentCommand = "";
 let activityOpen = "";
 let activityDismissed = new Set();
 let draining = false;
@@ -1412,7 +1413,7 @@ let editingCaret = null;
 let threadPaint = "";
 
 function renderThread() {
-  const paint = `${editingIndex}|${statusName}|${agentThought}|${thread.map((message) => [message.role, message.deliveryId || "", message.text, message.previews?.length || 0].join("\u0000")).join("\u0001")}`;
+  const paint = `${editingIndex}|${statusName}|${agentThought}|${agentCommand}|${thread.map((message) => [message.role, message.deliveryId || "", message.text, message.previews?.length || 0].join("\u0000")).join("\u0001")}`;
   if (paint === threadPaint && threadEl.childElementCount) {
     syncFold();
     syncChatActions();
@@ -1518,6 +1519,19 @@ function renderThread() {
       thought.textContent = agentThought;
       thought.title = agentThought;
       threadEl.append(thought);
+    }
+    if (statusName === "agent_working" && agentCommand) {
+      const command = document.createElement("p");
+      command.className = "live-command";
+      command.title = agentCommand;
+      command.setAttribute("aria-label", `Command running: ${agentCommand}`);
+      const mark = document.createElement("span");
+      mark.className = "live-command-mark";
+      mark.setAttribute("aria-hidden", "true");
+      const text = document.createElement("span");
+      text.textContent = agentCommand;
+      command.append(mark, text);
+      threadEl.append(command);
     }
   }
   if (editingIndex >= 0) threadEl.scrollTop = scroll;
@@ -2131,6 +2145,7 @@ function show(delivery) {
   if (Array.isArray(delivery.terminals)) {
     sessionTerminals = delivery.terminals.filter((item) => item && item.status === "running" && typeof item.command === "string");
   }
+  agentCommand = delivery.status === "agent_working" ? latestRunningCommand() : "";
   if (Array.isArray(delivery.files)) {
     for (const file of delivery.files) {
       if (!file || typeof file.path !== "string") continue;
@@ -2178,6 +2193,14 @@ function show(delivery) {
   const threadChanged = renderThread();
   if (activityChanged || threadChanged) scheduleFit();
   if (terminal(delivery.status) && !stopped) void drainQueue();
+}
+
+function latestRunningCommand() {
+  for (let index = sessionTerminals.length - 1; index >= 0; index -= 1) {
+    const item = sessionTerminals[index];
+    if (item?.status === "running" && item.command) return item.command;
+  }
+  return "";
 }
 
 function ideLabel() {
@@ -2728,6 +2751,7 @@ function clearChat() {
   sessionTerminals = [];
   sessionFiles = [];
   agentThought = "";
+  agentCommand = "";
   activityFiles = [];
   activityTerminals = [];
   activityPaint = "";

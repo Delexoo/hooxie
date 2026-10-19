@@ -187,7 +187,7 @@ function readToolCall(message: unknown): ToolCall | undefined {
 
 function isShell(name: string): boolean {
   const normalized = name.toLowerCase();
-  return normalized === "shell" || normalized === "bash" || normalized.includes("shell");
+  return normalized === "shell" || normalized === "bash" || normalized === "powershell" || normalized === "cmd" || normalized.includes("shell") || normalized.includes("terminal");
 }
 
 function isFileTool(name: string): boolean {

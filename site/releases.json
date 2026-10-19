@@ -2,6 +2,21 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.17",
+      "date": "2026-10-19",
+      "title": "A running command stays under Agent working",
+      "tag": "v0.2.17",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.17",
+      "sections": [
+        {
+          "heading": "Chat",
+          "added": [
+            "Under Agent working, the command that is still running stays on its own line."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.16",
       "date": "2026-10-19",
       "title": "The live thought stays one sentence",

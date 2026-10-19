@@ -34,6 +34,25 @@ test("a running shell is a background terminal and a finished one drops off the 
   assert.equal(finished.terminals[0].status, "done");
 });
 
+test("a terminal tool is the running command", () => {
+  const started = foldActivity({ terminals: [], files: [] }, {
+    type: "tool_call",
+    call_id: "sh-term",
+    name: "run_terminal_cmd",
+    status: "running",
+    args: { command: "npm test" },
+  });
+  assert.equal(started.terminals[0].command, "npm test");
+  assert.equal(started.terminals[0].status, "running");
+  assert.equal(focusFromTool({
+    type: "tool_call",
+    call_id: "sh-term",
+    name: "run_terminal_cmd",
+    status: "running",
+    args: { command: "npm test" },
+  }), "Running npm test");
+});
+
 test("a backgrounded shell stays running after the tool returns", () => {
   const activity = foldActivity({ terminals: [], files: [] }, {
     type: "tool_call",

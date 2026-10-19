@@ -715,7 +715,7 @@ html[data-widget="light"] #setup-ide-menu button span:last-child:not(:first-chil
 
 .reply { display: grid; gap: 2px; }
 
-.who, .live, .live-thought, #project-path {
+.who, .live, .live-thought, .live-command, #project-path {
   margin: 0;
   color: var(--muted);
   font-size: 11.5px;
@@ -731,6 +731,34 @@ html[data-widget="light"] #setup-ide-menu button span:last-child:not(:first-chil
   font-size: 11px;
   font-weight: 450;
   opacity: 0.88;
+}
+
+.live-command {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 11px;
+  font-weight: 450;
+}
+
+.live-command-mark {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+  animation: think 1.05s ease-in-out infinite;
+}
+
+.live-command span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
 }
 
 .thinking {
@@ -798,6 +826,7 @@ html[data-widget="light"] #setup-ide-menu button span:last-child:not(:first-chil
 .who,
 .live,
 .live-thought,
+.live-command,
 #result,
 .note,
 .detail,

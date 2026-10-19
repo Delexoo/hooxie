@@ -1,5 +1,5 @@
 #define MyAppName "Hooxie"
-#define MyAppVersion "0.2.16"
+#define MyAppVersion "0.2.17"
 #define MyAppPublisher "Delexo"
 #define MyAppURL "https://hooxie.com"
 #define MyAppExeName "Hooxie.cmd"
@@ -30,7 +30,7 @@ WizardStyle=modern
 UninstallDisplayName=Hooxie
 VersionInfoCompany=Delexo
 VersionInfoProductName=Hooxie
-VersionInfoVersion=0.2.16.0
+VersionInfoVersion=0.2.17.0
 VersionInfoCopyright=Copyright (C) 2026 Delexo
 SetupLogging=yes
 ArchitecturesInstallIn64BitMode=x64compatible
