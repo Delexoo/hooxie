@@ -411,7 +411,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       res.end(indexHtml);
       return;
     }
-    if (req.method === "GET" && (url.pathname === "/app.js" || url.pathname === "/app.css")) {
+    if (req.method === "GET" && (url.pathname === "/app.js" || url.pathname === "/app.css" || url.pathname === "/reply-format.js")) {
       const file = path.join(publicDir, path.basename(url.pathname));
       const body = await fs.readFile(file);
       const type = url.pathname.endsWith(".css") ? "text/css" : "text/javascript";

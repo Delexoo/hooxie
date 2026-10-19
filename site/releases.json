@@ -2,6 +2,21 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.18",
+      "date": "2026-10-19",
+      "title": "Agent replies show in the chat again",
+      "tag": "v0.2.18",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.18",
+      "sections": [
+        {
+          "heading": "Chat",
+          "fixes": [
+            "An agent reply shows in the chat again instead of leaving only your message on screen."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.17",
       "date": "2026-10-19",
       "title": "A running command stays under Agent working",

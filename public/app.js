@@ -1543,6 +1543,10 @@ function renderThread() {
 
 function fillReply(node, text) {
   node.replaceChildren();
+  if (typeof replyParts !== "function") {
+    node.textContent = text;
+    return;
+  }
   for (const part of replyParts(text)) appendReplyPart(node, part);
 }
 
@@ -2130,6 +2134,7 @@ function poll() {
       show(delivery);
       if (terminal(delivery.status)) clearInterval(pollTimer);
     } catch (error) {
+      clearBusy();
       setStatus("disconnected", error.message);
       clearInterval(pollTimer);
     }
@@ -3225,6 +3230,7 @@ function setStatus(stateName, detail) {
   if (detail) detailEl.textContent = detail;
   renderTarget();
   renderAdvanced();
+  renderThread();
   if (finished) playChime();
 }
 
