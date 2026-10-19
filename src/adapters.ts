@@ -300,6 +300,19 @@ export function cursorSdkAdapter(): AgentAdapter {
           : prepared.text;
         const sandboxFirst = useSandbox(ctx);
         const turnKey = warmKey(ctx, prepared.projectPath, sandboxFirst);
+        const step = (text: string) => {
+          report({
+            status: "agent_working",
+            phase: "processing",
+            detail: text,
+            thought: text,
+            process: text,
+            responseVerified: false,
+            limitations: this.limitations,
+            unsupported: this.unsupported,
+          });
+        };
+        if (!held.has(turnKey)) step("Opening the Cursor agent.");
         turn = waitTurn(turnKey);
         const claimed = claim(ctx, prepared.projectPath, sandboxFirst);
         await turn.ready;
@@ -318,6 +331,7 @@ export function cursorSdkAdapter(): AgentAdapter {
         let started: { agent: HeldAgent; run: SdkRun };
         try {
           const next = await claimed;
+          step("Sending the prompt.");
           const run = await next.send(message, { force: wedged.has(turnKey) });
           wedged.delete(turnKey);
           started = { agent: next, run };
@@ -346,8 +360,10 @@ export function cursorSdkAdapter(): AgentAdapter {
             status: "agent_working",
             phase: "processing",
             detail: fellBackFromSandbox
-              ? "This machine cannot sandbox a local Cursor agent, so Hooxie started this run without a sandbox. The agent run is in progress."
-              : "The Cursor SDK accepted the prompt. The agent run is in progress. This is observable run status, not a guess.",
+              ? "This machine cannot sandbox a local Cursor agent, so Hooxie started this run without a sandbox. Waiting for the first step."
+              : "The prompt is in. Waiting for the first step.",
+            thought: "Waiting for the first step.",
+            process: "Waiting for the first step.",
             responseVerified: false,
             limitations: this.limitations,
             unsupported: this.unsupported,
@@ -374,7 +390,7 @@ async function observeRun(
   let activity = emptyActivity();
   let reply = "";
   let thought = "";
-  let processLabel = "Starting the agent.";
+  let processLabel = "";
   let closed = false;
   let baselineReady = false;
   let baseline = new Map<string, string>();
@@ -387,8 +403,8 @@ async function observeRun(
     report({
       status: "agent_working",
       phase: "processing",
-      detail: thought || processLabel || "The agent run is in progress.",
-      thought: thought || processLabel || undefined,
+      detail: thought || processLabel || "Waiting for the first step.",
+      thought: thought || processLabel || "Waiting for the first step.",
       process: processLabel || undefined,
       responseText: reply || undefined,
       responseVerified: false,

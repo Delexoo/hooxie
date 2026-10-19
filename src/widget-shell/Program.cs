@@ -213,7 +213,7 @@ internal sealed class ShellForm : Form
         {
             var pos = System.Runtime.InteropServices.Marshal.PtrToStructure<WindowPos>(m.LParam);
             var reorder = (pos.flags & SWP_NOZORDER) == 0 && pos.hwndInsertAfter != HWND_TOPMOST;
-            if (reorder && !DashboardIsForeground())
+            if (reorder && !DashboardIsOpen())
             {
                 pos.hwndInsertAfter = HWND_TOPMOST;
                 System.Runtime.InteropServices.Marshal.StructureToPtr(pos, m.LParam, false);
@@ -222,18 +222,9 @@ internal sealed class ShellForm : Form
         base.WndProc(ref m);
     }
 
-    private bool DashboardIsForeground()
-    {
-        if (dashboard == null || dashboard.IsDisposed || !dashboard.Visible) return false;
-        var foreground = GetForegroundWindow();
-        if (foreground == IntPtr.Zero) return false;
-        if (foreground == dashboard.Handle) return true;
-        return GetAncestor(foreground, GA_ROOT) == dashboard.Handle;
-    }
-
     private void PinTopmost()
     {
-        if (!IsHandleCreated || !Visible || DashboardIsForeground()) return;
+        if (!IsHandleCreated || !Visible || DashboardIsOpen()) return;
         if (GetTopWindow(IntPtr.Zero) == Handle) return;
         TopMost = true;
         SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
@@ -769,7 +760,7 @@ internal sealed class ShellForm : Form
     {
         var window = EnsureDashboardWindow();
         if (window.WindowState == FormWindowState.Minimized) window.WindowState = FormWindowState.Normal;
-        window.TopMost = false;
+        window.TopMost = true;
         PlaceDashboard(window);
         window.Show();
         if (window.IsHandleCreated)
@@ -778,7 +769,7 @@ internal sealed class ShellForm : Form
             // ignores the first ShowWindow. A second show is what actually appears.
             ShowWindow(window.Handle, SW_SHOWNORMAL);
             ShowWindow(window.Handle, SW_SHOWNORMAL);
-            SetWindowPos(window.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            SetWindowPos(window.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         }
         window.BringToFront();
         window.Activate();
@@ -793,6 +784,7 @@ internal sealed class ShellForm : Form
         dashboard.TopMost = false;
         dashboard.Hide();
         NotifyDashboard(false);
+        PinTopmost();
     }
 
     private void NotifyDashboard(bool open)
@@ -1703,7 +1695,6 @@ internal sealed class ShellForm : Form
     }
 
     private static readonly IntPtr HWND_TOPMOST = new(-1);
-    private const uint GA_ROOT = 2;
     private static readonly IntPtr HWND_NOTOPMOST = new(-2);
     private const uint SWP_NOSIZE = 0x0001;
     private const uint SWP_NOMOVE = 0x0002;
@@ -1758,9 +1749,6 @@ internal sealed class ShellForm : Form
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetTopWindow(IntPtr hWnd);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetShellWindow();

@@ -30,6 +30,7 @@ const retryEl = document.querySelector("#retry");
 const cancelEl = document.querySelector("#cancel");
 const presetsEl = document.querySelector("#presets");
 const presetToggle = document.querySelector("#preset-toggle");
+const chatToggle = document.querySelector("#chat-toggle");
 const chatEl = document.querySelector("#chat");
 const threadEl = document.querySelector("#thread");
 const projectPathEl = document.querySelector("#project-path");
@@ -124,7 +125,7 @@ let voiceSending = false;
 let voiceCueOpen = false;
 let voiceCueTimer = 0;
 let voiceWakeAt = 0;
-let chimeId = "blushing";
+let chimeId = "alert";
 let openSound = "notification";
 let closeSound = "pluck-off";
 let chimeAudio = null;
@@ -1739,7 +1740,10 @@ function fitPrompt() {
   if (stacked !== wasStacked || Math.abs(next - current) > 1) scheduleFit();
 }
 
+let chatForced = false;
+
 function foldNeeded() {
+  if (chatForced && !chatCollapsed) return true;
   if (busy || listening) return true;
   if (promptEl.value.trim()) return true;
   if (thread.length > 0) return true;
@@ -1759,7 +1763,35 @@ function syncFold() {
   shellEl.classList.toggle("is-open", (show && !collapsed) || advanced || panel !== "none" || menuOpen);
   if (show && !was && !collapsed) threadEl.scrollTop = threadEl.scrollHeight;
   if (show !== was) scheduleFit(true);
+  paintChatToggle();
 }
+
+function paintChatToggle() {
+  const open = foldNeeded() && !chatCollapsed;
+  chatToggle.setAttribute("aria-pressed", String(open));
+  const label = open ? "Hide chat" : "Show chat";
+  chatToggle.setAttribute("aria-label", label);
+  chatToggle.title = label;
+}
+
+function openChat() {
+  chatForced = true;
+  if (!chatCollapsed) {
+    syncFold();
+    return;
+  }
+  const saved = Number(localStorage.getItem("hooxie-chat-h"));
+  setChatHeight(Number.isFinite(saved) && saved >= CHAT_H_MIN ? saved : 112, true);
+}
+
+chatToggle.addEventListener("click", () => {
+  if (foldNeeded() && !chatCollapsed) {
+    chatForced = false;
+    setChatHeight(0, true);
+    return;
+  }
+  openChat();
+});
 
 function promptFocused() {
   return widgetActive && !promptBlurred && document.activeElement === promptEl;
@@ -2048,6 +2080,7 @@ async function submit(retry, options = {}) {
   warmPromptConnection();
   const text = (typeof options.text === "string" ? options.text : retry ? lastPrompt : promptEl.value).trim();
   if (!text) return;
+  openChat();
   busy = true;
   stopRequested = false;
   syncAction();
@@ -3239,11 +3272,6 @@ function setStatus(stateName, detail) {
 }
 
 const CHIME_FILES = {
-  blushing: "blushing-sound.mp3",
-  "xtreme-bass": "xtreme-bass-effect.mp3",
-  undertaker: "undertaker-cloche.mp3",
-  ekh: "ekh.mp3",
-  "cat-choke": "cat-choke.mp3",
   alert: "notification-alert.mp3",
   "pluck-off": "notification-pluck-off.mp3",
   notification: "notification-2.mp3",

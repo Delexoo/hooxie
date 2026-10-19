@@ -249,6 +249,7 @@ a { color: inherit; }
 }
 .main > .status,
 .main > section { width: 100%; max-width: 840px; }
+.main > section[hidden] { display: none; }
 
 .main h1 {
   margin: 0;

@@ -2,6 +2,30 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.21",
+      "date": "2026-10-19",
+      "title": "The dashboard stays in front",
+      "tag": "v0.2.21",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.21",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "fixes": [
+            "The dashboard stays in front of the pill so light, dark, and sounds receive the click.",
+            "The sound list only includes sounds that can play, and Done uses Alert when the previous sound is missing."
+          ]
+        },
+        {
+          "heading": "Widget",
+          "added": [
+            "A chat button between send and presets opens and closes the chat.",
+            "Sending a prompt opens the chat so the reply is visible.",
+            "The live line says when the Cursor agent is opening, when the prompt is sending, and when it is waiting for the first step."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.20",
       "date": "2026-10-19",
       "title": "Closing the chat returns to the pill",

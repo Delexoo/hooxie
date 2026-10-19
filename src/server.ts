@@ -28,13 +28,8 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const publicDir = path.join(rootDir, "public");
 const siteDir = path.join(rootDir, "site");
 const BUTTON_COLORS = ["#ffffff", "#4d9fff", "#3ddc97", "#ff8a3d", "#ff5d8f", "#b07bff", "#ffe14a", "#ff4d4d", "#3ee0d2"];
-const CHIMES = new Set(["blushing", "xtreme-bass", "undertaker", "ekh", "cat-choke", "alert", "pluck-off", "notification", "new-notification", "menu-open", "holographic-open", "off", "custom"]);
+const CHIMES = new Set(["alert", "pluck-off", "notification", "new-notification", "menu-open", "holographic-open", "off", "custom"]);
 const SOUND_FILES = new Set([
-  "blushing-sound.mp3",
-  "xtreme-bass-effect.mp3",
-  "undertaker-cloche.mp3",
-  "ekh.mp3",
-  "cat-choke.mp3",
   "notification-alert.mp3",
   "notification-pluck-off.mp3",
   "notification-2.mp3",
@@ -1366,7 +1361,7 @@ async function loadSettings(configDir: string): Promise<HooxieSettings> {
     lookReady: false,
     deliveryReady: false,
     trace: true,
-    chime: "blushing",
+    chime: "alert",
     openSound: "notification",
     closeSound: "pluck-off",
     chimeCustom: false,
@@ -1416,7 +1411,7 @@ function normalizeSettings(input: HooxieSettings): HooxieSettings {
     lookReady: input.lookReady === true,
     deliveryReady: input.deliveryReady === true,
     trace: input.trace !== false,
-    chime: CHIMES.has(input.chime) ? input.chime : "blushing",
+    chime: CHIMES.has(input.chime) ? input.chime : "alert",
     openSound: CHIMES.has(input.openSound) ? input.openSound : "notification",
     closeSound: CHIMES.has(input.closeSound) ? input.closeSound : "pluck-off",
     chimeCustom: input.chimeCustom === true,

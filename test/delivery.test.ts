@@ -444,7 +444,7 @@ test("the Cursor connection is open before the prompt is sent", async () => {
     const delivery = await sent;
     assert.equal(delivery.status, 200);
     assert.equal(delivery.body.status, "agent_working");
-    assert.equal(delivery.body.thought, "Starting the agent.");
+    assert.equal(delivery.body.thought, "Opening the Cursor agent.");
     assert.equal(sdk.calls.length, 0);
     releaseCreate();
     await waitFor(() => sdk.calls.length === 1);

@@ -2091,9 +2091,11 @@ html[data-widget="light"] #toolbar-tools .circle { box-shadow: none; }
   letter-spacing: -0.02em;
 }
 #usage-credits #usage-credits-expire { margin-top: 4px; }
+#chat-toggle,
 #preset-toggle,
 #dashboard-toggle,
 #more,
+#chat-toggle[aria-pressed="true"],
 #preset-toggle[aria-expanded="true"],
 #dashboard-toggle[aria-expanded="true"],
 #more[aria-expanded="true"] {
@@ -2101,14 +2103,17 @@ html[data-widget="light"] #toolbar-tools .circle { box-shadow: none; }
   color: var(--button);
   box-shadow: none;
 }
+#chat-toggle[aria-pressed="true"],
 #dashboard-toggle[aria-expanded="true"],
 #preset-toggle[aria-expanded="true"],
 #more[aria-expanded="true"] {
   box-shadow: 0 0 0 2px var(--accent);
 }
+#chat-toggle:hover,
 #preset-toggle:hover,
 #dashboard-toggle:hover,
 #more:hover,
+#chat-toggle:active,
 #preset-toggle:active,
 #dashboard-toggle:active,
 #more:active {

@@ -483,7 +483,7 @@ function bootDashboard() {
     includeStack: false,
     unsandboxed: false,
     experimental: false,
-    chime: "blushing",
+    chime: "alert",
     openSound: "notification",
     closeSound: "pluck-off",
     chimeCustom: false,
@@ -511,7 +511,13 @@ function bootDashboard() {
     const aliases = { onboarding: "ide", widget: "ide", profile: "billing" };
     const sectionName = aliases[name] || name;
     const current = sections.find((section) => !section.hidden);
-    if (current?.dataset.section === sectionName) return;
+    if (current?.dataset.section === sectionName) {
+      for (const button of buttons) {
+        if (button.dataset.open === sectionName) button.setAttribute("aria-current", "true");
+        else button.removeAttribute("aria-current");
+      }
+      return;
+    }
     for (const section of sections) {
       const open = section.dataset.section === sectionName;
       section.hidden = !open;
@@ -820,11 +826,6 @@ function bootDashboard() {
 
   const SOUND_FIELDS = { open: "openSound", close: "closeSound", done: "chime" };
   const SOUND_CHOICES = [
-    ["blushing", "Blushing"],
-    ["xtreme-bass", "Xtreme bass"],
-    ["undertaker", "Undertaker"],
-    ["ekh", "Ekh"],
-    ["cat-choke", "Cat choke"],
     ["alert", "Alert"],
     ["pluck-off", "Pluck off"],
     ["notification", "Notification"],
@@ -834,11 +835,6 @@ function bootDashboard() {
     ["off", "Off"],
   ];
   const SOUND_FILES = {
-    blushing: "blushing-sound.mp3",
-    "xtreme-bass": "xtreme-bass-effect.mp3",
-    undertaker: "undertaker-cloche.mp3",
-    ekh: "ekh.mp3",
-    "cat-choke": "cat-choke.mp3",
     alert: "notification-alert.mp3",
     "pluck-off": "notification-pluck-off.mp3",
     notification: "notification-2.mp3",
@@ -878,7 +874,7 @@ function bootDashboard() {
           return option;
         }));
       }
-      const selected = settings[field] || (field === "chime" ? "blushing" : "off");
+      const selected = settings[field] || (field === "chime" ? "alert" : "off");
       if ([...select.options].some((item) => item.value === selected)) select.value = selected;
       select.dispatchEvent(new Event("pick-sync"));
       if (select.dataset.pickMenu !== "1") mountPickMenu(select);
