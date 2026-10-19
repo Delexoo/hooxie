@@ -9,7 +9,7 @@ import type { AdapterContext, ClipboardPort, CursorSdkClient } from "./adapters.
 import { IDE_CATALOG, ideDownloadUrl } from "./catalog.ts";
 import { CompanionHub } from "./companion.ts";
 import { DeliveryService } from "./delivery.ts";
-import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
+import { resolveProjectTarget } from "./prompt.ts";
 import { accountConnected, openIdeDownload, openLoginUrl, openOnboardingHelp, openStripeCheckout, openTokenPage, publicConnectError } from "./cursor-account.ts";
 import { readDeviceId, readStoredLicense, saveLicense } from "./license.ts";
 import { describeSetup, onboardingStep } from "./setup.ts";
@@ -932,8 +932,7 @@ export async function startBridge(options: BridgeOptions = {}): Promise<BridgeHa
       if (!installationId || !projectPath) throw new DeliveryError(400, "Choose an IDE installation and a project.");
       const installation = installations.find((item) => item.id === installationId);
       if (!installation) throw new DeliveryError(404, "That IDE installation is not available.");
-      assertProjectDirectory(projectPath);
-      await assertDirectoryExists(projectPath);
+      await resolveProjectTarget(projectPath);
       if (options.opener) options.opener(installation.executable, projectPath);
       else openProcess(installation.executable, projectPath);
       sendJson(res, 200, {

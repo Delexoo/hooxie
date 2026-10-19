@@ -85,14 +85,23 @@ export function assertProjectDirectory(projectPath: string): void {
   }
 }
 
-export async function assertDirectoryExists(projectPath: string): Promise<void> {
+export interface ProjectTarget {
+  directory: string;
+  file: string;
+}
+
+export async function resolveProjectTarget(projectPath: string): Promise<ProjectTarget> {
+  assertProjectDirectory(projectPath);
   let stat;
   try {
     stat = await fs.stat(projectPath);
   } catch {
-    throw new DeliveryError(400, "That project folder does not exist.");
+    throw new DeliveryError(400, "That project path does not exist.");
   }
-  if (!stat.isDirectory()) throw new DeliveryError(400, "The project path is not a folder.");
+  const resolved = path.resolve(projectPath);
+  if (stat.isDirectory()) return { directory: resolved, file: "" };
+  if (stat.isFile()) return { directory: path.dirname(resolved), file: resolved };
+  throw new DeliveryError(400, "Choose a file or a folder.");
 }
 
 export function imageFingerprint(images: ImageAttachment[]): string {

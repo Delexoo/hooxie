@@ -4,6 +4,7 @@ import {
   changedSince,
   clipThought,
   focusFromTool,
+  joinThought,
   foldActivity,
   joinReply,
   mergeFileChanges,
@@ -97,6 +98,15 @@ test("assistant text grows as the run streams", () => {
 
 test("thinking text and tool focus become the live thought line", () => {
   assert.equal(thoughtFromMessage({ type: "thinking", text: "Check the dashboard CSS next." }), "Check the dashboard CSS next.");
+  assert.equal(
+    joinThought("Inspect the context.", "The file search failed to locate the correct path."),
+    "The file search failed to locate the correct path.",
+  );
+  assert.equal(joinThought("The file", " search failed"), "The file search failed");
+  assert.equal(
+    clipThought("next.The file search failed to locate the correct path."),
+    "The file search failed to locate the correct path.",
+  );
   assert.equal(clipThought("a".repeat(130)).startsWith("…"), true);
   assert.equal(
     focusFromTool({

@@ -5,7 +5,7 @@ const COPY = {
   en: {
     "nav.general": "Settings", "nav.onboarding": "Connections", "nav.keybinds": "Keybinds", "nav.profile": "Profile", "nav.language": "Language", "nav.billing": "Billing", "nav.support": "Support", "nav.releases": "Release notes", "nav.help": "Help center", "nav.contact": "Contact support", "nav.toggle": "Toggle Hooxie", "nav.quit": "Quit Hooxie",
     "general.title": "Settings", "general.intro": "Appearance, audio, and sounds for this computer.", "general.upload": "Upload a sound",
-    "ide.title": "Connections", "ide.note": "Connect a service, pick an IDE, and choose the project folder.", "ide.browse": "Browse", "ide.clear": "Clear", "ide.connect": "Connect Cursor", "ide.save": "Save key", "ide.open": "Open IDE",
+    "ide.title": "Connections", "ide.note": "Connect a service, pick an IDE, and choose a project file or folder.", "ide.browse": "Browse", "ide.clear": "Clear", "ide.connect": "Connect Cursor", "ide.save": "Save key", "ide.open": "Open IDE",
     "keybinds.title": "Keybinds", "keybinds.note": "These shortcuts work while Hooxie is running. Arrow moves stay off until you turn on Arrow keys in Settings.",
     "profile.title": "Profile", "profile.note": "Connect the email Stripe should use for this computer.", "profile.connect": "Connect account",
     "language.title": "Language", "language.note": "The dashboard language on this computer.",
@@ -19,7 +19,7 @@ const COPY = {
   es: {
     "nav.general": "Ajustes", "nav.onboarding": "Conexiones", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.support": "Soporte", "nav.releases": "Notas de versión", "nav.help": "Centro de ayuda", "nav.contact": "Contacto", "nav.toggle": "Mostrar u ocultar", "nav.quit": "Salir de Hooxie",
     "general.title": "Ajustes", "general.intro": "Apariencia, audio y sonidos de este equipo.", "general.upload": "Subir un sonido",
-    "ide.title": "Conexiones", "ide.note": "Conecta un servicio, elige un IDE y la carpeta del proyecto.", "ide.browse": "Examinar", "ide.clear": "Borrar", "ide.connect": "Conectar Cursor", "ide.save": "Guardar clave", "ide.open": "Abrir IDE",
+    "ide.title": "Conexiones", "ide.note": "Conecta un servicio, elige un IDE y un archivo o carpeta del proyecto.", "ide.browse": "Examinar", "ide.clear": "Borrar", "ide.connect": "Conectar Cursor", "ide.save": "Guardar clave", "ide.open": "Abrir IDE",
     "keybinds.title": "Atajos", "keybinds.note": "Estos atajos funcionan mientras Hooxie está abierto. Las flechas no mueven el widget hasta que actives las teclas de flecha en Ajustes.",
     "profile.title": "Perfil", "profile.note": "Conecta el correo que Stripe debe usar para este equipo.", "profile.connect": "Conectar cuenta",
     "language.title": "Idioma", "language.note": "El idioma del panel en este equipo.",
@@ -33,7 +33,7 @@ const COPY = {
   fr: {
     "nav.general": "Réglages", "nav.onboarding": "Connexions", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.support": "Assistance", "nav.releases": "Notes de version", "nav.help": "Centre d'aide", "nav.contact": "Contact", "nav.toggle": "Afficher ou masquer", "nav.quit": "Quitter Hooxie",
     "general.title": "Réglages", "general.intro": "Apparence, audio et sons de cet ordinateur.", "general.upload": "Importer un son",
-    "ide.title": "Connexions", "ide.note": "Connectez un service, choisissez un IDE et le dossier du projet.", "ide.browse": "Parcourir", "ide.clear": "Effacer", "ide.connect": "Connecter Cursor", "ide.save": "Enregistrer la clé", "ide.open": "Ouvrir l'IDE",
+    "ide.title": "Connexions", "ide.note": "Connectez un service, choisissez un IDE et un fichier ou un dossier du projet.", "ide.browse": "Parcourir", "ide.clear": "Effacer", "ide.connect": "Connecter Cursor", "ide.save": "Enregistrer la clé", "ide.open": "Ouvrir l'IDE",
     "keybinds.title": "Raccourcis", "keybinds.note": "Ces raccourcis marchent tant que Hooxie est ouvert. Les flèches ne déplacent le widget qu'après avoir activé les touches fléchées dans Réglages.",
     "profile.title": "Profil", "profile.note": "Indiquez l'e-mail que Stripe doit utiliser pour cet ordinateur.", "profile.connect": "Connecter le compte",
     "language.title": "Langue", "language.note": "La langue du tableau de bord sur cet ordinateur.",
@@ -47,7 +47,7 @@ const COPY = {
   de: {
     "nav.general": "Einstellungen", "nav.onboarding": "Verbindungen", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.support": "Support", "nav.releases": "Versionshinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt", "nav.toggle": "Ein- oder ausblenden", "nav.quit": "Hooxie beenden",
     "general.title": "Einstellungen", "general.intro": "Darstellung, Audio und Töne auf diesem Computer.", "general.upload": "Ton hochladen",
-    "ide.title": "Verbindungen", "ide.note": "Verbinde einen Dienst, wähle eine IDE und den Projektordner.", "ide.browse": "Durchsuchen", "ide.clear": "Leeren", "ide.connect": "Cursor verbinden", "ide.save": "Schlüssel sichern", "ide.open": "IDE öffnen",
+    "ide.title": "Verbindungen", "ide.note": "Verbinde einen Dienst, wähle eine IDE und eine Projektdatei oder einen Ordner.", "ide.browse": "Durchsuchen", "ide.clear": "Leeren", "ide.connect": "Cursor verbinden", "ide.save": "Schlüssel sichern", "ide.open": "IDE öffnen",
     "keybinds.title": "Tasten", "keybinds.note": "Diese Kürzel gelten, solange Hooxie läuft. Pfeiltasten bewegen das Widget erst, wenn du sie unter Einstellungen einschaltest.",
     "profile.title": "Profil", "profile.note": "Verbinde die E-Mail, die Stripe für diesen Computer nutzen soll.", "profile.connect": "Konto verbinden",
     "language.title": "Sprache", "language.note": "Die Sprache dieses Fensters auf diesem Computer.",
@@ -61,7 +61,7 @@ const COPY = {
   pt: {
     "nav.general": "Ajustes", "nav.onboarding": "Conexões", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.support": "Suporte", "nav.releases": "Notas da versão", "nav.help": "Central de ajuda", "nav.contact": "Contato", "nav.toggle": "Mostrar ou ocultar", "nav.quit": "Sair do Hooxie",
     "general.title": "Ajustes", "general.intro": "Aparência, áudio e sons deste computador.", "general.upload": "Enviar um som",
-    "ide.title": "Conexões", "ide.note": "Conecte um serviço, escolha um IDE e a pasta do projeto.", "ide.browse": "Procurar", "ide.clear": "Limpar", "ide.connect": "Conectar o Cursor", "ide.save": "Salvar chave", "ide.open": "Abrir o IDE",
+    "ide.title": "Conexões", "ide.note": "Conecte um serviço, escolha um IDE e um arquivo ou pasta do projeto.", "ide.browse": "Procurar", "ide.clear": "Limpar", "ide.connect": "Conectar o Cursor", "ide.save": "Salvar chave", "ide.open": "Abrir o IDE",
     "keybinds.title": "Atalhos", "keybinds.note": "Estes atalhos funcionam enquanto o Hooxie está aberto. As setas só movem o widget depois que você liga as teclas de seta em Ajustes.",
     "profile.title": "Perfil", "profile.note": "Conecte o e-mail que o Stripe deve usar neste computador.", "profile.connect": "Conectar conta",
     "language.title": "Idioma", "language.note": "O idioma do painel neste computador.",
@@ -75,7 +75,7 @@ const COPY = {
   ja: {
     "nav.general": "設定", "nav.onboarding": "接続", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.support": "サポート", "nav.releases": "リリースノート", "nav.help": "ヘルプ", "nav.contact": "連絡", "nav.toggle": "表示の切り替え", "nav.quit": "Hooxie を終了",
     "general.title": "設定", "general.intro": "このパソコンの外観、音声、効果音。", "general.upload": "音をアップロード",
-    "ide.title": "接続", "ide.note": "サービスを接続し、IDE とプロジェクトフォルダを選びます。", "ide.browse": "参照", "ide.clear": "クリア", "ide.connect": "Cursor を接続", "ide.save": "キーを保存", "ide.open": "IDE を開く",
+    "ide.title": "接続", "ide.note": "サービスを接続し、IDE とプロジェクトのファイルまたはフォルダを選びます。", "ide.browse": "参照", "ide.clear": "クリア", "ide.connect": "Cursor を接続", "ide.save": "キーを保存", "ide.open": "IDE を開く",
     "keybinds.title": "キー", "keybinds.note": "Hooxie の実行中に使えるショートカットです。矢印キーは、設定で矢印キーをオンにするまでウィジェットを動かしません。",
     "profile.title": "プロフィール", "profile.note": "このパソコンの支払いに使うメールを接続します。", "profile.connect": "アカウントを接続",
     "language.title": "言語", "language.note": "このパソコンのダッシュボードの言語。",
@@ -89,7 +89,7 @@ const COPY = {
   zh: {
     "nav.general": "设置", "nav.onboarding": "连接", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.support": "支持", "nav.releases": "更新说明", "nav.help": "帮助中心", "nav.contact": "联系支持", "nav.toggle": "显示或隐藏", "nav.quit": "退出 Hooxie",
     "general.title": "设置", "general.intro": "这台电脑的外观、音频和声音。", "general.upload": "上传声音",
-    "ide.title": "连接", "ide.note": "连接服务，选择 IDE 和项目文件夹。", "ide.browse": "浏览", "ide.clear": "清除", "ide.connect": "连接 Cursor", "ide.save": "保存密钥", "ide.open": "打开 IDE",
+    "ide.title": "连接", "ide.note": "连接服务，选择 IDE 和项目文件或文件夹。", "ide.browse": "浏览", "ide.clear": "清除", "ide.connect": "连接 Cursor", "ide.save": "保存密钥", "ide.open": "打开 IDE",
     "keybinds.title": "快捷键", "keybinds.note": "这些快捷键在 Hooxie 运行时可用。在“设置”里打开方向键之前，方向键不会移动小组件。",
     "profile.title": "账户", "profile.note": "填写这台电脑付款时 Stripe 要使用的邮箱。", "profile.connect": "连接账户",
     "language.title": "语言", "language.note": "这台电脑上的仪表盘语言。",

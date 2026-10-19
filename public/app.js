@@ -1093,7 +1093,7 @@ window.onHooxieHotkey = async (name) => {
 async function askAboutContext() {
   if (busy || !setupReady) return;
   if (!projectEl.value.trim()) {
-    detailEl.textContent = "Choose a project folder before asking about the screen.";
+    detailEl.textContent = "Choose a project file or folder before asking about the screen.";
     showOnly("chat");
     return;
   }
@@ -1210,7 +1210,7 @@ async function refreshRoutes() {
   const project = projectEl.value.trim();
   if (!project) {
     routes = [];
-    routeEl.replaceChildren(option("", "Enter a project folder"));
+    routeEl.replaceChildren(option("", "Enter a project file or folder"));
     syncPickers();
     renderRoute();
     return;
@@ -1257,7 +1257,7 @@ function renderRoute() {
   const screenOn = viewScreenEl.checked;
   const visual = images > 0 || screenOn;
   if (!route) {
-    routeNote.textContent = project ? "" : "Choose an IDE and an existing project folder.";
+    routeNote.textContent = project ? "" : "Choose an IDE and a project file or folder.";
     limitsEl.replaceChildren();
   } else if (route.id === "cursor-sdk") {
     routeNote.textContent = route.available
@@ -1390,7 +1390,7 @@ function renderTarget() {
   projectPathEl.dataset.empty = project ? "false" : "true";
   if (!project) {
     projectPathEl.textContent = "Project Path: none";
-    projectPathEl.title = "Choose the folder Hooxie may modify";
+    projectPathEl.title = "Choose a file or folder Hooxie may modify";
   } else if (files.length === 1) {
     projectPathEl.textContent = `Project Path: ${project} · ${files[0]}`;
     projectPathEl.title = project;
@@ -1981,7 +1981,7 @@ function explainSendBlock() {
   if (!cursorReady) return "Connect an IDE before sending.";
   const project = projectEl.value.trim();
   const route = selectedRoute();
-  if (!project || !route) return "Choose a project folder before sending.";
+  if (!project || !route) return "Choose a project file or folder before sending.";
   if (!route.available) return route.reason || "This prompt cannot be sent on the current route.";
   const images = attachments.filter((item) => item.kind === "image").length;
   if ((images > 0 || viewScreenEl.checked) && !route.capabilities.images) {
@@ -2001,7 +2001,7 @@ function showSendBlock(message) {
 async function sendPrompt() {
   if (!cursorReady) await refreshSetup();
   let message = explainSendBlock();
-  if (message === "Choose a project folder before sending.") {
+  if (message === "Choose a project file or folder before sending.") {
     showSendBlock(message);
     await browseFolder();
     message = explainSendBlock();
@@ -2024,7 +2024,7 @@ async function submit(retry, options = {}) {
   const route = selectedRoute();
   const project = projectEl.value.trim();
   if (!route || !project) {
-    showSendBlock("Choose a project folder before sending.");
+    showSendBlock("Choose a project file or folder before sending.");
     return;
   }
   warmPromptConnection();
@@ -2476,7 +2476,7 @@ async function openIde() {
     }
     const projectPath = projectEl.value.trim();
     if (!projectPath) {
-      showNotice("Choose a project folder first.");
+      showNotice("Choose a project file or folder first.");
       return;
     }
     const body = await api("/api/open", {
@@ -2642,7 +2642,7 @@ function renderAdvancedDetails() {
   const selected = routeEl.selectedOptions[0];
   routeLine.textContent = selected && selected.value ? selected.textContent : "No delivery route yet.";
   const project = projectEl.value.trim();
-  projectLine.textContent = project || "No project folder yet.";
+  projectLine.textContent = project || "No project path yet.";
 }
 
 function closeMore() {

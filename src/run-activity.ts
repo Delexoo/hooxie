@@ -29,6 +29,16 @@ export function joinReply(current: string, incoming: string): string {
   return current + incoming;
 }
 
+export function joinThought(current: string, incoming: string): string {
+  if (!incoming) return current;
+  if (!current) return incoming;
+  if (incoming.startsWith(current)) return incoming;
+  if (current.endsWith(incoming)) return current;
+  const trimmed = current.trimEnd();
+  if (/[.!?…]["')\]]*$/.test(trimmed) && /^\s*[A-Z]/.test(incoming)) return incoming.trim();
+  return current + incoming;
+}
+
 export function replyFromMessage(message: unknown): string {
   if (!message || typeof message !== "object") return "";
   const record = message as { type?: string; message?: { content?: { type?: string; text?: string }[] } };
@@ -47,10 +57,15 @@ export function thoughtFromMessage(message: unknown): string {
 }
 
 export function clipThought(text: string, max = 110): string {
-  const compact = text.replace(/\s+/g, " ").trim();
+  const compact = text.replace(/\s+/g, " ").replace(/([.!?])([A-Z])/g, "$1 $2").trim();
   if (!compact) return "";
-  if (compact.length <= max) return compact;
-  return `…${compact.slice(-(max - 1))}`;
+  const sentences = compact.split(/(?<=[.!?])\s+/).map((part) => part.trim()).filter(Boolean);
+  let chosen = sentences[sentences.length - 1] || compact;
+  if (chosen.length <= max) return chosen;
+  const tail = chosen.slice(-(max - 1));
+  const space = tail.indexOf(" ");
+  const word = space > 0 && space < 24 ? tail.slice(space + 1) : tail;
+  return `…${word}`;
 }
 
 export function focusFromTool(message: unknown): string | undefined {

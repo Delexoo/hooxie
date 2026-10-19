@@ -1352,11 +1352,28 @@ internal sealed class ShellForm : Form
         core.ExecuteScriptAsync($"window.onHooxieHotkey&&window.onHooxieHotkey({JsonSerializer.Serialize(name)})");
     }
 
-    private static string Browse(string initialPath)
+    private string Browse(string initialPath)
     {
-        using var dialog = new FolderBrowserDialog { Description = "Folder Hooxie may modify" };
-        if (Directory.Exists(initialPath)) dialog.SelectedPath = initialPath;
-        return dialog.ShowDialog() == DialogResult.OK ? dialog.SelectedPath : "";
+        using var dialog = new OpenFileDialog
+        {
+            Title = "Choose a file or folder",
+            Filter = "All files|*.*",
+            CheckFileExists = false,
+            CheckPathExists = true,
+            ValidateNames = false,
+            DereferenceLinks = true,
+            FileName = "Select this folder",
+        };
+        var start = initialPath.Trim();
+        if (File.Exists(start)) start = Path.GetDirectoryName(start) ?? start;
+        if (Directory.Exists(start)) dialog.InitialDirectory = start;
+        if (dialog.ShowDialog(this) != DialogResult.OK) return "";
+        var chosen = dialog.FileName;
+        if (string.IsNullOrWhiteSpace(chosen)) return "";
+        if (File.Exists(chosen)) return Path.GetFullPath(chosen);
+        var folder = Path.GetDirectoryName(chosen);
+        if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder)) return Path.GetFullPath(folder);
+        return "";
     }
 
     private static bool InsideRoundedRect(int x, int y, int width, int height, int radius)

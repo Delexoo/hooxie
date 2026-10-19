@@ -2,6 +2,27 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.16",
+      "date": "2026-10-19",
+      "title": "The live thought stays one sentence",
+      "tag": "v0.2.16",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.16",
+      "sections": [
+        {
+          "heading": "Widget",
+          "added": [
+            "The project path can be a file or a folder."
+          ]
+        },
+        {
+          "heading": "Chat",
+          "fixes": [
+            "The live line under Agent working shows the current thought instead of sticking the next sentence to the previous one."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.15",
       "date": "2026-10-18",
       "title": "Replies show bold and code",

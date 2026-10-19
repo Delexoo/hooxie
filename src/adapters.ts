@@ -12,6 +12,7 @@ import {
   mergeFileChanges,
   readGitStatus,
   replyFromMessage,
+  joinThought,
   thoughtFromMessage,
   type RunActivity,
 } from "./run-activity.ts";
@@ -504,7 +505,7 @@ async function readRunStream(
       }
       const thinking = thoughtFromMessage(message);
       if (thinking) {
-        const nextThought = joinReply(thoughtBuffer, thinking);
+        const nextThought = joinThought(thoughtBuffer, thinking);
         if (nextThought !== thoughtBuffer) {
           thoughtBuffer = nextThought;
           toolFocus = "";

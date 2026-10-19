@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { AdapterContext, AgentAdapter, DeliveryUpdate, PreparedDelivery } from "./adapters.ts";
 import { AdapterRegistry } from "./adapters.ts";
-import { assertDirectoryExists, assertProjectDirectory } from "./prompt.ts";
+import { resolveProjectTarget } from "./prompt.ts";
 import { IDE_IDS, type DeliveryPhase, type DeliveryStatus, type IdeId, type PublicDelivery, type SubmitInput } from "./types.ts";
 import { DeliveryError } from "./types.ts";
 
@@ -48,13 +48,13 @@ export class DeliveryService {
   }
 
   async routes(ide: IdeId, projectPath: string, options?: { allowUnsandboxed?: boolean }) {
-    assertProjectDirectory(projectPath);
-    await assertDirectoryExists(projectPath);
-    const ctx = this.contextFor({ ...blank(ide, projectPath), allowUnsandboxed: options?.allowUnsandboxed === true });
+    const target = await resolveProjectTarget(projectPath);
+    const directory = target.directory;
+    const ctx = this.contextFor({ ...blank(ide, directory), allowUnsandboxed: options?.allowUnsandboxed === true });
     const routes = [];
     for (const adapter of this.registry.list()) {
       if (adapter.ide !== "any" && adapter.ide !== ide) continue;
-      const availability = await adapter.available({ ...ctx, ide, projectPath });
+      const availability = await adapter.available({ ...ctx, ide, projectPath: directory });
       routes.push({
         id: adapter.id,
         label: adapter.displayName,
@@ -97,8 +97,15 @@ export class DeliveryService {
     validateShape(input);
     const gate = await this.lock(input.idempotencyKey);
     try {
-      assertProjectDirectory(input.projectPath);
-      await assertDirectoryExists(input.projectPath);
+      const target = await resolveProjectTarget(input.projectPath);
+      const focused = target.file
+        ? {
+            ...input,
+            projectPath: target.directory,
+            additionalInstructions: [`The selected file is ${target.file}.`, input.additionalInstructions].filter(Boolean).join("\n"),
+          }
+        : { ...input, projectPath: target.directory };
+      input = focused;
       if (!input.confirmDestination) {
         throw new DeliveryError(400, "Confirm the destination IDE and project before sending.");
       }
