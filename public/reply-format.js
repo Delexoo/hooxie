@@ -44,6 +44,26 @@ function parseReply(text, start, closer) {
         continue;
       }
     }
+    if (!closer) {
+      const lineStart = index === start || text[index - 1] === "\n";
+      if (lineStart && (text.startsWith("* ", index) || text.startsWith("- ", index))) {
+        flush();
+        parts.push({ type: "text", text: "• " });
+        index += 2;
+        continue;
+      }
+    }
+    const emMarker = text[index] === "*" && text[index + 1] !== "*" ? "*" : text[index] === "_" && text[index + 1] !== "_" ? "_" : "";
+    if (emMarker && emMarker !== closer) {
+      const inner = parseReply(text, index + 1, emMarker);
+      const body = text.slice(index + 1, inner.index);
+      if (text.startsWith(emMarker, inner.index) && body && !body.startsWith(" ") && !body.endsWith(" ") && !body.includes("\n")) {
+        flush();
+        parts.push({ type: "em", parts: inner.parts });
+        index = inner.index + 1;
+        continue;
+      }
+    }
     plain += text[index];
     index += 1;
   }

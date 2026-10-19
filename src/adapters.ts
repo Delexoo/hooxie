@@ -78,6 +78,7 @@ export interface DeliveryUpdate {
   phase: DeliveryPhase;
   detail: string;
   thought?: string;
+  process?: string;
   responseText?: string;
   responseVerified: boolean;
   limitations: string[];
@@ -373,6 +374,7 @@ async function observeRun(
   let activity = emptyActivity();
   let reply = "";
   let thought = "";
+  let processLabel = "Starting the agent.";
   let closed = false;
   let baselineReady = false;
   let baseline = new Map<string, string>();
@@ -385,8 +387,9 @@ async function observeRun(
     report({
       status: "agent_working",
       phase: "processing",
-      detail: thought || "The agent run is in progress.",
-      thought: thought || undefined,
+      detail: thought || processLabel || "The agent run is in progress.",
+      thought: thought || processLabel || undefined,
+      process: processLabel || undefined,
       responseText: reply || undefined,
       responseVerified: false,
       limitations: adapter.limitations,
@@ -403,6 +406,9 @@ async function observeRun(
       publish();
     }, (next) => {
       thought = next;
+      publish();
+    }, (focus) => {
+      processLabel = focus;
       publish();
     });
   }
@@ -485,12 +491,12 @@ async function readRunStream(
   apply: (next: RunActivity) => void,
   speak: (text: string) => void,
   think: (text: string) => void,
+  act: (focus: string) => void,
 ): Promise<void> {
   let reply = "";
   let thoughtBuffer = "";
-  let toolFocus = "";
   const publishThought = () => {
-    think(toolFocus || clipThought(thoughtBuffer));
+    think(clipThought(thoughtBuffer));
   };
   try {
     for await (const message of run.stream!()) {
@@ -508,15 +514,11 @@ async function readRunStream(
         const nextThought = joinThought(thoughtBuffer, thinking);
         if (nextThought !== thoughtBuffer) {
           thoughtBuffer = nextThought;
-          toolFocus = "";
           publishThought();
         }
       }
       const focus = focusFromTool(message);
-      if (focus !== undefined) {
-        toolFocus = focus;
-        publishThought();
-      }
+      if (focus !== undefined) act(focus);
       const next = foldActivity(current(), message);
       if (next !== current()) apply(next);
     }

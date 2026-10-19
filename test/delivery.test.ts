@@ -71,8 +71,8 @@ test("an unsupported sandbox starts the agent without one", async () => {
   try {
     const first = await sendDelivery(ctx.bridge, ctx.project, { prompt: "Reply with the word pong." });
     assert.equal(first.status, 200);
-    assert.equal(first.body.status, "agent_working");
-    assert.match(first.body.detail, /without a sandbox/);
+    const working = await untilDetail(ctx.bridge, first.body.id, /without a sandbox/);
+    assert.equal(working.status, "agent_working");
     assert.equal(ctx.sdk.calls.length, 1);
     assert.equal(ctx.sdk.calls[0].sandbox, false);
   } finally {
@@ -107,17 +107,18 @@ test("a failed SDK start can be retried once, then a success is not sent again",
   ctx.sdk.mode = "throw";
   try {
     const failed = await sendDelivery(ctx.bridge, ctx.project);
-    assert.equal(failed.body.status, "failed");
-    assert.equal(failed.body.committed, false);
-    assert.equal(failed.body.retryable, true);
-    assert.match(failed.body.detail, /did not start/);
+    const failedBody = await untilStatus(ctx.bridge, failed.body.id, "failed");
+    assert.equal(failedBody.committed, false);
+    assert.equal(failedBody.retryable, true);
+    assert.match(failedBody.detail, /did not start/);
     const ignored = await sendDelivery(ctx.bridge, ctx.project);
     assert.equal(ignored.body.status, "failed");
     assert.equal(ctx.sdk.calls.length, 1);
 
     ctx.sdk.mode = "finish";
     const retried = await sendDelivery(ctx.bridge, ctx.project, { retry: true });
-    assert.equal(retried.body.status, "agent_working");
+    await untilStatus(ctx.bridge, retried.body.id, "agent_working");
+    await waitFor(() => ctx.sdk.calls.length === 2);
     assert.equal(ctx.sdk.calls.length, 2);
     const again = await sendDelivery(ctx.bridge, ctx.project, { retry: true });
     assert.equal(again.body.id, retried.body.id);
@@ -132,7 +133,10 @@ test("cancel asks the SDK run to stop", async () => {
   ctx.sdk.mode = "hang";
   try {
     const started = await sendDelivery(ctx.bridge, ctx.project, { idempotencyKey: "cancel-me-1" });
-    assert.equal(started.body.canCancel, true);
+    await waitFor(async () => {
+      const current = await api(ctx.bridge, `/api/deliveries/${started.body.id}`);
+      return current.body.canCancel === true;
+    });
     const cancelled = await api(ctx.bridge, `/api/deliveries/${started.body.id}/cancel`, ctx.bridge.pageToken, { method: "POST" });
     assert.equal(cancelled.status, 200);
     const done = await untilStatus(ctx.bridge, started.body.id, "failed");
@@ -151,8 +155,8 @@ test("clipboard fallback copies the prompt and does not claim the agent started"
       idempotencyKey: "clip-board-1",
       prompt: "Paste this into Cascade.",
     });
-    assert.equal(copied.body.status, "awaiting_user_action");
-    assert.equal(copied.body.responseVerified, false);
+    const copiedBody = await untilStatus(ctx.bridge, copied.body.id, "awaiting_user_action");
+    assert.equal(copiedBody.responseVerified, false);
     assert.equal(ctx.clipboard.value, "Paste this into Cascade.");
     assert.equal(ctx.sdk.calls.length, 0);
     const again = await sendDelivery(ctx.bridge, ctx.project, {
@@ -243,8 +247,8 @@ test("companion delivery places text only for the connected project", async () =
     });
     assert.equal(posted.status, 200);
     const delivery = await pending;
-    assert.equal(delivery.body.status, "awaiting_user_action");
-    assert.equal(delivery.body.committed, true);
+    const placed = await untilStatus(ctx.bridge, delivery.body.id, "awaiting_user_action");
+    assert.equal(placed.committed, true);
     assert.equal(ctx.sdk.calls.length, 0);
 
     const duplicate = await sendDelivery(ctx.bridge, ctx.project, {
@@ -362,7 +366,8 @@ test("unsupported IDEs stay labeled and a new adapter can be registered", async 
       idempotencyKey: "sample-adapter",
       prompt: "Hello sample adapter.",
     });
-    assert.equal(sent.body.status, "delivered");
+    const delivered = await untilStatus(ctx.bridge, sent.body.id, "delivered");
+    assert.equal(delivered.status, "delivered");
     assert.match(seen[0], /Hello sample adapter/);
     assert.equal(ctx.sdk.calls.length, 0);
   } finally {
@@ -436,10 +441,13 @@ test("the Cursor connection is open before the prompt is sent", async () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     assert.equal(creates, 1);
     assert.equal(sdk.calls.length, 0);
-    releaseCreate();
     const delivery = await sent;
     assert.equal(delivery.status, 200);
     assert.equal(delivery.body.status, "agent_working");
+    assert.equal(delivery.body.thought, "Starting the agent.");
+    assert.equal(sdk.calls.length, 0);
+    releaseCreate();
+    await waitFor(() => sdk.calls.length === 1);
     assert.equal(sdk.calls.length, 1);
   } finally {
     releaseCreate();
@@ -560,7 +568,8 @@ test("a connected IDE receives a prompt on the open connection", async () => {
     });
     assert.equal(posted.status, 200);
     const delivery = await pending;
-    assert.equal(delivery.body.status, "awaiting_user_action");
+    const placed = await untilStatus(ctx.bridge, delivery.body.id, "awaiting_user_action");
+    assert.equal(placed.status, "awaiting_user_action");
     const quietStarted = Date.now();
     const quiet = await api(ctx.bridge, "/api/bridge/poll?wait=80", ctx.bridge.bridgeToken, {
       headers: { "x-z-session": session },
@@ -572,12 +581,22 @@ test("a connected IDE receives a prompt on the open connection", async () => {
   }
 });
 
-async function waitFor(predicate: () => boolean) {
+async function waitFor(predicate: () => boolean | Promise<boolean>) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
-    if (predicate()) return;
+    if (await predicate()) return;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   throw new Error("condition was not met");
+}
+
+async function untilDetail(bridge: Awaited<ReturnType<typeof boot>>["bridge"], id: string, pattern: RegExp) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const current = await api(bridge, `/api/deliveries/${id}`);
+    if (pattern.test(String(current.body.detail || ""))) return current.body;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  const last = await api(bridge, `/api/deliveries/${id}`);
+  throw new Error(`detail stayed ${last.body.detail}`);
 }
 
 async function waitForJob(bridge: Awaited<ReturnType<typeof boot>>["bridge"], session: string) {

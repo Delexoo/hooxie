@@ -25,6 +25,7 @@ interface DeliveryRecord {
   retryable: boolean;
   canCancel: boolean;
   thought?: string;
+  process?: string;
   terminals: PublicDelivery["terminals"];
   files: PublicDelivery["files"];
   cancel?: () => Promise<void>;
@@ -96,6 +97,7 @@ export class DeliveryService {
   async submit(input: SubmitInput): Promise<PublicDelivery> {
     validateShape(input);
     const gate = await this.lock(input.idempotencyKey);
+    let handedOff = false;
     try {
       const target = await resolveProjectTarget(input.projectPath);
       const focused = target.file
@@ -134,6 +136,26 @@ export class DeliveryService {
       }
 
       const record = this.begin(input, adapter, prepared);
+      record.status = "agent_working";
+      record.phase = "processing";
+      record.detail = "Starting the agent.";
+      record.thought = "Starting the agent.";
+      record.process = "Starting the agent.";
+      handedOff = true;
+      void this.complete(record, adapter, prepared, ctx).finally(() => gate.release());
+      return toPublic(record);
+    } finally {
+      if (!handedOff) gate.release();
+    }
+  }
+
+  private async complete(
+    record: DeliveryRecord,
+    adapter: AgentAdapter,
+    prepared: PreparedDelivery,
+    ctx: AdapterContext,
+  ): Promise<void> {
+    try {
       const result = await adapter.send(prepared, ctx, (update) => applyUpdate(record, update));
       applyUpdate(record, result.update);
       record.committed = result.committed;
@@ -143,9 +165,13 @@ export class DeliveryService {
       }
       if (result.update.retryable) record.retryable = result.update.retryable && !record.committed;
       else record.retryable = !record.committed && record.status === "failed";
-      return toPublic(record);
-    } finally {
-      gate.release();
+    } catch (error) {
+      if (record.status === "completed" || record.status === "failed") return;
+      record.status = "failed";
+      record.phase = "failed";
+      record.detail = error instanceof Error ? error.message : "The agent did not start.";
+      record.canCancel = false;
+      record.process = undefined;
     }
   }
 
@@ -216,6 +242,7 @@ function applyUpdate(record: DeliveryRecord, update: DeliveryUpdate): void {
   if (typeof update.responseText === "string") record.responseText = update.responseText;
   if (typeof update.thought === "string") record.thought = update.thought;
   else if (update.status !== "agent_working") record.thought = undefined;
+  if (typeof update.process === "string") record.process = update.process || undefined;
   if (record.status !== "agent_working") {
     record.canCancel = false;
     record.thought = undefined;
@@ -241,6 +268,7 @@ function toPublic(record: DeliveryRecord): PublicDelivery {
     retryable: record.retryable,
     canCancel: record.canCancel,
     thought: record.thought,
+    process: record.process,
     terminals: record.terminals,
     files: record.files,
   };

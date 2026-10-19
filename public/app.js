@@ -1513,14 +1513,14 @@ function renderThread() {
       live.append(dots);
     }
     threadEl.append(live);
-    if (statusName === "agent_working" && agentThought) {
+    if ((statusName === "agent_working" || statusName === "sending") && agentThought) {
       const thought = document.createElement("p");
       thought.className = "live-thought";
-      thought.textContent = agentThought;
       thought.title = agentThought;
+      fillReply(thought, agentThought);
       threadEl.append(thought);
     }
-    if (statusName === "agent_working" && agentCommand) {
+    if ((statusName === "agent_working" || statusName === "sending") && agentCommand && agentCommand !== agentThought) {
       const command = document.createElement("p");
       command.className = "live-command";
       command.title = agentCommand;
@@ -1567,9 +1567,9 @@ function appendReplyPart(node, part) {
     node.append(block);
     return;
   }
-  const strong = document.createElement("strong");
-  for (const child of part.parts) appendReplyPart(strong, child);
-  node.append(strong);
+  const wrap = document.createElement(part.type === "em" ? "em" : "strong");
+  for (const child of part.parts) appendReplyPart(wrap, child);
+  node.append(wrap);
 }
 
 function messageEditor(index) {
@@ -2086,7 +2086,9 @@ async function submit(retry, options = {}) {
     renderThread();
     showOnly("chat");
   }
-  setStatus("sending", retry ? "Retrying the same submission." : "Preparing the prompt.");
+  agentThought = "Starting the agent.";
+  agentCommand = "";
+  setStatus("agent_working", "Starting the agent.");
   try {
     const images = [...(screenImage ? [screenImage] : []), ...(await readImages())];
     const delivery = await api("/api/deliveries", {
@@ -2146,11 +2148,13 @@ function show(delivery) {
   setStatus(delivery.status, `${delivery.detail} Destination: ${delivery.destination}`);
   retryEl.hidden = !delivery.retryable;
   cancelEl.hidden = !delivery.canCancel;
-  agentThought = delivery.status === "agent_working" && typeof delivery.thought === "string" ? delivery.thought.trim() : "";
+  const working = delivery.status === "agent_working" || delivery.status === "sending";
+  agentThought = working && typeof delivery.thought === "string" ? delivery.thought.trim() : "";
   if (Array.isArray(delivery.terminals)) {
     sessionTerminals = delivery.terminals.filter((item) => item && item.status === "running" && typeof item.command === "string");
   }
-  agentCommand = delivery.status === "agent_working" ? latestRunningCommand() : "";
+  const reportedProcess = working && typeof delivery.process === "string" ? delivery.process.trim() : "";
+  agentCommand = reportedProcess || (working ? latestRunningCommand() : "");
   if (Array.isArray(delivery.files)) {
     for (const file of delivery.files) {
       if (!file || typeof file.path !== "string") continue;
@@ -2171,9 +2175,9 @@ function show(delivery) {
     inflightImageIds = [];
     renderAttachments();
   }
-  if (delivery.responseVerified && delivery.responseText) {
-    resultEl.hidden = false;
-    resultEl.textContent = delivery.responseText;
+  if (delivery.responseText && (delivery.responseVerified || working)) {
+    resultEl.hidden = !delivery.responseVerified;
+    if (delivery.responseVerified) resultEl.textContent = delivery.responseText;
     const key = `${delivery.id}:${delivery.responseText}`;
     if (renderedReply !== key) {
       renderedReply = key;

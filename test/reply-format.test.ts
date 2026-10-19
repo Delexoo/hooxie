@@ -25,6 +25,24 @@ test("bold and inline code hide the marks", () => {
   );
 });
 
+test("italic, bold, and code hide the marks", () => {
+  assert.deepEqual(parts("See *Hello* and `file.txt` and **bold**"), [
+    { type: "text", text: "See " },
+    { type: "em", parts: [{ type: "text", text: "Hello" }] },
+    { type: "text", text: " and " },
+    { type: "code", text: "file.txt" },
+    { type: "text", text: " and " },
+    { type: "strong", parts: [{ type: "text", text: "bold" }] },
+  ]);
+});
+
+test("a star at the start of a line is a bullet", () => {
+  assert.deepEqual(parts("* First item"), [
+    { type: "text", text: "• " },
+    { type: "text", text: "First item" },
+  ]);
+});
+
 test("unclosed marks stay visible", () => {
   assert.deepEqual(parts("See **Hello"), [{ type: "text", text: "See **Hello" }]);
 });
