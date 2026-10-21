@@ -2,6 +2,19 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.22",
+      "date": "2026-10-21",
+      "title": "Connections can choose an IDE",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "fixes": [
+            "Connections can open the IDE list and keep the IDE you pick."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.21",
       "date": "2026-10-19",
       "title": "The dashboard stays in front",

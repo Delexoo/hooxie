@@ -494,7 +494,29 @@ function bootDashboard() {
   let setupIdes = [];
   let routes = [];
   let catalog = { ides: [], installations: [], sessions: [] };
+  let awaitingServiceKey = "";
   const keyed = new Set();
+  const SOUND_FIELDS = { open: "openSound", close: "closeSound", done: "chime" };
+  const SOUND_CHOICES = [
+    ["alert", "Alert"],
+    ["pluck-off", "Pluck off"],
+    ["notification", "Notification"],
+    ["new-notification", "New notification"],
+    ["menu-open", "Menu open"],
+    ["holographic-open", "Holographic open"],
+    ["off", "Off"],
+  ];
+  const SOUND_FILES = {
+    alert: "notification-alert.mp3",
+    "pluck-off": "notification-pluck-off.mp3",
+    notification: "notification-2.mp3",
+    "new-notification": "new-notification.mp3",
+    "menu-open": "menu-open.mp3",
+    "holographic-open": "menu-open-holographic.mp3",
+  };
+  const waveCache = new Map();
+  let previewAudio = null;
+  let previewUrl = "";
 
   for (const color of COLORS) {
     const swatch = document.createElement("button");
@@ -823,28 +845,6 @@ function bootDashboard() {
   wireWidget();
   loadKeys().catch(() => undefined);
   paintReleaseNotes();
-
-  const SOUND_FIELDS = { open: "openSound", close: "closeSound", done: "chime" };
-  const SOUND_CHOICES = [
-    ["alert", "Alert"],
-    ["pluck-off", "Pluck off"],
-    ["notification", "Notification"],
-    ["new-notification", "New notification"],
-    ["menu-open", "Menu open"],
-    ["holographic-open", "Holographic open"],
-    ["off", "Off"],
-  ];
-  const SOUND_FILES = {
-    alert: "notification-alert.mp3",
-    "pluck-off": "notification-pluck-off.mp3",
-    notification: "notification-2.mp3",
-    "new-notification": "new-notification.mp3",
-    "menu-open": "menu-open.mp3",
-    "holographic-open": "menu-open-holographic.mp3",
-  };
-  const waveCache = new Map();
-  let previewAudio = null;
-  let previewUrl = "";
   wireSounds();
   refresh().catch((error) => { explainFailure(status, error); });
   loadAudioDevices().then(() => paint()).catch(() => undefined);
@@ -1538,8 +1538,6 @@ function bootDashboard() {
     const id = document.querySelector("#service-choice")?.value;
     return SERVICES.find((service) => service.id === id) || SERVICES[0];
   }
-
-  let awaitingServiceKey = "";
 
   function serviceLinked(service) {
     return Boolean(service && keyed.has(service.id));
