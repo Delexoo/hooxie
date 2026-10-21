@@ -247,14 +247,15 @@ html[data-widget="light"] #shell { background: var(--glass); }
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border: 0;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--fill);
+  background: transparent;
   color: var(--text);
   padding: 11px 12px;
   text-align: left;
   cursor: pointer;
 }
+#setup-ide-button:hover { background: var(--fill-hover); }
 #setup-ide-button svg {
   width: 12px;
   height: 12px;
@@ -273,10 +274,10 @@ html[data-widget="light"] #shell { background: var(--glass); }
   padding: 4px;
   overflow: auto;
   border-radius: 12px;
-  background: #1c1c1c;
-  color: #f4f4f4;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
 }
-html[data-widget="light"] #setup-ide-menu { background: #fff; color: #111; }
 #setup-ide-menu[hidden] { display: none; }
 #setup-ide-menu button {
   display: flex;
@@ -293,14 +294,11 @@ html[data-widget="light"] #setup-ide-menu { background: #fff; color: #111; }
   cursor: pointer;
 }
 #setup-ide-menu button:hover,
-#setup-ide-menu button[aria-selected="true"] { background: rgb(255 255 255 / 12%); }
-html[data-widget="light"] #setup-ide-menu button:hover,
-html[data-widget="light"] #setup-ide-menu button[aria-selected="true"] { background: rgb(0 0 0 / 8%); }
+#setup-ide-menu button[aria-selected="true"] { background: var(--fill-hover); }
 #setup-ide-menu button span:last-child:not(:first-child) {
-  color: #bdbdbd;
+  color: var(--muted);
   font-size: 11px;
 }
-html[data-widget="light"] #setup-ide-menu button span:last-child:not(:first-child) { color: #5c5c5c; }
 #setup-ide-note { margin: 0; }
 #setup-nav {
   display: flex;

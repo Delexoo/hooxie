@@ -2,6 +2,25 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.23",
+      "date": "2026-10-21",
+      "title": "Setup moves on after the IDE",
+      "tag": "v0.2.23",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.23",
+      "sections": [
+        {
+          "heading": "Widget",
+          "added": [
+            "Choosing an IDE in setup opens the next step on its own."
+          ],
+          "fixes": [
+            "The IDE list in setup is transparent like the rest of the pill.",
+            "Setup loads again so the IDE list and the rest of the steps can open."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.22",
       "date": "2026-10-21",
       "title": "Connections can choose an IDE",

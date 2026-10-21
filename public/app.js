@@ -79,6 +79,10 @@ let pollTimer = 0;
 let statusName = "ready";
 let fitTimer = 0;
 let fitInstant = false;
+let fitFlight = false;
+let fitQueued = false;
+let fittedFrame = "";
+let chatForced = false;
 let chatDrag = false;
 let panel = "none";
 let thread = [];
@@ -916,19 +920,21 @@ function chooseSetupIde(ide, installed) {
     openIdeDownload(ide).catch((error) => showNotice(error.message));
     return;
   }
-  connectIde(ide).catch((error) => {
+  connectIde(ide).then(() => {
+    if (setupWizard === "ide") showSetupChapter("pay");
+  }).catch((error) => {
     const note = document.querySelector("#setup-ide-note");
     if (note) note.textContent = error.message;
   });
 }
 
-document.querySelector("#setup-ide-button")?.addEventListener("pointerdown", (event) => {
+document.querySelector("#setup-ide-button")?.addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
   setSetupIdeOpen(!setupIdeOpen);
 });
 
-document.querySelector("#setup-ide-menu")?.addEventListener("pointerdown", (event) => {
+document.querySelector("#setup-ide-menu")?.addEventListener("click", (event) => {
   const option = event.target.closest("button");
   if (!option) return;
   event.preventDefault();
@@ -1739,8 +1745,6 @@ function fitPrompt() {
   promptEl.style.overflowY = promptEl.scrollHeight > max + 1 ? "auto" : "hidden";
   if (stacked !== wasStacked || Math.abs(next - current) > 1) scheduleFit();
 }
-
-let chatForced = false;
 
 function foldNeeded() {
   if (chatForced && !chatCollapsed) return true;
@@ -3088,10 +3092,6 @@ function measureFrame() {
   shellEl.style.overflow = "";
   return Math.max(48, height || 48);
 }
-
-let fitFlight = false;
-let fitQueued = false;
-let fittedFrame = "";
 
 async function fitWindow(instant = false) {
   if (fitFlight) {
