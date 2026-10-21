@@ -2,6 +2,21 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.24",
+      "date": "2026-10-21",
+      "title": "Connections can stack services",
+      "tag": "v0.2.24",
+      "url": "https://github.com/Delexoo/hooxie/releases/tag/v0.2.24",
+      "sections": [
+        {
+          "heading": "Dashboard",
+          "added": [
+            "Connections has a clearer Add a connection row, a Paste an API key panel, and a list that keeps every service you connect."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.23",
       "date": "2026-10-21",
       "title": "Setup moves on after the IDE",

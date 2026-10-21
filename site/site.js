@@ -1524,14 +1524,31 @@ function bootDashboard() {
     const select = document.querySelector("#service-choice");
     if (!select) return;
     const current = select.value;
-    select.replaceChildren(...SERVICES.map((service) => {
+    const rows = [
+      ...SERVICES.filter((service) => !keyed.has(service.id)),
+      ...SERVICES.filter((service) => keyed.has(service.id)),
+    ];
+    select.replaceChildren(...rows.map((service) => {
       const option = document.createElement("option");
       option.value = service.id;
-      option.textContent = service.name;
+      option.textContent = keyed.has(service.id) ? `${service.name} · connected` : service.name;
       return option;
     }));
-    if ([...select.options].some((item) => item.value === current)) select.value = current;
+    const openId = rows.find((service) => !keyed.has(service.id))?.id || rows[0]?.id || "";
+    const next = rows.some((service) => service.id === current) ? current : openId;
+    if (select.value !== next) select.value = next;
     select.dispatchEvent(new Event("pick-sync"));
+    syncServiceConnect();
+  }
+
+  function selectNextOpenService() {
+    const select = document.querySelector("#service-choice");
+    if (!select) return;
+    const open = SERVICES.find((service) => !keyed.has(service.id));
+    if (open) select.value = open.id;
+    awaitingServiceKey = "";
+    select.dispatchEvent(new Event("pick-sync"));
+    syncServiceConnect();
   }
 
   function selectedService() {
@@ -1569,11 +1586,11 @@ function bootDashboard() {
     const key = document.querySelector("#service-key");
     const button = document.querySelector("#service-connect");
     if (!input || !key || !button) return;
-    if (service.link) {
+    if (service.link || linked) {
       input.hidden = true;
     } else {
       input.hidden = false;
-      input.placeholder = service.placeholder || "";
+      input.placeholder = service.placeholder || "owner/repo or project URL";
       if (document.activeElement !== input) {
         const saved = links[service.id];
         input.value = saved && saved !== "linked" ? saved : "";
@@ -1581,7 +1598,7 @@ function bootDashboard() {
     }
     key.hidden = linked || !awaiting;
     if (!awaiting && document.activeElement !== key) key.value = "";
-    button.textContent = linked ? "Disconnect" : "Connect";
+    button.textContent = linked ? "Disconnect" : awaiting ? "Save key" : "Connect";
     button.className = linked ? "ghost" : "btn";
   }
 
@@ -1636,6 +1653,14 @@ function bootDashboard() {
       panel.hidden = !open;
       document.querySelector("#advanced-toggle").setAttribute("aria-expanded", open ? "true" : "false");
     });
+    document.querySelector("#service-key-toggle")?.addEventListener("click", () => {
+      const panel = document.querySelector("#service-key-panel");
+      if (!panel) return;
+      const open = panel.hidden;
+      panel.hidden = !open;
+      document.querySelector("#service-key-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) document.querySelector("#dash-key")?.focus();
+    });
     document.querySelector("#memory-save").addEventListener("click", () => {
       const name = document.querySelector("#memory-name").value.trim().slice(0, 80);
       const text = document.querySelector("#memory-text").value.trim().slice(0, 1200);
@@ -1660,6 +1685,11 @@ function bootDashboard() {
         resetServiceConnect(error.message);
       });
     });
+    document.querySelector("#service-key")?.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      connectChosenService().catch((error) => resetServiceConnect(error.message));
+    });
     renderServices();
     document.querySelector("#save-contact")?.addEventListener("click", saveContactCard);
     document.querySelector("#dash-open-ide").addEventListener("click", async () => {
@@ -1680,8 +1710,15 @@ function bootDashboard() {
           service,
         });
         document.querySelector("#dash-key").value = "";
+        keyed.add(service);
+        writeLink(service, "linked");
         if (service === "cursor") settings.cursorConnected = true;
         delete note.dataset.hold;
+        note.textContent = document.querySelector("#dash-remember-key").checked
+          ? "Connected. The key is saved in your user profile."
+          : "Connected for this session.";
+        renderServices();
+        selectNextOpenService();
         paint();
         loadRoutes();
       } catch (error) {
@@ -1762,9 +1799,10 @@ function bootDashboard() {
       keyInput.value = "";
       awaitingServiceKey = "";
       note.textContent = document.querySelector("#dash-remember-key").checked
-        ? "Connected. The key is saved in your user profile."
-        : "Connected for this session.";
+        ? "Connected. Pick another service to add the next one."
+        : "Connected for this session. Pick another service to add the next one.";
       renderServices();
+      selectNextOpenService();
       return;
     }
     if (!LOCAL || !TOKEN) {
@@ -1789,7 +1827,12 @@ function bootDashboard() {
     const list = document.querySelector("#service-list");
     if (!list) return;
     const links = readLinks();
-    list.replaceChildren(...SERVICES.filter((service) => keyed.has(service.id)).map((service) => {
+    const connected = SERVICES.filter((service) => keyed.has(service.id));
+    const count = document.querySelector("#service-count");
+    const empty = document.querySelector("#service-empty");
+    if (count) count.textContent = String(connected.length);
+    if (empty) empty.hidden = connected.length > 0;
+    list.replaceChildren(...connected.map((service) => {
       const card = document.createElement("article");
       card.className = "service-card";
       const head = document.createElement("div");
@@ -1812,7 +1855,10 @@ function bootDashboard() {
       disconnect.addEventListener("click", () => {
         writeLink(service.id, "");
         keyed.delete(service.id);
-        const finish = () => renderServices();
+        const finish = () => {
+          renderServices();
+          selectNextOpenService();
+        };
         if (!LOCAL || !TOKEN) {
           finish();
           return;
@@ -1836,7 +1882,7 @@ function bootDashboard() {
       card.append(head, row, detail);
       return card;
     }));
-    syncServiceConnect();
+    renderServiceChoices();
   }
 
   async function checkService(id, button) {
