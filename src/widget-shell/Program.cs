@@ -1205,9 +1205,13 @@ internal sealed class ShellForm : Form
     private int WindowRadius(int width, int height)
     {
         var dpi = (DeviceDpi > 0 ? DeviceDpi : 96) / 96f;
+        var shortSide = Math.Min(width, height);
         var shortPill = height <= (int)Math.Round(64 * dpi);
-        var wanted = shortPill ? height / 2 : (int)Math.Round(26 * dpi);
-        return Math.Max(8, Math.Min(wanted, Math.Min(width, height) / 2));
+        // Compact pill: fully rounded ends. Taller layouts keep a fixed corner so
+        // a resize never stretches the radius into a giant capsule.
+        var wanted = shortPill ? shortSide / 2 : (int)Math.Round(22 * dpi);
+        var maxCorner = shortPill ? shortSide / 2 : (int)Math.Round(26 * dpi);
+        return Math.Max(8, Math.Min(wanted, Math.Min(shortSide / 2, maxCorner)));
     }
 
     private void Nudge(int dx, int dy)

@@ -2,6 +2,19 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.25",
+      "date": "2026-10-21",
+      "title": "Corners stay small when the pill grows",
+      "sections": [
+        {
+          "heading": "Widget",
+          "fixes": [
+            "Opening chat, setup, or menus no longer stretches the pill into giant rounded corners."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.24",
       "date": "2026-10-21",
       "title": "Connections can stack services",

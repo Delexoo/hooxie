@@ -150,19 +150,13 @@ textarea::-webkit-scrollbar-thumb:hover {
   min-height: 0;
   max-height: 100%;
   background: var(--glass);
-  border-radius: 999px;
+  border-radius: 22px;
   overflow: hidden;
   transition: background-color 0.28s ease;
 }
 html[data-widget="light"] #shell { background: var(--glass); }
-#shell.is-open,
-#shell:has(#toolbar.is-stacked),
-#shell:has(#setup:not([hidden])),
-#shell:has(#more-menu:not([hidden])),
-#shell:has(#presets:not([hidden])),
-#shell:has(#usage:not([hidden])),
-#shell:has(#advanced:not([hidden])) {
-  border-radius: 22px;
+#shell.is-pill {
+  border-radius: 999px;
 }
 #pill[hidden] { display: none; }
 

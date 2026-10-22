@@ -45,7 +45,10 @@ const folderEl = document.querySelector("#folder");
 const shellEl = document.querySelector("#shell");
 const frameEl = document.querySelector("#frame");
 const pillEl = document.querySelector("#pill");
-queueMicrotask(() => scheduleFit());
+queueMicrotask(() => {
+  syncShellShape();
+  scheduleFit();
+});
 const attachmentsEl = document.querySelector("#attachments");
 
 const STORAGE_KEY = "hooxie-target";
@@ -801,6 +804,8 @@ function paintSetup(report) {
   if (!showFeatures && !pillEl.hidden) showOnly("none");
   setup.hidden = showFeatures;
   pillEl.hidden = !showFeatures;
+  if (showFeatures) syncFold();
+  else syncShellShape(true);
   if (showFeatures) startPlaceholder();
   else stopPlaceholder();
   watchLicense(!showFeatures && report.licensed !== true);
@@ -1764,10 +1769,23 @@ function syncFold() {
   band.classList.toggle("is-collapsed", collapsed);
   contextBarEl.hidden = !show || collapsed;
   const menuOpen = !document.querySelector("#more-menu").hidden;
-  shellEl.classList.toggle("is-open", (show && !collapsed) || advanced || panel !== "none" || menuOpen);
+  syncShellShape((show && !collapsed) || advanced || panel !== "none" || menuOpen);
   if (show && !was && !collapsed) threadEl.scrollTop = threadEl.scrollHeight;
   if (show !== was) scheduleFit(true);
   paintChatToggle();
+}
+
+function syncShellShape(open = null) {
+  const setupOpen = !document.querySelector("#setup")?.hidden;
+  const menuOpen = !document.querySelector("#more-menu")?.hidden;
+  const advancedOpen = !document.querySelector("#advanced")?.hidden;
+  const band = document.querySelector("#chat-band");
+  const chatOpen = Boolean(band && !band.hidden && !band.classList.contains("is-collapsed"));
+  const next = open == null
+    ? setupOpen || chatOpen || advanced || advancedOpen || panel !== "none" || menuOpen
+    : open || setupOpen;
+  shellEl.classList.toggle("is-open", next);
+  shellEl.classList.toggle("is-pill", !next);
 }
 
 function paintChatToggle() {
@@ -2984,7 +3002,7 @@ function fitTrace() {
   const inset = 2.75;
   const w = Math.max(4, width - inset * 2);
   const h = Math.max(4, height - inset * 2);
-  const radius = Math.min(26, h / 2);
+  const radius = shellEl.classList.contains("is-pill") && h <= 64 ? h / 2 : Math.min(22, h / 2);
   for (const rect of rects) {
     rect.setAttribute("x", String(inset));
     rect.setAttribute("y", String(inset));
@@ -3008,8 +3026,8 @@ function fitTrace() {
   ring.setAttribute("y", String(edge));
   ring.setAttribute("width", String(ringW));
   ring.setAttribute("height", String(ringH));
-  const advancedOpen = !document.querySelector("#advanced")?.hidden;
-  const ringRadius = shellEl.classList.contains("is-open") || advancedOpen ? Math.min(26, ringH / 2) : ringH / 2;
+  const pillShell = shellEl.classList.contains("is-pill");
+  const ringRadius = pillShell && ringH <= 64 ? ringH / 2 : Math.min(22, ringH / 2);
   ring.setAttribute("rx", String(ringRadius));
   ring.setAttribute("ry", String(ringRadius));
   placeStealthDots(ring, ringW, ringH, ringRadius);
