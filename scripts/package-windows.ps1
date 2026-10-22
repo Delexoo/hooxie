@@ -9,7 +9,7 @@ $dist = Join-Path $root "dist-setup"
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 $stageName = $null
 $stage = $null
-foreach ($name in @("stage", "payload", "payload-next")) {
+foreach ($name in @("ship", "stage", "payload", "payload-next")) {
   $candidate = Join-Path $dist $name
   if (Test-Path $candidate) { cmd /c "rmdir /s /q `"$candidate`"" }
   if (-not (Test-Path $candidate)) {

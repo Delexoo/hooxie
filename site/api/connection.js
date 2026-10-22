@@ -18,6 +18,7 @@ export default async function handler(req, res) {
 async function checkConnection(service, ref) {
   const value = ref.trim();
   if (!value) return { status: "not-connected", detail: "Not connected." };
+  if (value === "linked" && !STATUS_PAGES[service]) return { status: "online", detail: "Connected." };
   try {
     if (service === "github") return await checkGithub(value);
     if (service === "supabase") return await checkUrl(value, "supabase.co", "/auth/v1/health", "Supabase");

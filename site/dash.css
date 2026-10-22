@@ -551,9 +551,9 @@ html[data-appearance="dark"] .switch i { background: #3a3c44; }
 .lang-choices { display: flex; flex-wrap: wrap; gap: 8px; }
 .lang-choices[hidden],
 .widget-form label[hidden],
-#dash-connect[hidden],
-#service-ref[hidden],
 #service-key[hidden],
+#service-connect[hidden],
+.connect-row[hidden],
 #service-empty[hidden] { display: none; }
 .form-block-head {
   display: flex;
@@ -582,16 +582,8 @@ html[data-appearance="dark"] .switch i { background: #3a3c44; }
   align-items: stretch;
   gap: 8px;
 }
-.connect-row #service-ref { flex: 1; min-width: min(220px, 100%); }
+.connect-row #service-key { flex: 1; min-width: min(180px, 100%); }
 .connect-row #service-connect { flex: none; min-width: 112px; }
-#service-key-panel {
-  display: grid;
-  gap: 8px;
-  padding: 4px 0 8px;
-}
-#service-key-panel[hidden] { display: none; }
-#service-key-panel > label { margin-top: 8px; }
-#service-key-toggle { margin-top: 4px; }
 .service-empty { margin: 0; }
 .lang-choices button {
   min-height: 38px;

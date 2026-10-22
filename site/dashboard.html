@@ -129,7 +129,7 @@
           <div class="row">
             <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v10"/><path d="m8 10.5 4 4 4-4"/><path d="M5 19h14"/></svg></span>
             <div class="row-copy"><strong>Hooxie version</strong><span>The desktop build on this computer.</span></div>
-            <span id="version" class="tag">0.2.25</span>
+            <span id="version" class="tag">0.2.26</span>
           </div>
           <div class="row">
             <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
@@ -227,35 +227,15 @@
             <strong>Services</strong>
             <span id="service-count" class="tag">0</span>
           </div>
-          <p class="note">Pick a service and connect it. Add as many as you need. Connect opens that service’s key page when one exists; otherwise use Paste an API key.</p>
+          <p class="note">Pick a service, then Connect or paste an API key.</p>
           <div class="connect-composer">
             <label for="service-choice">Add a connection</label>
             <select id="service-choice" class="device-select" aria-label="Service"></select>
-            <div class="connect-row">
-              <input id="service-ref" type="text" spellcheck="false" autocomplete="off" aria-label="Connection">
+            <div class="connect-row" id="service-action">
+              <input id="service-key" type="password" autocomplete="off" placeholder="Paste the API key" aria-label="API key" hidden>
               <button class="btn" id="service-connect" type="button">Connect</button>
             </div>
-            <input id="service-key" type="password" autocomplete="off" placeholder="Paste the API key, then Connect" aria-label="API key">
             <p id="service-connect-note" class="note"></p>
-          </div>
-          <button class="advanced-toggle" id="service-key-toggle" type="button" aria-expanded="false" aria-controls="service-key-panel">
-            <span class="advanced-copy">
-              <strong>Paste an API key</strong>
-              <span>Save a key for any service without opening its page.</span>
-            </span>
-          </button>
-          <div id="service-key-panel" hidden>
-            <label for="key-service">Service</label>
-            <select id="key-service" class="device-select" aria-label="Service for this API key"></select>
-            <div class="field">
-              <input id="dash-key" type="password" autocomplete="off" placeholder="API key" aria-label="API key">
-              <button class="btn" id="dash-save-key" type="button" data-i18n="ide.save">Save key</button>
-            </div>
-            <label class="check"><input id="dash-remember-key" type="checkbox"> Remember the keys in your user profile</label>
-            <p id="dash-key-note" class="note"></p>
-            <div class="field">
-              <button class="btn" id="dash-connect" type="button" data-i18n="ide.connect">Connect Cursor</button>
-            </div>
           </div>
           <p id="service-empty" class="note service-empty">No connections yet.</p>
           <div id="service-list" class="service-list" aria-live="polite"></div>
@@ -376,7 +356,7 @@
           </article>
           <article>
             <h2>Connections</h2>
-            <p>Add as many services as you need. Connect opens that service’s key page when one exists. Paste an API key saves a key without opening a page. Unlink all IDEs clears the editor Hooxie is using. Advanced under IDE holds a negative prompt and memory presets.</p>
+            <p>Add as many services as you need. Pick one, then Connect or paste an API key. Unlink all IDEs clears the editor Hooxie is using. Advanced under IDE holds a negative prompt and memory presets.</p>
           </article>
         </div>
       </section>

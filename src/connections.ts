@@ -86,6 +86,7 @@ export async function checkConnection(service: string, ref: string): Promise<{ s
   const value = ref.trim();
   if (!check) return { status: "problem", detail: "That service is not supported." };
   if (!value) return { status: "not-connected", detail: "Not connected." };
+  if (value === "linked" && check.kind !== "status") return { status: "online", detail: "Connected." };
   try {
     if (check.kind === "github") return await checkGithub(value);
     if (check.kind === "gitlab") return await checkProject(value, `https://gitlab.com/api/v4/projects/${encodeURIComponent(value)}`, "GitLab");

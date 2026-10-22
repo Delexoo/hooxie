@@ -14,7 +14,7 @@ const COPY = {
     "help.title": "Help center", "help.open": "Open the help center", "help.s1": "Start Hooxie", "help.p1": "Run Hooxie on Windows. The pill sits at the top center. Choose the project folder before the first prompt.", "help.s2": "Voice, screen, and files", "help.p2": "An empty prompt shows the microphone. Text turns that button into send. While the agent is working, the same button is a square and stops the run. “View the screen” attaches a screenshot. The plus button adds files or a folder.", "help.s3": "Hide from a call", "help.p3": "Turn Detectable off, or start a session with Ctrl+Shift+\\. You still see the pill and the dashboard. A normal screen share does not see either window.",
     "contact.title": "Contact support", "contact.note": "Email support@delexo.store.", "contact.open": "Open the contact form",
     "mode.light": "Light", "mode.dark": "Dark", "session.running": "Running", "session.stopped": "Stopped",
-    "status.shown": "Hooxie is on screen.", "status.hidden": "Hooxie is hidden. Ctrl+\\ shows it again.", "status.desktop": "Toggle Hooxie from the desktop app.",
+    "status.shown": "Hooxie is on screen.", "status.desktop": "Toggle Hooxie from the desktop app.",
   },
   es: {
     "nav.general": "Ajustes", "nav.onboarding": "Conexiones", "nav.keybinds": "Atajos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Facturación", "nav.support": "Soporte", "nav.releases": "Notas de versión", "nav.help": "Centro de ayuda", "nav.contact": "Contacto", "nav.toggle": "Mostrar u ocultar", "nav.quit": "Salir de Hooxie",
@@ -28,7 +28,7 @@ const COPY = {
     "help.title": "Centro de ayuda", "help.open": "Abrir el centro de ayuda", "help.s1": "Inicia Hooxie", "help.p1": "Ejecuta Hooxie en Windows. La pastilla queda arriba, al centro. Elige la carpeta del proyecto antes del primer mensaje.", "help.s2": "Voz, pantalla y archivos", "help.p2": "Un mensaje vacío muestra el micrófono. El texto convierte ese botón en enviar. Mientras el agente trabaja, el mismo botón es un cuadrado y detiene la ejecución. “Ver la pantalla” adjunta una captura. El botón más añade archivos o una carpeta.", "help.s3": "Ocultar en una llamada", "help.p3": "Apaga Detectable, o inicia una sesión con Ctrl+Mayús+\\. Tú sigues viendo Hooxie. Una pantalla compartida normal no.",
     "contact.title": "Contactar soporte", "contact.note": "Escribe a support@delexo.store.", "contact.open": "Abrir el formulario",
     "mode.light": "Claro", "mode.dark": "Oscuro", "session.running": "En curso", "session.stopped": "Detenido",
-    "status.shown": "Hooxie está en pantalla.", "status.hidden": "Hooxie está oculto. Ctrl+\\ lo muestra de nuevo.", "status.desktop": "Muestra u oculta Hooxie desde la aplicación.",
+    "status.shown": "Hooxie está en pantalla.", "status.desktop": "Muestra u oculta Hooxie desde la aplicación.",
   },
   fr: {
     "nav.general": "Réglages", "nav.onboarding": "Connexions", "nav.keybinds": "Raccourcis", "nav.profile": "Profil", "nav.language": "Langue", "nav.billing": "Facturation", "nav.support": "Assistance", "nav.releases": "Notes de version", "nav.help": "Centre d'aide", "nav.contact": "Contact", "nav.toggle": "Afficher ou masquer", "nav.quit": "Quitter Hooxie",
@@ -42,7 +42,7 @@ const COPY = {
     "help.title": "Centre d'aide", "help.open": "Ouvrir le centre d'aide", "help.s1": "Démarrer Hooxie", "help.p1": "Lancez Hooxie sur Windows. La pilule se place en haut au centre. Choisissez le dossier du projet avant le premier message.", "help.s2": "Voix, écran et fichiers", "help.p2": "Un message vide affiche le microphone. Le texte transforme ce bouton en envoi. Pendant que l'agent travaille, le même bouton est un carré et arrête l'exécution. « Voir l'écran » joint une capture. Le bouton plus ajoute des fichiers ou un dossier.", "help.s3": "Masquer pendant un appel", "help.p3": "Désactivez Détectable, ou démarrez une session avec Ctrl+Maj+\\. Vous voyez toujours Hooxie. Un partage d'écran normal ne le voit pas.",
     "contact.title": "Contacter le support", "contact.note": "Écrivez à support@delexo.store.", "contact.open": "Ouvrir le formulaire",
     "mode.light": "Clair", "mode.dark": "Sombre", "session.running": "En cours", "session.stopped": "Arrêté",
-    "status.shown": "Hooxie est à l'écran.", "status.hidden": "Hooxie est masqué. Ctrl+\\ le réaffiche.", "status.desktop": "Affichez ou masquez Hooxie depuis l'application.",
+    "status.shown": "Hooxie est à l'écran.", "status.desktop": "Affichez ou masquez Hooxie depuis l'application.",
   },
   de: {
     "nav.general": "Einstellungen", "nav.onboarding": "Verbindungen", "nav.keybinds": "Tasten", "nav.profile": "Profil", "nav.language": "Sprache", "nav.billing": "Abrechnung", "nav.support": "Support", "nav.releases": "Versionshinweise", "nav.help": "Hilfe", "nav.contact": "Kontakt", "nav.toggle": "Ein- oder ausblenden", "nav.quit": "Hooxie beenden",
@@ -56,7 +56,7 @@ const COPY = {
     "help.title": "Hilfe", "help.open": "Hilfe öffnen", "help.s1": "Hooxie starten", "help.p1": "Starte Hooxie unter Windows. Die Pille sitzt oben in der Mitte. Wähle den Projektordner vor der ersten Eingabe.", "help.s2": "Sprache, Bildschirm und Dateien", "help.p2": "Eine leere Eingabe zeigt das Mikrofon. Text macht aus dem Knopf Senden. Während der Agent arbeitet, ist derselbe Knopf ein Quadrat und stoppt den Lauf. „Bildschirm ansehen“ hängt einen Screenshot an. Plus fügt Dateien oder einen Ordner hinzu.", "help.s3": "In einem Anruf ausblenden", "help.p3": "Schalte Erkennbar aus, oder starte eine Sitzung mit Strg+Umschalt+\\. Du siehst Hooxie weiter. Eine normale Bildschirmfreigabe nicht.",
     "contact.title": "Support kontaktieren", "contact.note": "Schreib an support@delexo.store.", "contact.open": "Formular öffnen",
     "mode.light": "Hell", "mode.dark": "Dunkel", "session.running": "Läuft", "session.stopped": "Gestoppt",
-    "status.shown": "Hooxie ist auf dem Bildschirm.", "status.hidden": "Hooxie ist ausgeblendet. Strg+\\ zeigt es wieder.", "status.desktop": "Blende Hooxie in der App ein oder aus.",
+    "status.shown": "Hooxie ist auf dem Bildschirm.", "status.desktop": "Blende Hooxie in der App ein oder aus.",
   },
   pt: {
     "nav.general": "Ajustes", "nav.onboarding": "Conexões", "nav.keybinds": "Atalhos", "nav.profile": "Perfil", "nav.language": "Idioma", "nav.billing": "Cobrança", "nav.support": "Suporte", "nav.releases": "Notas da versão", "nav.help": "Central de ajuda", "nav.contact": "Contato", "nav.toggle": "Mostrar ou ocultar", "nav.quit": "Sair do Hooxie",
@@ -70,7 +70,7 @@ const COPY = {
     "help.title": "Central de ajuda", "help.open": "Abrir a central de ajuda", "help.s1": "Iniciar o Hooxie", "help.p1": "Execute o Hooxie no Windows. A pílula fica no topo, ao centro. Escolha a pasta do projeto antes do primeiro pedido.", "help.s2": "Voz, tela e arquivos", "help.p2": "Um pedido vazio mostra o microfone. O texto transforma esse botão em enviar. Enquanto o agente trabalha, o mesmo botão é um quadrado e interrompe a execução. “Ver a tela” anexa uma captura. O botão de mais adiciona arquivos ou uma pasta.", "help.s3": "Ocultar numa chamada", "help.p3": "Desligue Detectável, ou inicie uma sessão com Ctrl+Shift+\\. Você continua vendo o Hooxie. Um compartilhamento normal de tela não.",
     "contact.title": "Falar com o suporte", "contact.note": "Escreva para support@delexo.store.", "contact.open": "Abrir o formulário",
     "mode.light": "Claro", "mode.dark": "Escuro", "session.running": "Em execução", "session.stopped": "Parado",
-    "status.shown": "O Hooxie está na tela.", "status.hidden": "O Hooxie está oculto. Ctrl+\\ mostra de novo.", "status.desktop": "Mostre ou oculte o Hooxie no aplicativo.",
+    "status.shown": "O Hooxie está na tela.", "status.desktop": "Mostre ou oculte o Hooxie no aplicativo.",
   },
   ja: {
     "nav.general": "設定", "nav.onboarding": "接続", "nav.keybinds": "キー", "nav.profile": "プロフィール", "nav.language": "言語", "nav.billing": "料金", "nav.support": "サポート", "nav.releases": "リリースノート", "nav.help": "ヘルプ", "nav.contact": "連絡", "nav.toggle": "表示の切り替え", "nav.quit": "Hooxie を終了",
@@ -84,7 +84,7 @@ const COPY = {
     "help.title": "ヘルプ", "help.open": "ヘルプを開く", "help.s1": "Hooxie を起動", "help.p1": "Windows で Hooxie を起動します。ピルは上中央にあります。最初のプロンプトの前にプロジェクトフォルダーを選びます。", "help.s2": "音声、画面、ファイル", "help.p2": "空のプロンプトではマイクが表示されます。文字を入れるとそのボタンが送信になります。エージェントの作業中は同じボタンが四角になり、実行を止めます。「画面を見る」はスクリーンショットを添付します。プラスはファイルやフォルダーを追加します。", "help.s3": "通話中に隠す", "help.p3": "検出可能をオフにするか、Ctrl+Shift+\\ でセッションを始めます。自分には見えます。通常の画面共有には映りません。",
     "contact.title": "サポートに連絡", "contact.note": "support@delexo.store にメールします。", "contact.open": "フォームを開く",
     "mode.light": "ライト", "mode.dark": "ダーク", "session.running": "実行中", "session.stopped": "停止",
-    "status.shown": "Hooxie は画面に出ています。", "status.hidden": "Hooxie は隠れています。Ctrl+\\ で戻ります。", "status.desktop": "アプリから Hooxie の表示を切り替えます。",
+    "status.shown": "Hooxie は画面に出ています。", "status.desktop": "アプリから Hooxie の表示を切り替えます。",
   },
   zh: {
     "nav.general": "设置", "nav.onboarding": "连接", "nav.keybinds": "快捷键", "nav.profile": "账户", "nav.language": "语言", "nav.billing": "账单", "nav.support": "支持", "nav.releases": "更新说明", "nav.help": "帮助中心", "nav.contact": "联系支持", "nav.toggle": "显示或隐藏", "nav.quit": "退出 Hooxie",
@@ -98,7 +98,7 @@ const COPY = {
     "help.title": "帮助中心", "help.open": "打开帮助中心", "help.s1": "启动 Hooxie", "help.p1": "在 Windows 上运行 Hooxie。胶囊位于顶部居中。第一次提问前先选择项目文件夹。", "help.s2": "语音、屏幕和文件", "help.p2": "提示为空时显示麦克风。输入文字后，这个按钮变成发送。代理工作时，同一个按钮变成方块并停止运行。“查看屏幕”会附上截图。加号可以添加文件或文件夹。", "help.s3": "通话时隐藏", "help.p3": "关闭“可被检测”，或用 Ctrl+Shift+\\ 开始会话。你仍然看得到 Hooxie。普通的屏幕共享看不到。",
     "contact.title": "联系支持", "contact.note": "发邮件到 support@delexo.store。", "contact.open": "打开联系表单",
     "mode.light": "浅色", "mode.dark": "深色", "session.running": "运行中", "session.stopped": "已停止",
-    "status.shown": "Hooxie 已显示在屏幕上。", "status.hidden": "Hooxie 已隐藏。Ctrl+\\ 会再次显示。", "status.desktop": "请在桌面应用里切换 Hooxie。",
+    "status.shown": "Hooxie 已显示在屏幕上。", "status.desktop": "请在桌面应用里切换 Hooxie。",
   },
 };
 
@@ -378,7 +378,7 @@ function wireSidebar(status) {
       const result = await request("/api/widget/visible", { shown: next });
       widgetShown = result.shown !== false;
       status.classList.remove("is-error");
-      status.textContent = widgetShown ? "" : t("status.hidden");
+      status.textContent = "";
     } catch (error) {
       explainFailure(status, error);
     } finally {
@@ -578,7 +578,6 @@ function bootDashboard() {
   mountPickMenu(inputDevice);
   mountPickMenu(outputDevice);
   mountPickMenu(document.querySelector("#dash-ide"));
-  mountPickMenu(document.querySelector("#key-service"));
   mountPickMenu(document.querySelector("#service-choice"));
   mountPickMenu(languageSelect);
 
@@ -787,60 +786,48 @@ function bootDashboard() {
   }
   wireChimes();
   const SERVICES = [
-    { id: "github", name: "GitHub", placeholder: "owner/repo" },
-    { id: "gitlab", name: "GitLab", placeholder: "group/project" },
-    { id: "bitbucket", name: "Bitbucket", placeholder: "owner/repo" },
-    { id: "supabase", name: "Supabase", placeholder: "https://project.supabase.co" },
-    { id: "vercel", name: "Vercel", placeholder: "https://example.com" },
-    { id: "netlify", name: "Netlify", placeholder: "https://example.netlify.app" },
-    { id: "cloudflare", name: "Cloudflare", placeholder: "example.com" },
-    { id: "railway", name: "Railway", placeholder: "https://example.up.railway.app" },
-    { id: "fly", name: "Fly.io", placeholder: "https://example.fly.dev" },
-    { id: "shopify", name: "Shopify", placeholder: "example.myshopify.com" },
-    { id: "render", name: "Render", link: true },
-    { id: "neon", name: "Neon", link: true },
-    { id: "planetscale", name: "PlanetScale", link: true },
-    { id: "mongodb", name: "MongoDB", link: true },
-    { id: "firebase", name: "Firebase", link: true },
-    { id: "clerk", name: "Clerk", link: true },
-    { id: "auth0", name: "Auth0", link: true },
-    { id: "resend", name: "Resend", link: true },
-    { id: "stripe", name: "Stripe", link: true },
-    { id: "openai", name: "OpenAI", link: true },
-    { id: "anthropic", name: "Anthropic", link: true },
-    { id: "google", name: "Google Cloud", link: true },
-    { id: "azure", name: "Azure", link: true },
-    { id: "aws", name: "AWS", link: true },
-    { id: "twilio", name: "Twilio", link: true },
-    { id: "sendgrid", name: "SendGrid", link: true },
-    { id: "postmark", name: "Postmark", link: true },
-    { id: "sentry", name: "Sentry", link: true },
-    { id: "datadog", name: "Datadog", link: true },
-    { id: "linear", name: "Linear", link: true },
-    { id: "notion", name: "Notion", link: true },
-    { id: "slack", name: "Slack", link: true },
-    { id: "discord", name: "Discord", link: true },
-    { id: "figma", name: "Figma", link: true },
-    { id: "huggingface", name: "Hugging Face", link: true },
-    { id: "replicate", name: "Replicate", link: true },
-    { id: "pinecone", name: "Pinecone", link: true },
-    { id: "upstash", name: "Upstash", link: true },
-    { id: "docker", name: "Docker Hub", link: true },
-    { id: "npm", name: "npm", link: true },
+    { id: "cursor", name: "Cursor", connect: "login" },
+    { id: "github", name: "GitHub", connect: "page" },
+    { id: "gitlab", name: "GitLab", connect: "page" },
+    { id: "bitbucket", name: "Bitbucket", connect: "page" },
+    { id: "supabase", name: "Supabase", connect: "page" },
+    { id: "vercel", name: "Vercel", connect: "page" },
+    { id: "netlify", name: "Netlify", connect: "page" },
+    { id: "cloudflare", name: "Cloudflare", connect: "page" },
+    { id: "railway", name: "Railway", connect: "page" },
+    { id: "fly", name: "Fly.io", connect: "page" },
+    { id: "shopify", name: "Shopify" },
+    { id: "render", name: "Render" },
+    { id: "neon", name: "Neon", connect: "page" },
+    { id: "planetscale", name: "PlanetScale" },
+    { id: "mongodb", name: "MongoDB" },
+    { id: "firebase", name: "Firebase" },
+    { id: "clerk", name: "Clerk" },
+    { id: "auth0", name: "Auth0" },
+    { id: "resend", name: "Resend", connect: "page" },
+    { id: "stripe", name: "Stripe", connect: "page" },
+    { id: "openai", name: "OpenAI", connect: "page" },
+    { id: "anthropic", name: "Anthropic", connect: "page" },
+    { id: "google", name: "Google Cloud" },
+    { id: "azure", name: "Azure" },
+    { id: "aws", name: "AWS" },
+    { id: "twilio", name: "Twilio" },
+    { id: "sendgrid", name: "SendGrid", connect: "page" },
+    { id: "postmark", name: "Postmark", connect: "page" },
+    { id: "sentry", name: "Sentry", connect: "page" },
+    { id: "datadog", name: "Datadog", connect: "page" },
+    { id: "linear", name: "Linear", connect: "page" },
+    { id: "notion", name: "Notion" },
+    { id: "slack", name: "Slack" },
+    { id: "discord", name: "Discord" },
+    { id: "figma", name: "Figma" },
+    { id: "huggingface", name: "Hugging Face", connect: "page" },
+    { id: "replicate", name: "Replicate", connect: "page" },
+    { id: "pinecone", name: "Pinecone" },
+    { id: "upstash", name: "Upstash" },
+    { id: "docker", name: "Docker Hub", connect: "page" },
+    { id: "npm", name: "npm", connect: "page" },
   ];
-  const KEY_TARGETS = [
-    ["cursor", "Cursor"],
-    ["vscode", "Visual Studio Code"],
-    ["windsurf", "Windsurf"],
-    ["jetbrains", "JetBrains"],
-    ["visualstudio", "Visual Studio"],
-    ["zed", "Zed"],
-    ["sublime", "Sublime Text"],
-    ["androidstudio", "Android Studio"],
-    ["neovim", "Neovim"],
-    ...SERVICES.map((service) => [service.id, service.name]),
-  ];
-  renderKeyChoices();
   renderServiceChoices();
   wireWidget();
   loadKeys().catch(() => undefined);
@@ -1254,14 +1241,10 @@ function bootDashboard() {
 
   function paintAccount() {
     const connected = settings.cursorConnected === true;
-    const button = document.querySelector("#dash-connect");
-    const note = document.querySelector("#dash-key-note");
-    if (button) button.hidden = connected;
-    if (note && note.dataset.hold !== "1") {
-      note.textContent = connected
-        ? "Cursor is connected. Saved keys stay in your user profile when Remember is on."
-        : "Saved keys stay in your user profile when Remember is on.";
-    }
+    const had = keyed.has("cursor");
+    if (connected) keyed.add("cursor");
+    else keyed.delete("cursor");
+    if (connected !== had) renderServices();
   }
 
   function choiceButton(label, checked, onClick) {
@@ -1506,20 +1489,6 @@ function bootDashboard() {
     }));
   }
 
-  function renderKeyChoices() {
-    const select = document.querySelector("#key-service");
-    if (!select) return;
-    const current = select.value;
-    select.replaceChildren(...KEY_TARGETS.map(([id, name]) => {
-      const option = document.createElement("option");
-      option.value = id;
-      option.textContent = name;
-      return option;
-    }));
-    if ([...select.options].some((item) => item.value === current)) select.value = current;
-    select.dispatchEvent(new Event("pick-sync"));
-  }
-
   function renderServiceChoices() {
     const select = document.querySelector("#service-choice");
     if (!select) return;
@@ -1557,7 +1526,9 @@ function bootDashboard() {
   }
 
   function serviceLinked(service) {
-    return Boolean(service && keyed.has(service.id));
+    if (!service) return false;
+    if (service.id === "cursor") return settings.cursorConnected === true || keyed.has("cursor");
+    return keyed.has(service.id);
   }
 
   function resetServiceConnect(message) {
@@ -1579,34 +1550,26 @@ function bootDashboard() {
   function syncServiceConnect() {
     const service = selectedService();
     if (!service) return;
-    const links = readLinks();
     const linked = serviceLinked(service);
-    const awaiting = awaitingServiceKey === service.id && !linked;
-    const input = document.querySelector("#service-ref");
     const key = document.querySelector("#service-key");
     const button = document.querySelector("#service-connect");
-    if (!input || !key || !button) return;
-    if (service.link || linked) {
-      input.hidden = true;
-    } else {
-      input.hidden = false;
-      input.placeholder = service.placeholder || "owner/repo or project URL";
-      if (document.activeElement !== input) {
-        const saved = links[service.id];
-        input.value = saved && saved !== "linked" ? saved : "";
-      }
-    }
-    key.hidden = linked || !awaiting;
-    if (!awaiting && document.activeElement !== key) key.value = "";
-    button.textContent = linked ? "Disconnect" : awaiting ? "Save key" : "Connect";
+    const row = document.querySelector("#service-action");
+    if (!key || !button || !row) return;
+    key.hidden = linked;
+    if (linked && document.activeElement !== key) key.value = "";
+    button.hidden = service.id === "cursor" && linked;
+    button.textContent = linked ? "Disconnect" : "Connect";
     button.className = linked ? "ghost" : "btn";
+    row.hidden = key.hidden && button.hidden;
   }
 
   async function loadKeys() {
     if (!LOCAL || !TOKEN) return;
     const body = await request("/api/keys");
+    const keepCursor = settings.cursorConnected === true;
     keyed.clear();
     for (const id of body.services || []) keyed.add(id);
+    if (keepCursor) keyed.add("cursor");
     renderServices();
   }
 
@@ -1653,14 +1616,6 @@ function bootDashboard() {
       panel.hidden = !open;
       document.querySelector("#advanced-toggle").setAttribute("aria-expanded", open ? "true" : "false");
     });
-    document.querySelector("#service-key-toggle")?.addEventListener("click", () => {
-      const panel = document.querySelector("#service-key-panel");
-      if (!panel) return;
-      const open = panel.hidden;
-      panel.hidden = !open;
-      document.querySelector("#service-key-toggle").setAttribute("aria-expanded", open ? "true" : "false");
-      if (open) document.querySelector("#dash-key")?.focus();
-    });
     document.querySelector("#memory-save").addEventListener("click", () => {
       const name = document.querySelector("#memory-name").value.trim().slice(0, 80);
       const text = document.querySelector("#memory-text").value.trim().slice(0, 1200);
@@ -1700,51 +1655,6 @@ function bootDashboard() {
         explainFailure(status, error);
       }
     });
-    document.querySelector("#dash-save-key").addEventListener("click", async () => {
-      const note = document.querySelector("#dash-key-note");
-      try {
-        const service = document.querySelector("#key-service").value || "cursor";
-        await request("/api/key", {
-          apiKey: document.querySelector("#dash-key").value,
-          remember: document.querySelector("#dash-remember-key").checked,
-          service,
-        });
-        document.querySelector("#dash-key").value = "";
-        keyed.add(service);
-        writeLink(service, "linked");
-        if (service === "cursor") settings.cursorConnected = true;
-        delete note.dataset.hold;
-        note.textContent = document.querySelector("#dash-remember-key").checked
-          ? "Connected. The key is saved in your user profile."
-          : "Connected for this session.";
-        renderServices();
-        selectNextOpenService();
-        paint();
-        loadRoutes();
-      } catch (error) {
-        note.dataset.hold = "1";
-        note.textContent = error.message;
-      }
-    });
-    document.querySelector("#dash-connect").addEventListener("click", async () => {
-      const note = document.querySelector("#dash-key-note");
-      const button = document.querySelector("#dash-connect");
-      button.disabled = true;
-      note.dataset.hold = "1";
-      note.textContent = "Finish sign-in in the browser.";
-      try {
-        const result = await request("/api/cursor/connect", {});
-        settings.cursorConnected = result.connected === true;
-        delete note.dataset.hold;
-        paint();
-        loadRoutes();
-      } catch (error) {
-        note.textContent = error.message;
-      } finally {
-        button.disabled = false;
-        if (settings.cursorConnected === true) delete note.dataset.hold;
-      }
-    });
   }
 
   function readLinks() {
@@ -1770,6 +1680,7 @@ function bootDashboard() {
     const button = document.querySelector("#service-connect");
     if (!service || !note || !keyInput || !button) return;
     if (serviceLinked(service)) {
+      if (service.id === "cursor") return;
       awaitingServiceKey = "";
       writeLink(service.id, "");
       keyed.delete(service.id);
@@ -1779,30 +1690,28 @@ function bootDashboard() {
       return;
     }
     const apiKey = keyInput.value.trim();
-    if (apiKey.length >= 8) {
-      const refInput = document.querySelector("#service-ref");
-      const ref = service.link ? "linked" : (refInput?.value.trim() || "");
-      if (!service.link && !ref) {
-        note.textContent = "Add the connection detail, then Connect.";
-        refInput?.focus();
-        return;
-      }
+    if (!keyInput.hidden && apiKey.length >= 8) {
       if (LOCAL && TOKEN) {
-        await request("/api/key", {
-          apiKey,
-          remember: document.querySelector("#dash-remember-key").checked,
-          service: service.id,
-        });
+        await request("/api/key", { apiKey, remember: true, service: service.id });
       }
       keyed.add(service.id);
-      writeLink(service.id, ref || "linked");
+      writeLink(service.id, "linked");
+      if (service.id === "cursor") settings.cursorConnected = true;
       keyInput.value = "";
       awaitingServiceKey = "";
-      note.textContent = document.querySelector("#dash-remember-key").checked
-        ? "Connected. Pick another service to add the next one."
-        : "Connected for this session. Pick another service to add the next one.";
+      note.textContent = "Connected.";
       renderServices();
       selectNextOpenService();
+      if (service.id === "cursor") {
+        paint();
+        loadRoutes();
+      }
+      return;
+    }
+    const pasteOnly = service.connect !== "page" && service.connect !== "login";
+    if (!keyInput.hidden && (pasteOnly || awaitingServiceKey === service.id)) {
+      note.textContent = "Paste the API key.";
+      keyInput.focus();
       return;
     }
     if (!LOCAL || !TOKEN) {
@@ -1811,9 +1720,24 @@ function bootDashboard() {
     }
     button.disabled = true;
     try {
+      if (service.connect === "login") {
+        note.textContent = "Finish sign-in in the browser.";
+        const result = await request("/api/cursor/connect", {});
+        settings.cursorConnected = result.connected === true;
+        if (settings.cursorConnected) {
+          keyed.add("cursor");
+          writeLink("cursor", "linked");
+          note.textContent = "Connected.";
+          renderServices();
+          selectNextOpenService();
+          paint();
+          loadRoutes();
+        }
+        return;
+      }
       await request("/api/connections/open", { service: service.id });
       awaitingServiceKey = service.id;
-      note.textContent = "The browser is open. Create a key there, paste it, then Connect.";
+      note.textContent = "Paste the API key.";
       syncServiceConnect();
       keyInput.focus();
     } catch (error) {
@@ -1843,9 +1767,13 @@ function bootDashboard() {
       const status = document.createElement("span");
       status.className = "service-status";
       status.dataset.serviceStatus = service.id;
-      status.textContent = "Not checked";
-      status.dataset.state = "idle";
+      status.textContent = service.id === "cursor" ? "Connected" : "Not checked";
+      status.dataset.state = service.id === "cursor" ? "online" : "idle";
       head.append(title, status);
+      if (service.id === "cursor") {
+        card.append(head);
+        return card;
+      }
       const row = document.createElement("div");
       row.className = "field";
       const disconnect = document.createElement("button");

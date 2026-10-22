@@ -2,6 +2,28 @@
   "repo": "Delexoo/hooxie",
   "updates": [
     {
+      "version": "0.2.26",
+      "date": "2026-10-22",
+      "title": "Add a connection is one step",
+      "sections": [
+        {
+          "heading": "Widget",
+          "fixes": [
+            "Hide and close no longer say that Ctrl+\\ shows Hooxie again."
+          ]
+        },
+        {
+          "heading": "Dashboard",
+          "added": [
+            "Add a connection is a service list, then Connect or a field to paste an API key."
+          ],
+          "fixes": [
+            "Hiding Hooxie from the dashboard no longer says that Ctrl+\\ shows it again."
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.2.25",
       "date": "2026-10-21",
       "title": "Corners stay small when the pill grows",
